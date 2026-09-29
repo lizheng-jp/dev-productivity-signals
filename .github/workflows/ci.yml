@@ -1,0 +1,187 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build WAR
+        run: ./mvnw -B -DskipTests package
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Start build-time mock API
+        run: |
+          python3 - <<'PY' &
+          import json
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+
+          PROJECTS = [
+              {
+                  "id": 1,
+                  "name": "demo-productivity-project",
+                  "description": "Sanitized GitLab-style productivity analytics project for Dev Productivity Signals.",
+              },
+              {
+                  "id": 2,
+                  "name": "demo-ai-review-service",
+                  "description": "Synthetic AI code review service used to demonstrate MR quality analysis.",
+              },
+          ]
+
+          METRIC_WEIGHTS = [
+              {
+                  "id": 1,
+                  "metricKey": "mergedCount",
+                  "parentKey": "performance",
+                  "weight": 0.25,
+                  "active": True,
+                  "minThreshold": 0,
+                  "maxThreshold": 20,
+                  "positiveMetric": True,
+                  "description": "Merged merge request count",
+              }
+          ]
+
+          class Handler(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  if self.path == "/api/gitlab/projects":
+                      self.respond(PROJECTS)
+                  elif self.path == "/api/metric-weights":
+                      self.respond(METRIC_WEIGHTS)
+                  else:
+                      self.send_response(404)
+                      self.end_headers()
+
+              def respond(self, body):
+                  payload = json.dumps(body).encode()
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.send_header("Content-Length", str(len(payload)))
+                  self.end_headers()
+                  self.wfile.write(payload)
+
+              def log_message(self, format, *args):
+                  return
+
+          HTTPServer(("127.0.0.1", 18080), Handler).serve_forever()
+          PY
+
+      - name: Build Next.js app
+        working-directory: frontend
+        env:
+          INTERNAL_API_BASE_URL: http://127.0.0.1:18080
+        run: npm run build
+
+  agent:
+    name: Agent tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: PYTHONPATH=. python -m unittest discover -s tests
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    needs:
+      - backend
+      - frontend
+      - agent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start build-time mock API
+        run: |
+          python3 - <<'PY' &
+          import json
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+
+          class Handler(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  if self.path == "/api/gitlab/projects":
+                      body = [{"id": 1, "name": "demo-productivity-project", "description": "Demo project"}]
+                  elif self.path == "/api/metric-weights":
+                      body = [{"id": 1, "metricKey": "mergedCount", "parentKey": "performance", "weight": 0.25, "active": True, "minThreshold": 0, "maxThreshold": 20, "positiveMetric": True, "description": "Merged merge request count"}]
+                  else:
+                      self.send_response(404)
+                      self.end_headers()
+                      return
+                  payload = json.dumps(body).encode()
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.send_header("Content-Length", str(len(payload)))
+                  self.end_headers()
+                  self.wfile.write(payload)
+
+              def log_message(self, format, *args):
+                  return
+
+          HTTPServer(("127.0.0.1", 18080), Handler).serve_forever()
+          PY
+
+      - name: Build backend image
+        run: docker build -t signals-backend:ci ./backend
+
+      - name: Build frontend image
+        run: >
+          docker build
+          --network=host
+          --build-arg INTERNAL_API_BASE_URL=http://127.0.0.1:18080
+          --build-arg BACKEND_URL=http://tomcat:8080
+          -t signals-frontend:ci
+          ./frontend
+
+      - name: Build agent image
+        run: docker build -t signals-agent:ci ./agent

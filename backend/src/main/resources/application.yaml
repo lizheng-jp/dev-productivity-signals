@@ -1,0 +1,107 @@
+spring:
+  application:
+    name: dev_productivity_signals
+  servlet:
+    context-path: /
+
+
+  ##### Database #####
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/signals_demo}
+    username: ${SPRING_DATASOURCE_USERNAME:signals_demo}
+    password: ${SPRING_DATASOURCE_PASSWORD:signals_demo_password}
+    hikari:
+      schema: public
+      maximum-pool-size: 25
+      minimum-idle: 5
+      idle-timeout: 1000
+      max-lifetime: 5000
+
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:db/project_satisfaction_survey.sql
+        - classpath:db/user_feedback.sql
+        - classpath:db/ai_evaluation_feedback.sql
+        - classpath:db/ai_mr_analysis.sql
+
+
+
+gitlab:
+  api:
+    url: ${GITLAB_API_URL:}
+    token: ${GITLAB_API_KEY:}
+  cache:
+    projects:
+      ttl-minutes: ${GITLAB_PROJECTS_CACHE_TTL_MINUTES:1440}
+    project-members:
+      ttl-minutes: ${GITLAB_PROJECT_MEMBERS_CACHE_TTL_MINUTES:1440}
+    branches:
+      ttl-minutes: ${GITLAB_BRANCHES_CACHE_TTL_MINUTES:1440}
+
+github:
+  api:
+    url: ${GITHUB_API_URL:https://api.github.com}
+    version: ${GITHUB_API_VERSION:2026-03-10}
+    token: ${GITHUB_API_TOKEN:}
+    max-pages: ${GITHUB_API_MAX_PAGES:10}
+    max-commit-details: ${GITHUB_API_MAX_COMMIT_DETAILS:30}
+    max-anonymous-commit-details: ${GITHUB_API_MAX_ANONYMOUS_COMMIT_DETAILS:20}
+    max-review-details: ${GITHUB_API_MAX_REVIEW_DETAILS:30}
+    max-anonymous-review-details: ${GITHUB_API_MAX_ANONYMOUS_REVIEW_DETAILS:10}
+
+space-metrics:
+  snapshot-cache:
+    ttl-minutes: ${SPACE_METRICS_SNAPSHOT_CACHE_TTL_MINUTES:20}
+    maximum-size: ${SPACE_METRICS_SNAPSHOT_CACHE_MAXIMUM_SIZE:500}
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-3.5-flash}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent
+
+ai:
+  mr-analysis:
+    manual-run-enabled: ${AI_MR_ANALYSIS_MANUAL_RUN_ENABLED:true}
+    batch:
+      enabled: ${AI_MR_ANALYSIS_BATCH_ENABLED:false}
+      cron: "${AI_MR_ANALYSIS_BATCH_CRON:0 0 2 * * *}"
+      project-ids: ${AI_MR_ANALYSIS_BATCH_PROJECT_IDS:}
+      since: ${AI_MR_ANALYSIS_BATCH_SINCE:}
+      until: ${AI_MR_ANALYSIS_BATCH_UNTIL:}
+      ref-name: ${AI_MR_ANALYSIS_BATCH_REF_NAME:}
+
+setting:
+  security: false
+
+demo:
+  mock:
+    enabled: ${DEMO_MOCK_ENABLED:false}
+
+agent:
+  enabled: ${AGENT_ENABLED:false}
+  service-url: ${AGENT_SERVICE_URL:http://localhost:8000}
+  internal-key: ${AGENT_INTERNAL_KEY:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+    level:
+      root: INFO
+      dev.productivity.signals: DEBUG
+    pattern:
+      console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %-40.40logger{39} : %m%n'

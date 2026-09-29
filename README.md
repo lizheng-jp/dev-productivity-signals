@@ -36,4 +36,10 @@ Select a real GitHub project, then populate its evidence index following [the Si
 
 Run the backend tests from `backend/` with `./mvnw test`. Run the Agent tests from `agent/` with `PYTHONPATH=. python -m unittest discover -s tests`. The existing tests check selected behaviors; they are not a cross-project accuracy evaluation.
 
-No remote deployment workflow is included. Review configuration and data before publishing a live demo.
+## Live demo
+
+The demo is available at [signals.lizheng.cc](https://signals.lizheng.cc/ja). It serves synthetic dashboard data. Signals Agent is disabled on the public site until a separate public evidence index and usage controls are configured.
+
+For a self-hosted deployment, set `DEMO_DOMAIN` and a unique `POSTGRES_PASSWORD` in a private `.env`, then run `docker compose -f docker-compose.prod.yml up -d --build`. The production stack exposes only Caddy on ports 80 and 443; database, backend, and frontend remain within the Docker network. Do not commit `.env`.
+
+No automatic remote deployment workflow is included.

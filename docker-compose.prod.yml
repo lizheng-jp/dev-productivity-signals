@@ -1,0 +1,88 @@
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DEMO_DOMAIN: ${DEMO_DOMAIN:?Set DEMO_DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/signals_demo
+      SPRING_DATASOURCE_USERNAME: signals_demo
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      DEMO_MOCK_ENABLED: "true"
+      GITHUB_API_TOKEN: ${GITHUB_API_TOKEN:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AI_MR_ANALYSIS_MANUAL_RUN_ENABLED: "false"
+      AGENT_ENABLED: ${AGENT_ENABLED:-false}
+      AGENT_SERVICE_URL: http://agent:8000
+      AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
+      JAVA_OPTS: -Xms256m -Xmx768m -XX:MaxMetaspaceSize=256m
+      CATALINA_OPTS: -Xms256m -Xmx768m -XX:MaxMetaspaceSize=256m
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: signals_demo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: signals_demo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signals_demo -d signals_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:8080
+        NEXT_PUBLIC_AGENT_ENABLED: ${AGENT_ENABLED:-false}
+    environment:
+      BACKEND_URL: http://backend:8080
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  agent:
+    profiles: [agent]
+    build: ./agent
+    environment:
+      Signals_BACKEND_URL: http://backend:8080
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      - backend
+      - qdrant
+    restart: unless-stopped
+
+  qdrant:
+    profiles: [agent]
+    image: qdrant/qdrant:v1.17.0
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  qdrant_data:

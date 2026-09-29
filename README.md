@@ -2,7 +2,7 @@
 
 Dev Productivity Signals is a local developer analytics demo. The dashboard uses synthetic data by default. **Signals Agent** can answer questions about a selected GitHub project using bounded metric tools and a manually refreshed evidence index.
 
-This repository starts with one new commit and includes no deployment credentials, company environment configuration, or previous repository history. The local example file contains empty placeholders; keep your actual `.env` file private.
+This repository has a new history and includes no deployment credentials or company environment configuration. The local example file contains empty placeholders; keep your actual `.env` file private.
 
 ## Components
 

@@ -1,7 +1,6 @@
 .env
 .env.*
 !.env.example
-frontend/package-lock.json
 
 .DS_Store
 backend/docs/

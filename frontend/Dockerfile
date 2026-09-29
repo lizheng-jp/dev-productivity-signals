@@ -15,11 +15,9 @@ ENV INTERNAL_API_BASE_URL=${INTERNAL_API_BASE_URL}
 ENV BACKEND_URL=${BACKEND_URL}
 ENV NEXT_PUBLIC_AGENT_ENABLED=${NEXT_PUBLIC_AGENT_ENABLED}
 
-# Copy package metadata. This demo repo does not require a committed lockfile.
-COPY package.json ./
-
-# Install dependencies
-RUN npm install
+# Copy pinned package metadata and install exact versions.
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # Rebuild the source code only when needed
 # FROM base AS builder

@@ -38,7 +38,7 @@ Run the backend tests from `backend/` with `./mvnw test`. Run the Agent tests fr
 
 ## Live demo
 
-The demo is available at [signals.lizheng.cc](https://signals.lizheng.cc/ja). It serves synthetic dashboard data in read-only mode. Data-changing API requests are blocked except GitHub project lookup. Signals Agent is disabled on the public site until a separate public evidence index and usage controls are configured.
+The demo is available at [signals.lizheng.cc](https://signals.lizheng.cc/ja). It serves synthetic dashboard data in read-only mode. Data-changing API requests are blocked except GitHub project lookup and Signals Agent questions. The public Agent uses a fresh evidence index and anonymous GitHub API access; answers may have limited coverage until public evidence is indexed.
 
 For a self-hosted deployment, set `DEMO_DOMAIN` and a unique `POSTGRES_PASSWORD` in a private `.env`, then run `docker compose -f docker-compose.prod.yml up -d --build`. The production stack exposes only Caddy on ports 80 and 443; database, backend, and frontend remain within the Docker network. Do not commit `.env`.
 

@@ -22,7 +22,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
       DEMO_MOCK_ENABLED: "true"
       GITHUB_API_TOKEN: ${GITHUB_API_TOKEN:-}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY: ""
       AI_MR_ANALYSIS_MANUAL_RUN_ENABLED: "false"
       AGENT_ENABLED: ${AGENT_ENABLED:-false}
       AGENT_SERVICE_URL: http://agent:8000
@@ -67,8 +67,11 @@ services:
     environment:
       Signals_BACKEND_URL: http://backend:8080
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
       AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
       QDRANT_URL: http://qdrant:6333
+    mem_limit: 192m
+    pids_limit: 64
     depends_on:
       - backend
       - qdrant
@@ -79,6 +82,7 @@ services:
     image: qdrant/qdrant:v1.17.0
     volumes:
       - qdrant_data:/qdrant/storage
+    mem_limit: 384m
     restart: unless-stopped
 
 volumes:

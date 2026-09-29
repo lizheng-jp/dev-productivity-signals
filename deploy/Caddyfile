@@ -7,7 +7,7 @@
   @blockedWrites {
     method POST PUT PATCH DELETE
     path /api/*
-    not path /api/github/projects/resolve
+    not path /api/github/projects/resolve /api/agent/ask
   }
 
   route {

@@ -58,6 +58,9 @@ wc -l data/*.jsonl
 
 step "smoke test"
 python train.py --data-dir data --output-dir runs/smoke --base-model "$BASE_MODEL" --smoke 2>&1 | tail -n 15
+# also exercise the evaluation path (generation, adapter loading, metrics) before the long run
+python evaluate.py --results-dir results/smoke --split "$SPLIT" --name smoke --model "$BASE_MODEL" \
+  --adapter runs/smoke/adapter --limit 16 2>&1 | tail -n 25
 
 step "train $EXP"
 python train.py --data-dir data --output-dir "runs/$EXP" --base-model "$BASE_MODEL" 2>&1 | grep -v "it/s\]\|s/it\]" | tail -n 200

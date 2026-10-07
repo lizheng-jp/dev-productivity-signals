@@ -1,8 +1,10 @@
+import asyncio
 import hashlib
 from contextlib import closing
 import json
 import logging
 import math
+import random
 import sqlite3
 import struct
 import time
@@ -19,6 +21,10 @@ SOURCE_TYPES = frozenset({"mr_description", "mr_discussion", "issue", "issue_com
 EMBEDDING_DIMENSIONS = 768
 MAX_CHUNKS = 250
 EMBEDDING_BATCH_SIZE = 50
+EMBEDDING_ATTEMPTS = 3
+# Questions keep the model gateway's policy of not waiting on 429.
+QUERY_RETRY_STATUSES = frozenset({500, 502, 503, 504})
+DOCUMENT_RETRY_STATUSES = QUERY_RETRY_STATUSES | {429}
 
 
 class EvidenceDocument(BaseModel):
@@ -84,9 +90,8 @@ class GeminiEmbeddingProvider:
             "taskType": "RETRIEVAL_DOCUMENT",
             "outputDimensionality": EMBEDDING_DIMENSIONS,
         } for text in texts]
-        response = await self.client.post(url, headers={"x-goog-api-key": self.key},
-                                          json={"requests": requests}, timeout=45)
-        response.raise_for_status()
+        # Indexing is offline, so it also waits out short free-tier rate limits.
+        response = await self._post(url, {"requests": requests}, DOCUMENT_RETRY_STATUSES)
         embeddings = response.json().get("embeddings", [])
         if len(embeddings) != len(texts):
             raise ValueError("Embedding response count mismatch")
@@ -95,14 +100,34 @@ class GeminiEmbeddingProvider:
     async def embed_query(self, text: str) -> list[float]:
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
                f"{self.model}:embedContent")
-        response = await self.client.post(url, headers={"x-goog-api-key": self.key}, json={
+        response = await self._post(url, {
             "model": f"models/{self.model}",
             "content": {"parts": [{"text": text}]},
             "taskType": "RETRIEVAL_QUERY",
             "outputDimensionality": EMBEDDING_DIMENSIONS,
-        }, timeout=45)
-        response.raise_for_status()
+        }, QUERY_RETRY_STATUSES)
         return _unit_vector(response.json().get("embedding", {}).get("values", []))
+
+    async def _post(self, url: str, body: dict, retry_statuses: frozenset[int]) -> httpx.Response:
+        for attempt in range(EMBEDDING_ATTEMPTS):
+            try:
+                response = await self.client.post(url, headers={"x-goog-api-key": self.key},
+                                                  json=body, timeout=45)
+                response.raise_for_status()
+                return response
+            except httpx.HTTPStatusError as error:
+                status = error.response.status_code
+                if status not in retry_statuses or attempt == EMBEDDING_ATTEMPTS - 1:
+                    raise
+                logger.info(json.dumps({"event": "embedding_retry", "status_code": status,
+                                        "attempt": attempt + 1}))
+            except (httpx.TimeoutException, httpx.NetworkError):
+                if attempt == EMBEDDING_ATTEMPTS - 1:
+                    raise
+                logger.info(json.dumps({"event": "embedding_retry", "error_type": "network",
+                                        "attempt": attempt + 1}))
+            await asyncio.sleep(2 ** attempt + random.uniform(0, 0.25))
+        raise AssertionError("unreachable")
 
 
 def _unit_vector(values: list[float]) -> list[float]:

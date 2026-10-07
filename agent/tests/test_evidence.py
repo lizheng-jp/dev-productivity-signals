@@ -217,6 +217,39 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls[1][1]["taskType"], "RETRIEVAL_QUERY")
         self.assertEqual(calls[1][1]["outputDimensionality"], EMBEDDING_DIMENSIONS)
 
+    async def test_document_embedding_retries_rate_limit_but_query_does_not(self):
+        statuses = iter([429, 200, 429])
+        vector = [1.0] + [0.0] * (EMBEDDING_DIMENSIONS - 1)
+
+        def respond(request):
+            status = next(statuses)
+            if status != 200:
+                return httpx.Response(status, json={})
+            return httpx.Response(200, json={"embeddings": [{"values": vector}]})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            provider = GeminiEmbeddingProvider(client, "test-key")
+            with patch("app.evidence.asyncio.sleep", new=AsyncMock()) as sleep:
+                self.assertEqual(len(await provider.embed_documents(["review delay"])), 1)
+                with self.assertRaises(httpx.HTTPStatusError):
+                    await provider.embed_query("why")
+        self.assertEqual(sleep.await_count, 1)
+
+    async def test_document_embedding_gives_up_after_bounded_attempts(self):
+        attempts = 0
+
+        def respond(request):
+            nonlocal attempts
+            attempts += 1
+            return httpx.Response(503, json={})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            provider = GeminiEmbeddingProvider(client, "test-key")
+            with patch("app.evidence.asyncio.sleep", new=AsyncMock()), \
+                    self.assertRaises(httpx.HTTPStatusError):
+                await provider.embed_documents(["review delay"])
+        self.assertEqual(attempts, 3)
+
     async def test_index_endpoint_reuses_spring_feed_and_skips_unchanged_embedding(self):
         until = date.today()
         since = until - timedelta(days=6)

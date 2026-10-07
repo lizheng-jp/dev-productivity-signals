@@ -19,7 +19,7 @@ LoRA fine-tune of a small open model on [`ronantakizawa/github-codereview`](http
 | Does it get the category right when a reviewer did comment? | Type macro-F1 over commented hunks only (`type_macro_f1_positives`) |
 | Is the comment text good? | ROUGE-L against the reviewer's comment (weak proxy) and an optional pairwise LLM judge (`judge.py`) |
 
-Design decisions worth being able to explain:
+Design decisions:
 
 - `after_code` (the code after the reviewer's fix) is dropped because it is not available when a review is written. `repo_name` is not put in the prompt, to limit memorisation.
 - Loss is computed on the assistant reply only.
@@ -101,7 +101,7 @@ Time and cost depend on the GPU and token lengths. `train.py` prints the token-l
 
 ## Recording experiments
 
-You will run several experiments, and the point of the record is that you can explain each one in a minute: *why you ran it, what exactly changed, what happened, what you decided*.
+Several experiments are run, and each record answers four questions: *why it was run, what exactly changed, what happened, what was decided*.
 
 Rules that make the record trustworthy:
 
@@ -124,13 +124,13 @@ A suggested ladder, each answering one question:
 | exp04-8k | `--train-size 8000` | How much does more data help (cost vs gain)? |
 | exp05-0.5b | `--base-model Qwen/Qwen2.5-Coder-0.5B-Instruct` | How much does model size matter for this task? |
 
-Run them in order of cost and keep each one only if it answers its question; two or three honest experiments explain better than six unexplained ones.
+Run them in order of cost and keep each one only if it answers its question; a few well-recorded experiments are worth more than many unexplained ones.
 
 ## Reading the results
 
 - Compare `tuned` to `base` and to `majority`, with the CI. If the CIs overlap, you cannot claim an improvement.
 - Look at per-class F1 and the confusion matrix in `results/tuned.json`: rare classes (`security`, `performance`) usually fail first.
-- Open `results/tuned.predictions.jsonl` and read 30 wrong answers. Categorise the failures (ambiguous label, plausible alternative comment, wrong analysis, format error). This error analysis is what you bring to an interview.
+- Open `results/tuned.predictions.jsonl` and read about 30 wrong answers. Categorise the failures (ambiguous label, plausible alternative comment, wrong analysis, format error) and record the counts in the experiment's `NOTES.md`.
 
 ## Next step (not done)
 

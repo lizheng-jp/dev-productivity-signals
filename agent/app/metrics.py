@@ -18,3 +18,6 @@ INCOMPLETE_COVERAGE = Counter("signals_agent_incomplete_coverage_total",
                               "Index or search results with incomplete evidence coverage", ["operation"])
 MODEL_TOKENS = Counter("signals_agent_model_tokens_total",
                        "Gemini tokens by kind (input, output, thinking, cached_input)", ["kind"])
+ANSWER_REFERENCES = Counter("signals_agent_answer_references_total",
+                            "PR/issue references in answers: supported by tool evidence, unsupported, "
+                            "or links outside the selected project", ["kind"])

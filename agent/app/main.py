@@ -17,12 +17,13 @@ from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, model_validator
 
+from app.citations import answer_references, evidence_references
 from app.evidence import (EvidenceDocument, EmbeddingProvider,
                           GeminiEmbeddingProvider, SOURCE_TYPES)
 from app.qdrant_evidence import QdrantEvidenceIndex, QdrantRequestError, configured_index
 from app.metrics import (EXECUTIONS, EXECUTION_DURATION, MODEL_CALLS, MODEL_DURATION,
                          TOOL_CALLS, TOOL_DURATION, INDEX_RUNS, INDEX_DURATION,
-                         INCOMPLETE_COVERAGE, MODEL_TOKENS)
+                         INCOMPLETE_COVERAGE, MODEL_TOKENS, ANSWER_REFERENCES)
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -140,6 +141,7 @@ class Source(BaseModel):
     entityId: int | None = None
     eventDate: str | None = None
     score: float | None = None
+    cited: bool | None = None
 
 
 class AskResponse(BaseModel):
@@ -403,6 +405,9 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     tool_count = 0
     iterations = 0
     tokens: dict[str, int] = {}
+    supported: set[int] = set()
+    owner, repo = request.projectId.split("~")[1:]
+    project_url = f"https://github.com/{owner}/{repo}"
     for _ in range(MAX_TOOL_CALLS + 1):
         mode = "ANY" if tool_count == 0 else "NONE" if tool_count == MAX_TOOL_CALLS else "AUTO"
         model_start = time.monotonic()
@@ -432,6 +437,7 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             answer = "\n".join(part.get("text", "") for part in parts).strip()
             if not sources or not answer:
                 raise ValueError("Model did not produce a grounded answer")
+            _check_citations(answer, sources, supported, project_url, request_id, execution_id)
             _log("complete", request_id=request_id, execution_id=execution_id,
                  total_ms=round((time.monotonic() - start) * 1000), iterations=iterations,
                  tool_count=tool_count, tokens=tokens)
@@ -483,6 +489,9 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                     sources.extend(hits or [source])
                 else:
                     sources.append(source)
+                supported |= evidence_references(evidence, project_url)
+                if "mrIid" in args:
+                    supported.add(args["mrIid"])
                 called.add(name)
                 batch_evidence[name] = evidence
                 tool_count += 1
@@ -502,6 +511,25 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         contents.append(content)
         contents.append({"role": "user", "parts": responses})
     raise ValueError("Agent exceeded iteration budget")
+
+
+def _check_citations(answer: str, sources: list[Source], supported: set[int], project_url: str,
+                     request_id: str, execution_id: str) -> None:
+    """Marks retrieved hits the answer cites and logs references no tool returned.
+
+    This observes answers; it does not block them. Unsupported references are a fabrication signal.
+    """
+    referenced, external = answer_references(answer, project_url)
+    hits = [source for source in sources if source.entityId is not None]
+    for source in hits:
+        source.cited = source.entityId in referenced
+    unsupported = sorted(referenced - supported)
+    ANSWER_REFERENCES.labels("supported").inc(len(referenced) - len(unsupported))
+    ANSWER_REFERENCES.labels("unsupported").inc(len(unsupported))
+    ANSWER_REFERENCES.labels("external").inc(external)
+    _log("citation_check", request_id=request_id, execution_id=execution_id,
+         retrieved_hits=len(hits), cited_hits=sum(1 for source in hits if source.cited),
+         referenced=len(referenced), unsupported=unsupported[:20], external_links=external)
 
 
 @app.get("/health")

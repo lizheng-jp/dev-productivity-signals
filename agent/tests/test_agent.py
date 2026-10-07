@@ -255,6 +255,27 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
             result = await model.generate([{"role": "user", "parts": [{"text": "question"}]}], "NONE")
         self.assertEqual(result["parts"][0]["text"], "Facts: the measured score is 62.")
 
+    async def test_token_usage_is_logged_per_call_and_summed_per_request(self):
+        usages = iter([{"promptTokenCount": 100, "candidatesTokenCount": 5, "totalTokenCount": 105},
+                       {"promptTokenCount": 300, "candidatesTokenCount": 40, "thoughtsTokenCount": 12}])
+        replies = iter([{"functionCall": {"name": "get_project_metrics", "args": {}}},
+                        {"text": "Facts: mergedCount is 4."}])
+
+        def respond(request):
+            return httpx.Response(200, json={"usageMetadata": next(usages), "candidates": [
+                {"content": {"role": "model", "parts": [next(replies)]}}]})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            with self.assertLogs("signals.agent", level="INFO") as logs:
+                await run_agent(REQUEST, GeminiGateway(client, "key", "gemini-test"), FakeTools(),
+                                "request-usage", "execution-usage")
+        events = [json.loads(line.split(":", 2)[2]) for line in logs.output]
+        self.assertEqual([event["tokens"] for event in events if event["event"] == "model"],
+                         [{"input": 100, "output": 5},
+                          {"input": 300, "output": 40, "thinking": 12}])
+        complete = next(event for event in events if event["event"] == "complete")
+        self.assertEqual(complete["tokens"], {"input": 400, "output": 45, "thinking": 12})
+
     async def test_http_endpoint_requires_internal_key(self):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
                                      base_url="http://agent.test") as client:

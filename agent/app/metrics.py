@@ -16,3 +16,5 @@ INDEX_DURATION = Histogram("signals_agent_index_duration_seconds", "Evidence ind
                            buckets=(1, 5, 10, 30, 60, 120, 180))
 INCOMPLETE_COVERAGE = Counter("signals_agent_incomplete_coverage_total",
                               "Index or search results with incomplete evidence coverage", ["operation"])
+MODEL_TOKENS = Counter("signals_agent_model_tokens_total",
+                       "Gemini tokens by kind (input, output, thinking, cached_input)", ["kind"])

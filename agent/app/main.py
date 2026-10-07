@@ -22,7 +22,7 @@ from app.evidence import (EvidenceDocument, EmbeddingProvider,
 from app.qdrant_evidence import QdrantEvidenceIndex, QdrantRequestError, configured_index
 from app.metrics import (EXECUTIONS, EXECUTION_DURATION, MODEL_CALLS, MODEL_DURATION,
                          TOOL_CALLS, TOOL_DURATION, INDEX_RUNS, INDEX_DURATION,
-                         INCOMPLETE_COVERAGE)
+                         INCOMPLETE_COVERAGE, MODEL_TOKENS)
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -166,6 +166,7 @@ class GeminiGateway:
         self.client = client
         self.key = key
         self.model = model
+        self.last_usage: dict[str, int] = {}
 
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
         payload = {
@@ -230,10 +231,25 @@ class GeminiGateway:
                 _log("model_retry", error_type="network", attempt=attempt + 1,
                      delay_ms=round(delay * 1000))
                 await asyncio.sleep(delay)
-        candidates = response.json().get("candidates") or []
+        body = response.json()
+        self.last_usage = _usage(body.get("usageMetadata"))
+        for kind, count in self.last_usage.items():
+            MODEL_TOKENS.labels(kind).inc(count)
+        candidates = body.get("candidates") or []
         if not candidates or not candidates[0].get("content"):
             raise ValueError("Model returned no content")
         return candidates[0]["content"]
+
+
+USAGE_FIELDS = {"promptTokenCount": "input", "candidatesTokenCount": "output",
+                "thoughtsTokenCount": "thinking", "cachedContentTokenCount": "cached_input"}
+
+
+def _usage(metadata: Any) -> dict[str, int]:
+    if not isinstance(metadata, dict):
+        return {}
+    return {name: metadata[field] for field, name in USAGE_FIELDS.items()
+            if type(metadata.get(field)) is int and metadata[field] >= 0}
 
 
 class SignalsTools:
@@ -386,6 +402,7 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     called: set[str] = set()
     tool_count = 0
     iterations = 0
+    tokens: dict[str, int] = {}
     for _ in range(MAX_TOOL_CALLS + 1):
         mode = "ANY" if tool_count == 0 else "NONE" if tool_count == MAX_TOOL_CALLS else "AUTO"
         model_start = time.monotonic()
@@ -393,8 +410,11 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             content = await model.generate(contents, mode)
             MODEL_CALLS.labels("success").inc()
             MODEL_DURATION.observe(time.monotonic() - model_start)
+            usage = getattr(model, "last_usage", None) or {}
+            for kind, count in usage.items():
+                tokens[kind] = tokens.get(kind, 0) + count
             _log("model", request_id=request_id, execution_id=execution_id,
-                 duration_ms=round((time.monotonic() - model_start) * 1000))
+                 duration_ms=round((time.monotonic() - model_start) * 1000), tokens=usage)
         except Exception as error:
             MODEL_CALLS.labels("failure").inc()
             MODEL_DURATION.observe(time.monotonic() - model_start)
@@ -414,7 +434,7 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                 raise ValueError("Model did not produce a grounded answer")
             _log("complete", request_id=request_id, execution_id=execution_id,
                  total_ms=round((time.monotonic() - start) * 1000), iterations=iterations,
-                 tool_count=tool_count)
+                 tool_count=tool_count, tokens=tokens)
             return AskResponse(requestId=request_id, executionId=execution_id,
                                answer=answer, sources=sources, iterations=iterations)
         if len(calls) > MAX_TOOL_CALLS:

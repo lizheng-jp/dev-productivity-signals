@@ -1,0 +1,7 @@
+# Run on the GPU machine (RunPod PyTorch template already provides torch).
+# The pure-Python parts (formatting, metrics, prepare_data logic, tests) need none of these.
+datasets>=2.20
+huggingface_hub>=0.24
+transformers>=4.46
+peft>=0.13
+accelerate>=1.0

@@ -4,6 +4,10 @@ Dev Productivity Signals is a local developer analytics demo. The dashboard uses
 
 This repository has a new history and includes no deployment credentials or company environment configuration. The local example file contains empty placeholders; keep your actual `.env` file private.
 
+## Interview walkthrough
+
+See the [Chinese interview guide](docs/interview-guide.zh-CN.md) for a reproducible demo, architecture and trade-offs, interview questions, and an evidence checklist. See the [verification record](docs/interview-verification.md) for checks actually run and remaining gaps.
+
 ## Components
 
 - Next.js dashboard for project, team, member, and comparison views.

@@ -9,3 +9,5 @@ backend/docs/
 *.key
 *.p12
 *.pfx
+docs/interview-guide.zh-CN.md
+docs/interview-verification.md

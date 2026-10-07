@@ -327,6 +327,15 @@ class ExperimentTests(unittest.TestCase):
             experiments.record(self.tmp / "experiments", "exp01", results_dir=self.tmp / "results" / "exp01",
                                train_dir=None, data_dir=self.tmp / "data", hypothesis="h", change="c", parent=None)
 
+    def test_format_progress(self):
+        from codereview_ft.runinfo import format_progress
+        line = format_progress(100, 400, 600.0, {"loss": 1.23456, "learning_rate": 2e-4, "epoch": 0.5})
+        self.assertIn("step 100/400 (25%)", line)
+        self.assertIn("elapsed 10.0 min, ETA 30 min", line)
+        self.assertIn("loss=1.235", line)
+        self.assertNotIn("epoch", line)
+        self.assertIn("ETA 0 min", format_progress(0, 10, 0.0, {}))
+
     def test_runinfo(self):
         path = self.tmp / "f.txt"
         path.write_text("abc")

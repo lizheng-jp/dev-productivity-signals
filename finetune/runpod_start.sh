@@ -24,6 +24,8 @@ export PYTHONUNBUFFERED=1
 export TOKENIZERS_PARALLELISM=false
 
 step() { echo; echo "===== $(date -u +%H:%M:%S) $* ====="; }
+# stream child output line by line (progress bars use \r) and drop the noisy weight-loading bar
+stream() { tr '\r' '\n' | grep --line-buffered -v "Loading weights"; }
 
 cd /workspace
 if [ ! -d repo ]; then
@@ -57,13 +59,13 @@ fi
 wc -l data/*.jsonl
 
 step "smoke test"
-python train.py --data-dir data --output-dir runs/smoke --base-model "$BASE_MODEL" --smoke 2>&1 | tail -n 15
+python train.py --data-dir data --output-dir runs/smoke --base-model "$BASE_MODEL" --smoke 2>&1 | stream
 # also exercise the evaluation path (generation, adapter loading, metrics) before the long run
 python evaluate.py --results-dir results/smoke --split "$SPLIT" --name smoke --model "$BASE_MODEL" \
-  --adapter runs/smoke/adapter --limit 16 2>&1 | tail -n 25
+  --adapter runs/smoke/adapter --limit 16 2>&1 | stream
 
 step "train $EXP"
-python train.py --data-dir data --output-dir "runs/$EXP" --base-model "$BASE_MODEL" 2>&1 | grep -v "it/s\]\|s/it\]" | tail -n 200
+python -u train.py --data-dir data --output-dir "runs/$EXP" --base-model "$BASE_MODEL" 2>&1 | stream
 
 RES="results/$EXP"
 step "baselines on $SPLIT"
@@ -71,11 +73,11 @@ python evaluate.py --results-dir "$RES" --split "$SPLIT" --name majority --basel
 python evaluate.py --results-dir "$RES" --split "$SPLIT" --name length --baseline length | tail -n 3
 
 step "base model zero-shot on $SPLIT"
-python evaluate.py --results-dir "$RES" --split "$SPLIT" --name base --model "$BASE_MODEL" | tail -n 40
+python evaluate.py --results-dir "$RES" --split "$SPLIT" --name base --model "$BASE_MODEL" 2>&1 | stream
 
 step "tuned model on $SPLIT"
 python evaluate.py --results-dir "$RES" --split "$SPLIT" --name tuned --model "$BASE_MODEL" \
-  --adapter "runs/$EXP/adapter" | tail -n 40
+  --adapter "runs/$EXP/adapter" 2>&1 | stream
 
 step "report"
 python report.py "$RES"

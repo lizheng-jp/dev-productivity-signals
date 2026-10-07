@@ -12,9 +12,10 @@ import argparse
 import json
 import platform
 import random
+import time
 from pathlib import Path
 
-from codereview_ft.runinfo import file_sha, git_info
+from codereview_ft.runinfo import file_sha, format_progress, git_info
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -54,8 +55,19 @@ def main() -> None:
     import torch
     import transformers
     from peft import LoraConfig, get_peft_model
-    from transformers import (AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments,
-                              set_seed)
+    from transformers import (AutoModelForCausalLM, AutoTokenizer, Trainer, TrainerCallback,
+                              TrainingArguments, set_seed)
+
+    class ProgressLog(TrainerCallback):
+        """Print one plain line per log event so progress and ETA are readable in a log stream."""
+
+        def __init__(self):
+            self.started = time.time()
+
+        def on_log(self, args, state, control, logs=None, **kwargs):
+            if logs and state.is_world_process_zero and state.max_steps:
+                print(format_progress(state.global_step, state.max_steps, time.time() - self.started, logs),
+                      flush=True)
 
     set_seed(args.seed)
     data_dir = Path(args.data_dir)
@@ -111,10 +123,10 @@ def main() -> None:
         gradient_accumulation_steps=args.grad_accum, bf16=True, logging_steps=10,
         eval_strategy="steps", eval_steps=eval_every, save_strategy="steps", save_steps=eval_every,
         save_total_limit=2, report_to=args.report_to, seed=args.seed, remove_unused_columns=False,
-        gradient_checkpointing_kwargs={"use_reentrant": False},
+        gradient_checkpointing_kwargs={"use_reentrant": False}, disable_tqdm=True,
     )
     trainer = Trainer(model=model, args=training_args, train_dataset=train_set, eval_dataset=val_set,
-                      data_collator=collate)
+                      data_collator=collate, callbacks=[ProgressLog()])
     result = trainer.train()
     final_eval = trainer.evaluate()
 

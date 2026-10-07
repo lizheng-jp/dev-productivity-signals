@@ -30,3 +30,18 @@ def file_sha(path: str | Path, length: int = 12) -> str | None:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()[:length]
+
+
+def format_progress(step: int, max_steps: int, elapsed_s: float, logs: dict) -> str:
+    """One log line per Trainer log event: step, percent, elapsed, ETA and the main numbers."""
+    pct = 100 * step / max_steps if max_steps else 0.0
+    eta_min = elapsed_s / step * (max_steps - step) / 60 if step else 0.0
+    shown = []
+    for key in ("loss", "eval_loss", "learning_rate", "grad_norm"):
+        if key in logs:
+            try:
+                shown.append(f"{key}={float(logs[key]):.4g}")
+            except (TypeError, ValueError):
+                shown.append(f"{key}={logs[key]}")
+    return (f"[progress] step {step}/{max_steps} ({pct:.0f}%) elapsed {elapsed_s / 60:.1f} min, "
+            f"ETA {eta_min:.0f} min | " + ", ".join(shown))

@@ -25,6 +25,23 @@ docker compose --profile agent exec agent python -m app.evaluate \
 
 Indexing is bounded by GitHub pagination and per-item limits. Check `truncated` and source counts in the result; a successful run does not prove full coverage. Normal questions search the stored index and do not refresh GitHub evidence. Answers should include source links and express uncertainty when evidence is weak.
 
+## Evaluate retrieval
+
+`app.retrieval_eval` measures recall@k and MRR of the evidence search against hand-labelled queries. List the indexed sources, write a labels file (one JSON object per line: `query`, `since`, `until`, `relevant` source IDs; an empty `relevant` list marks a question the index cannot answer), then score it:
+
+```sh
+docker compose --profile agent exec agent python -m app.retrieval_eval candidates \
+  --project-id github~owner~repo --since 2026-07-01 --until 2026-09-26 --ref-name main
+docker compose --profile agent exec agent python -m app.retrieval_eval run \
+  --project-id github~owner~repo --ref-name main --labels /path/to/labels.jsonl
+```
+
+The summary also reports how often unanswerable queries were not flagged `insufficientEvidence`, and the mean score of relevant and other hits, which is the input for tuning the 0.30/0.40 thresholds.
+
+## Logs and metrics
+
+Each answer logs a `citation_check` event: how many retrieved hits the answer cited, and PR or issue numbers it named that no tool returned (`unsupported`). Retrieved hits in the response carry `cited`. Model calls log Gemini token counts, and `/metrics` exports them as `signals_agent_model_tokens_total`.
+
 To run the Agent tests:
 
 ```sh

@@ -273,6 +273,7 @@ class EvidenceIndex:
         pending: list[tuple[EvidenceDocument, str, str, str]] = []
         unchanged: list[tuple[EvidenceDocument, str]] = []
         ids_by_source: dict[str, set[str]] = {}
+        truncated = False
         with closing(self._connect()) as database:
             existing = {row[0]: (row[1], row[2]) for row in database.execute(
                 "SELECT chunk_id, content_hash, embedding_model FROM evidence "
@@ -288,7 +289,11 @@ class EvidenceIndex:
             datetime.fromisoformat(document.eventAt.replace("Z", "+00:00"))
             if is_bot_author(document.author):
                 continue
-            for index, content in enumerate(_chunks(document.content)):
+            contents = _chunks(document.content)
+            if len(pending) + len(unchanged) + len(contents) > MAX_CHUNKS:
+                truncated = True
+                continue
+            for index, content in enumerate(contents):
                 chunk_id = f"{project_id}:{scope}:{document.sourceId}:{index}"
                 ids_by_source.setdefault(document.sourceId, set()).add(chunk_id)
                 content_hash = hashlib.sha256(content.encode()).hexdigest()
@@ -296,8 +301,6 @@ class EvidenceIndex:
                     pending.append((document, chunk_id, content_hash, content))
                 else:
                     unchanged.append((document, chunk_id))
-        if len(pending) + len(unchanged) > MAX_CHUNKS:
-            raise ValueError("Index batch exceeds the chunk limit")
 
         embedded_ms = 0
         for offset in range(0, len(pending), EMBEDDING_BATCH_SIZE):
@@ -345,7 +348,8 @@ class EvidenceIndex:
                 AND lower(author) LIKE '%[bot]'
             """, (project_id, scope))
         result = {"sources": len(ids_by_source), "embeddedChunks": len(pending),
-                  "unchangedChunks": sum(map(len, ids_by_source.values())) - len(pending)}
+                  "unchangedChunks": sum(map(len, ids_by_source.values())) - len(pending),
+                  "truncated": truncated}
         logger.info(json.dumps({"event": "evidence_index", "project_id": project_id,
                                 "ref_name": scope,
                                 **result, "embedding_ms": embedded_ms,

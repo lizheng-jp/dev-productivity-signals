@@ -195,6 +195,28 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         index.updated_after.assert_not_awaited()
         self.assertNotIn("updatedAfter", requests[0].url.params)
 
+    async def test_index_chunk_limit_marks_refresh_incomplete(self):
+        until = date.today()
+        since = until - timedelta(days=6)
+        index = type("FakeIndex", (), {})()
+        index.updated_after = AsyncMock(return_value=None)
+        index.sync = AsyncMock(return_value={"sources": 1, "embeddedChunks": 250,
+                                             "unchangedChunks": 0, "truncated": True})
+        index.record_refresh = AsyncMock()
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(lambda request: httpx.Response(
+            200, json={"documents": [], "truncated": False}))
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=index):
+            result = await index_project(PROJECT, IndexRequest(since=since, until=until),
+                                         "internal-key")
+        self.assertTrue(result["truncated"])
+        self.assertTrue(index.record_refresh.await_args.args[4])
+
     async def test_uses_distinct_document_and_query_tasks(self):
         calls = []
 

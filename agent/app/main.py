@@ -530,13 +530,12 @@ async def index_project(project_id: str, request: IndexRequest,
                          for item in payload.get("documents", [])]
             embedding = GeminiEmbeddingProvider(client, os.environ["GEMINI_API_KEY"])
             result = await index.sync(project_id, documents, embedding, request.refName)
-            await index.record_refresh(project_id, since, until, request.refName,
-                                       bool(payload.get("truncated", False)))
-            if payload.get("truncated"):
+            truncated = bool(payload.get("truncated", False) or result.get("truncated", False))
+            await index.record_refresh(project_id, since, until, request.refName, truncated)
+            if truncated:
                 INCOMPLETE_COVERAGE.labels("index").inc()
             index_outcome = "success"
-            return {**result, "truncated": payload.get("truncated", False),
-                    "selection": payload.get("selection", "")}
+            return {**result, "truncated": truncated, "selection": payload.get("selection", "")}
     except QdrantRequestError as error:
         _log("evidence_store_failure", project_id=project_id, status_code=error.status_code)
         raise HTTPException(status_code=503, detail="Evidence store unavailable") from None

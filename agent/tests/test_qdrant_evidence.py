@@ -69,9 +69,43 @@ class QdrantEvidenceTests(unittest.IsolatedAsyncioTestCase):
         index._scroll = stale_scroll
         result = await index.sync(PROJECT, [document], NoEmbedding(), "main")
 
-        self.assertEqual(result, {"sources": 1, "embeddedChunks": 0, "unchangedChunks": 1})
+        self.assertEqual(result, {"sources": 1, "embeddedChunks": 0, "unchangedChunks": 1,
+                                  "truncated": False})
         self.assertEqual(index._upsert.await_args.args[1][0]["vector"], VECTOR)
         self.assertEqual(index._request.await_args.kwargs["body"], {"points": ["stale-id"]})
+
+    async def test_sync_skips_whole_documents_beyond_chunk_limit(self):
+        index = QdrantEvidenceIndex(None, "http://qdrant:6333")
+        index._ensure_evidence = AsyncMock()
+        index._upsert = AsyncMock()
+        index._get_points = AsyncMock(return_value={})
+        index._request = AsyncMock(return_value={})
+
+        async def no_points(*args, **kwargs):
+            return
+            yield
+
+        class Embedding(NoEmbedding):
+            async def embed_documents(self, texts):
+                return [VECTOR for _ in texts]
+
+        def note(number, paragraphs):
+            return EvidenceDocument(
+                projectId=PROJECT, sourceType="mr_discussion", sourceId=f"mr:{number}:note:1",
+                entityId=number, content="\n".join(["x" * 1100] * paragraphs), author="octocat",
+                createdAt="2026-09-20T00:00:00Z", updatedAt="2026-09-20T00:00:00Z",
+                eventAt="2026-09-20T00:00:00Z",
+                url=f"https://github.com/openai/openai-java/pull/{number}", labels=[])
+
+        index._scroll = no_points
+        result = await index.sync(PROJECT, [note(1, 240), note(2, 20), note(3, 10)],
+                                  Embedding(), "main")
+
+        self.assertTrue(result["truncated"])
+        self.assertEqual(result["sources"], 2)
+        indexed = {point["payload"]["source_id"] for call in index._upsert.await_args_list
+                   for point in call.args[1]}
+        self.assertEqual(indexed, {"mr:1:note:1", "mr:3:note:1"})
 
     async def test_empty_scope_skips_query_embedding(self):
         index = QdrantEvidenceIndex(None, "http://qdrant:6333")

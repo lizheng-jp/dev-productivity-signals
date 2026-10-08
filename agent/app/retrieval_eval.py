@@ -27,7 +27,7 @@ from typing import Any
 
 import httpx
 
-from app.evidence import GeminiEmbeddingProvider
+from app.evidence import configured_embedding
 from app.qdrant_evidence import COLLECTION, _day, configured_index
 
 TOP_K = 8
@@ -104,7 +104,7 @@ async def run(args: argparse.Namespace) -> None:
     results = []
     async with httpx.AsyncClient() as client:
         index = configured_index(client)
-        embedding = GeminiEmbeddingProvider(client, os.environ["GEMINI_API_KEY"])
+        embedding = configured_embedding(client)
         for label in labels:
             search = await index.search(args.project_id, label["query"],
                                         date.fromisoformat(label["since"]),
@@ -129,8 +129,9 @@ def main() -> None:
     args = parser.parse_args()
     if not args.project_id.startswith("github~") or len(args.project_id.split("~")) != 3:
         parser.error("--project-id must be a github~owner~repo project")
-    if args.command == "run" and not os.getenv("GEMINI_API_KEY"):
-        parser.error("GEMINI_API_KEY is required to embed queries")
+    if (args.command == "run" and os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower() == "gemini"
+            and not os.getenv("GEMINI_API_KEY")):
+        parser.error("GEMINI_API_KEY is required to embed queries unless EMBEDDING_PROVIDER=local")
     asyncio.run(candidates(args) if args.command == "candidates" else run(args))
 
 

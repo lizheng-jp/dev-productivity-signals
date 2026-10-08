@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, patch
 import httpx
 
 from app.evidence import (EMBEDDING_BATCH_SIZE, EMBEDDING_DIMENSIONS, EvidenceDocument, EvidenceIndex,
-                          GeminiEmbeddingProvider, _chunks, select_evidence_hits)
+                          GeminiEmbeddingProvider, LocalEmbeddingProvider, _chunks,
+                          configured_embedding, select_evidence_hits)
 from app.main import IndexRequest, index_project
 
 
@@ -238,6 +239,45 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
                          EMBEDDING_DIMENSIONS)
         self.assertEqual(calls[1][1]["taskType"], "RETRIEVAL_QUERY")
         self.assertEqual(calls[1][1]["outputDimensionality"], EMBEDDING_DIMENSIONS)
+
+    async def test_local_embedding_prefixes_queries_and_normalizes(self):
+        class FakeModel:
+            prompts = {}
+
+            def __init__(self):
+                self.calls = []
+
+            def encode(self, texts, prompt_name=None, **kwargs):
+                self.calls.append((texts, prompt_name))
+                return [[3.0, 4.0] + [0.0] * (EMBEDDING_DIMENSIONS - 2) for _ in texts]
+
+        model = FakeModel()
+        provider = LocalEmbeddingProvider("BAAI/bge-base-en-v1.5", loader=lambda name: model)
+        documents = await provider.embed_documents(["review delay"])
+        query = await provider.embed_query("why did review slow down")
+        self.assertEqual(model.calls[0], (["review delay"], None))
+        self.assertTrue(model.calls[1][0][0].startswith("Represent this sentence"))
+        self.assertAlmostEqual(documents[0][0], 0.6)
+        self.assertAlmostEqual(query[1], 0.8)
+
+        model.prompts = {"query": "Instruct: retrieve\nQuery:"}
+        await LocalEmbeddingProvider("Qwen/Qwen3-Embedding-0.6B",
+                                     loader=lambda name: model).embed_query("why")
+        self.assertEqual(model.calls[-1], (["why"], "query"))
+
+    def test_configured_embedding_selects_provider(self):
+        client = httpx.AsyncClient()
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "local", "EMBEDDING_MODEL": "",
+                                     "GEMINI_API_KEY": ""}):
+            provider = configured_embedding(client)
+            self.assertIsInstance(provider, LocalEmbeddingProvider)
+            self.assertEqual(provider.model, "BAAI/bge-base-en-v1.5")
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "gemini", "GEMINI_API_KEY": ""}):
+            self.assertIsNone(configured_embedding(client))
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "gemini", "GEMINI_API_KEY": "key"}):
+            self.assertIsInstance(configured_embedding(client), GeminiEmbeddingProvider)
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "openai"}), self.assertRaises(ValueError):
+            configured_embedding(client)
 
     async def test_document_embedding_retries_rate_limit_but_query_does_not(self):
         statuses = iter([429, 200, 429])

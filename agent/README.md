@@ -6,6 +6,8 @@ Signals Agent answers questions about a selected GitHub project through the Spri
 
 Copy `.env.example` to `.env`. Set a unique database password, then set `AGENT_ENABLED=true` and provide `GITHUB_API_TOKEN`, `GEMINI_API_KEY`, and a random `AGENT_INTERNAL_KEY` of at least 32 characters. Keep `.env` private.
 
+Evidence embeddings default to Gemini. To index and run retrieval evaluation without a Gemini key, set `EMBEDDING_PROVIDER=local` before building: the image then installs CPU-only `sentence-transformers` and bakes in `EMBEDDING_MODEL` (default `BAAI/bge-base-en-v1.5`; `Qwen/Qwen3-Embedding-0.6B` is truncated to the index's 768 dimensions). Changing the model needs a rebuild and re-index, because hits are filtered by embedding model. Answering questions still needs `GEMINI_API_KEY`. The search score threshold (0.30) was set for Gemini; check `meanScoreOther` in the retrieval evaluation before relying on `insufficientEvidence` with a local model.
+
 ```sh
 cp .env.example .env
 docker compose --profile agent up -d --build

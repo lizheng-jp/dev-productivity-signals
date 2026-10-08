@@ -1,9 +1,11 @@
 import asyncio
+import functools
 import hashlib
 from contextlib import closing
 import json
 import logging
 import math
+import os
 import random
 import sqlite3
 import struct
@@ -128,6 +130,62 @@ class GeminiEmbeddingProvider:
                                         "attempt": attempt + 1}))
             await asyncio.sleep(2 ** attempt + random.uniform(0, 0.25))
         raise AssertionError("unreachable")
+
+
+DEFAULT_LOCAL_MODEL = "BAAI/bge-base-en-v1.5"
+# Models without a query prompt in their sentence-transformers config need the prefix their card asks for.
+QUERY_PREFIXES = {
+    "BAAI/bge-base-en-v1.5": "Represent this sentence for searching relevant passages: ",
+    "BAAI/bge-small-en-v1.5": "Represent this sentence for searching relevant passages: ",
+    "intfloat/multilingual-e5-base": "query: ",
+}
+DOCUMENT_PREFIXES = {"intfloat/multilingual-e5-base": "passage: "}
+
+
+@functools.lru_cache(maxsize=2)
+def _load_local_model(model: str):
+    from sentence_transformers import SentenceTransformer
+
+    loaded = SentenceTransformer(model, device="cpu", truncate_dim=EMBEDDING_DIMENSIONS)
+    native = loaded.get_embedding_dimension()
+    if native is not None and native < EMBEDDING_DIMENSIONS:
+        raise ValueError(f"{model} produces {native}-dimensional vectors; "
+                         f"the index needs {EMBEDDING_DIMENSIONS}")
+    return loaded
+
+
+class LocalEmbeddingProvider:
+    """Embeds on CPU with sentence-transformers; larger models are truncated to the index dimension."""
+
+    def __init__(self, model: str = DEFAULT_LOCAL_MODEL, loader=_load_local_model):
+        self.model = model
+        self._loader = loader
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        prefix = DOCUMENT_PREFIXES.get(self.model, "")
+        return await asyncio.to_thread(self._encode, [prefix + text for text in texts], None)
+
+    async def embed_query(self, text: str) -> list[float]:
+        model = self._loader(self.model)
+        if "query" in getattr(model, "prompts", {}):
+            return (await asyncio.to_thread(self._encode, [text], "query"))[0]
+        return (await asyncio.to_thread(self._encode, [QUERY_PREFIXES.get(self.model, "") + text], None))[0]
+
+    def _encode(self, texts: list[str], prompt_name: str | None) -> list[list[float]]:
+        vectors = self._loader(self.model).encode(texts, prompt_name=prompt_name,
+                                                  batch_size=16, convert_to_numpy=True)
+        return [_unit_vector([float(value) for value in vector]) for vector in vectors]
+
+
+def configured_embedding(client: httpx.AsyncClient) -> EmbeddingProvider | None:
+    """EMBEDDING_PROVIDER=gemini (default) needs GEMINI_API_KEY; local runs EMBEDDING_MODEL on CPU."""
+    provider = os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower()
+    if provider == "local":
+        return LocalEmbeddingProvider(os.getenv("EMBEDDING_MODEL") or DEFAULT_LOCAL_MODEL)
+    if provider != "gemini":
+        raise ValueError(f"Unknown EMBEDDING_PROVIDER: {provider}")
+    key = os.getenv("GEMINI_API_KEY", "")
+    return GeminiEmbeddingProvider(client, key) if key else None
 
 
 def _unit_vector(values: list[float]) -> list[float]:

@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from app.citations import answer_references, evidence_references
 from app.evidence import (EvidenceDocument, EmbeddingProvider,
-                          GeminiEmbeddingProvider, SOURCE_TYPES)
+                          SOURCE_TYPES, configured_embedding)
 from app.qdrant_evidence import QdrantEvidenceIndex, QdrantRequestError, configured_index
 from app.metrics import (EXECUTIONS, EXECUTION_DURATION, MODEL_CALLS, MODEL_DURATION,
                          TOOL_CALLS, TOOL_DURATION, INDEX_RUNS, INDEX_DURATION,
@@ -551,7 +551,7 @@ async def index_project(project_id: str, request: IndexRequest,
         raise HTTPException(status_code=403, detail="Forbidden")
     if not re.fullmatch(r"github~[A-Za-z0-9_.-]+~[A-Za-z0-9_.-]+", project_id):
         raise HTTPException(status_code=400, detail="Select a real GitHub project")
-    if not os.getenv("GEMINI_API_KEY"):
+    if os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower() == "gemini" and not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="Embedding model is not configured")
     until = request.until or date.today()
     since = request.since or until - timedelta(days=89)
@@ -576,7 +576,7 @@ async def index_project(project_id: str, request: IndexRequest,
             payload = response.json()
             documents = [EvidenceDocument.model_validate(item)
                          for item in payload.get("documents", [])]
-            embedding = GeminiEmbeddingProvider(client, os.environ["GEMINI_API_KEY"])
+            embedding = configured_embedding(client)
             result = await index.sync(project_id, documents, embedding, request.refName)
             truncated = bool(payload.get("truncated", False) or result.get("truncated", False))
             await index.record_refresh(project_id, since, until, request.refName, truncated)
@@ -616,7 +616,7 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
         model = GeminiGateway(client, gemini_key,
                               request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"))
         tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
-                          embedding_provider=GeminiEmbeddingProvider(client, gemini_key))
+                          embedding_provider=configured_embedding(client))
         try:
             async with asyncio.timeout(240):
                 result = await run_agent(request, model, tools, request_id, execution_id)

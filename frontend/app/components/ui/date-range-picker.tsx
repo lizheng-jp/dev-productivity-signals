@@ -86,7 +86,7 @@ export function DatePickerWithRange({ className, date, setDate, triggerClassName
             id="date"
             variant="outline"
             className={cn(
-              "h-10 min-w-0 w-full justify-start rounded-lg border-slate-200 bg-slate-100 px-3 text-left text-sm font-semibold text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-200 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:ring-offset-0",
+              "h-10 min-w-0 w-full justify-start rounded-full border-white/80 bg-white/80 px-4 text-left text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-900/5 tabular hover:bg-white focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10 focus-visible:ring-offset-0",
               triggerClassName,
               !date?.from && "text-slate-400"
             )}
@@ -108,7 +108,7 @@ export function DatePickerWithRange({ className, date, setDate, triggerClassName
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-auto overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-lg" align="start">
+        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
           {/* カレンダー上部の案内文 */}
           <div className="border-b border-slate-100 bg-slate-50/80 px-3 py-2 text-center">
             <div className="mb-2 grid grid-cols-2 gap-2">
@@ -116,7 +116,7 @@ export function DatePickerWithRange({ className, date, setDate, triggerClassName
                 <button key={target} type="button" disabled={target === 'to' && !date?.from}
                   aria-pressed={step === target}
                   onClick={() => { setStep(target); fromRef.current = date?.from; setError(null) }}
-                  className={cn('rounded border px-2 py-2 text-xs disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-blue-600', step === target ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600')}>
+                  className={cn('rounded border px-2 py-2 text-xs disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-blue-600', step === target ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-surface text-slate-600')}>
                   <span className="block">{isJapanese ? (target === 'from' ? '開始日' : '終了日') : (target === 'from' ? 'Start date' : 'End date')}</span>
                   <span>{date?.[target] ? format(date[target]!, 'yyyy/MM/dd') : '—'}</span>
                 </button>
@@ -142,7 +142,7 @@ export function DatePickerWithRange({ className, date, setDate, triggerClassName
             onSelect={handleSelect}
             defaultMonth={date?.from}
             numberOfMonths={1}
-            className="bg-white"
+            className="bg-surface"
           />
         </PopoverContent>
       </Popover>

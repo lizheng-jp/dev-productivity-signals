@@ -37,7 +37,7 @@ type EntityControlProps = {
     t: TranslationFn;
 };
 
-const fieldClassName = "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none";
+const fieldClassName = "h-10 w-full rounded-lg border border-slate-200 bg-surface px-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:border-blue-500 focus:bg-surface focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none";
 const labelClassName = "mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500";
 
 const ComparisonSelector = ({ label, selected, onChange, options, disabled, isLoading, t }: { label: string, selected: string, onChange: (value: string) => void, options: EntityOptions, disabled?: boolean, isLoading?: boolean, t: TranslationFn }) => (
@@ -107,19 +107,19 @@ const ProjectSearchSelector = ({ projects, selectedProjectId, onProjectChange, t
                     <div className="flex min-w-0 items-center gap-2">
                         <FolderKanban className="w-4 h-4 text-blue-500 flex-shrink-0" />
                         <span className="truncate">{selectedProject?.name || t('selectProject')}</span>
-                        {selectedProject && <span className="shrink-0 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500">{sourceLabel(selectedProject.provider)}</span>}
+                        {selectedProject && <span className="shrink-0 rounded border border-slate-200 bg-surface px-1.5 py-0.5 text-[10px] font-medium text-slate-500">{sourceLabel(selectedProject.provider)}</span>}
                     </div>
                     <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isOpen && "rotate-180")} />
                 </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-72 p-0 bg-white" align="start">
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-72 p-0" align="start">
                 <div className="p-2 border-b border-slate-100 bg-slate-50/80">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
                             placeholder={t('searchProjects')}
-                            className="h-9 w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                            className="h-9 w-full rounded-md border border-slate-200 bg-surface py-2 pl-9 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -144,7 +144,7 @@ const ProjectSearchSelector = ({ projects, selectedProjectId, onProjectChange, t
                                 <span className={cn("min-w-0 flex-1 text-sm font-medium truncate", selectedProjectId === project.id.toString() ? "text-blue-700" : "text-slate-700")}>
                                     {project.name}
                                 </span>
-                                <span className="shrink-0 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                                <span className="shrink-0 rounded border border-slate-200 bg-surface px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
                                     {sourceLabel(project.provider)}
                                 </span>
                                 {selectedProjectId === project.id.toString() && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
@@ -214,7 +214,7 @@ export const EntityControl = ({
                 <DatePickerWithRange
                     date={date}
                     setDate={setDate}
-                    triggerClassName="bg-white font-medium text-slate-700 hover:bg-slate-50"
+                    triggerClassName="bg-surface font-medium text-slate-700 hover:bg-slate-50"
                 />
             </div>
 

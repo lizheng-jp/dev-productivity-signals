@@ -49,14 +49,14 @@ export const DeveloperAnalyticsView = ({ onViewDetails, developerStats, isLoadin
     <div className="space-y-6 pb-10">
 
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold text-slate-800">{t('title')}</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">{t('title')}</h2>
         <div className="flex items-center gap-2">
           {GROUP_UI_ENABLED && (
             <select
               aria-label={t('groupFilter')}
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="px-3 py-1.5 text-sm bg-white border border-slate-300 rounded text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-10 rounded-full border border-white/80 bg-white/80 px-4 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-900/5 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             >
               <option value="">{t('allTeams')}</option>
               {uniqueGroupNames.map(groupName => (
@@ -69,7 +69,7 @@ export const DeveloperAnalyticsView = ({ onViewDetails, developerStats, isLoadin
             aria-label={t('sortBy')}
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="px-3 py-1.5 text-sm bg-white border border-slate-300 rounded text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-10 rounded-full border border-white/80 bg-white/80 px-4 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-900/5 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           >
             <option value="commitCount">{t('sortBy')} {tTable('commits')}</option>
             <option value="mergedCount">{t('sortBy')} {tTable('merges')}</option>
@@ -82,17 +82,21 @@ export const DeveloperAnalyticsView = ({ onViewDetails, developerStats, isLoadin
       {isLoading ? (
         <p>{t('loading')}</p>
       ) : (
-        <div className="grid grid-cols-1 md::grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredAndSortedStats.map((stat) => (
             <Card
               key={stat.member.userCode}
-              className="flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer group"
+              className="flex flex-col cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               onClick={() => onViewDetails(stat)}
             >
 
               {/* Card Body */}
               <div className="p-5 flex-1 flex flex-col items-center text-center">
-                <h3 className="font-bold text-base text-slate-800">{stat.member.userName || stat.member.userCode}({stat.member.userCode})</h3>
+                <span className="bg-aurora mb-3 flex h-12 w-12 items-center justify-center rounded-full p-[2px] shadow-[0_6px_16px_-6px_rgb(139_92_246/0.6)]">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-white text-sm font-bold text-violet-600">{(stat.member.userName || stat.member.userCode || '?').trim().charAt(0)}</span>
+                </span>
+                <h3 className="font-bold text-base text-slate-900">{stat.member.userName || stat.member.userCode}</h3>
+                <p className="font-mono text-[10.5px] tracking-wider text-slate-400">{stat.member.userCode}</p>
                 {GROUP_UI_ENABLED && (
                   <p className="text-xs text-slate-500 mb-4">{stat.member.groupName || tTable('noGroup')}</p>
                 )}
@@ -109,15 +113,15 @@ export const DeveloperAnalyticsView = ({ onViewDetails, developerStats, isLoadin
               </div>
 
               {/* Card Footer - Action */}
-              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <span className="text-xs text-slate-500">
+              <div className="px-5 py-3 border-t border-slate-200/60 flex flex-wrap justify-between items-center gap-2">
+                <span className="whitespace-nowrap font-mono text-xs text-slate-600 tabular">
                   {sortKey === 'commitCount' && t('totalCommits', { count: stat.commitCount || 0 })}
                   {sortKey === 'mergedCount' && t('totalMerges', { count: stat.mergedCount || 0 })}
                   {sortKey === 'issueCreatedCount' && t('issuesCreated', { count: stat.issueCreatedCount || 0 })}
                   {sortKey === 'bugFoundCount' && t('bugsFound', { count: stat.bugFoundCount || 0 })}
                 </span>
                 <TrendBadge trend={stat.trends?.[sortKey]} />
-                <button className="text-xs font-semibold text-blue-600 flex items-center gap-1 group-hover:underline">
+                <button className="whitespace-nowrap text-xs font-semibold text-blue-600 flex items-center gap-1 transition-transform group-hover:translate-x-0.5">
                   {t('viewDetails')} <ChevronRight className="w-3 h-3" />
                 </button>
               </div>

@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const Card = ({ children, className, onClick }: { children: React.ReactNode, className?: string, onClick?: () => void }) => (
-  <div className={cn("bg-white border border-slate-200 rounded-lg shadow-sm", className)} onClick={onClick}>
+  <div className={cn("bg-surface border border-white/80 rounded-2xl shadow-sm ring-1 ring-slate-900/[0.04]", className)} onClick={onClick}>
     {children}
   </div>
 );

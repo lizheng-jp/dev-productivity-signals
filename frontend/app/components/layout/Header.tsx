@@ -177,10 +177,10 @@ export const Header = (props: HeaderProps) => {
     };
 
     return (
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 sticky top-0 z-20" suppressHydrationWarning>
+        <header className="glass sticky top-0 z-20 flex h-16 items-center overflow-x-auto border-b border-white/60 px-4 md:px-8 shadow-[0_1px_0_rgb(120_135_170/0.12)]" suppressHydrationWarning>
             <div className="flex items-center gap-5">
                 <div className="flex items-center gap-2">
-                    <div className="w-20 text-right text-xs font-bold text-slate-500">{t('projectLabel')}</div>
+                    <div className="whitespace-nowrap kicker">{t('projectLabel')}</div>
                     <div className="relative group">
                     {isLoadingProjects && <span className="text-gray-500 text-sm animate-pulse">{t('loadingProjects')}</span>}
                     {errorProjects && <span className="text-red-500 text-sm">{t('error', { message: errorProjects })}</span>}
@@ -188,7 +188,7 @@ export const Header = (props: HeaderProps) => {
                     {!isLoadingProjects && !errorProjects && !isMounted && (
                         <button
                             type="button"
-                            className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition-all w-72 shadow-sm group"
+                            className="flex items-center justify-between gap-3 h-10 text-sm font-semibold text-slate-800 bg-white/80 border border-white/80 px-4 rounded-full transition-all w-72 shadow-sm ring-1 ring-slate-900/5 group"
                         >
                             <div className="flex items-center gap-2 truncate">
                                 <SelectedProjectIcon className="w-4 h-4 text-blue-500" />
@@ -203,7 +203,7 @@ export const Header = (props: HeaderProps) => {
                             <PopoverTrigger asChild>
                                 <button
                                     type="button"
-                                    className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-4 py-2 rounded-lg transition-all w-72 shadow-sm group"
+                                    className="flex items-center justify-between gap-3 h-10 text-sm font-semibold text-slate-800 bg-white/80 hover:bg-white border border-white/80 px-4 rounded-full transition-all w-72 shadow-sm ring-1 ring-slate-900/5 group"
                                 >
                                     <div className="flex items-center gap-2 truncate">
                                         <SelectedProjectIcon className="w-4 h-4 text-blue-500" />
@@ -212,14 +212,14 @@ export const Header = (props: HeaderProps) => {
                                     <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isPopoverOpen && "rotate-180")} />
                                 </button>
                             </PopoverTrigger>
-                            <PopoverContent className="p-0 w-80 bg-white" align="start">
-                                <div className="p-2 border-b border-slate-100 bg-slate-50">
+                            <PopoverContent className="p-0 w-80" align="start">
+                                <div className="border-b border-slate-100 p-2">
                                     <div className="relative">
                                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                                         <input
                                             type="text"
                                             placeholder={t('searchProjects')}
-                                            className="w-full bg-white border border-slate-200 rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                            className="w-full bg-surface border border-slate-200 rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
@@ -250,7 +250,7 @@ export const Header = (props: HeaderProps) => {
                                                         )}>
                                                             {project.name}
                                                         </span>
-                                                        <span className="shrink-0 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                                                        <span className="shrink-0 rounded border border-slate-200 bg-surface px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
                                                             {projectSourceLabel(project.provider)}
                                                         </span>
                                                         {selectedProjectId === project.id.toString() && (
@@ -273,13 +273,13 @@ export const Header = (props: HeaderProps) => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-16 text-right text-xs font-bold text-slate-500">{t('branchLabel')}</div>
+                    <div className="whitespace-nowrap kicker">{t('branchLabel')}</div>
                     <Popover open={isBranchPopoverOpen} onOpenChange={setIsBranchPopoverOpen}>
                         <PopoverTrigger asChild>
                             <button
                                 type="button"
                                 disabled={!selectedProjectId || isLoadingBranches}
-                                className="flex w-56 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:bg-slate-200 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-slate-100"
+                                className="flex h-10 w-56 items-center justify-between gap-3 rounded-full border border-white/80 bg-white/80 px-4 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-900/5 transition-all hover:bg-white disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-white/80"
                             >
                                 <div className="flex min-w-0 items-center gap-2">
                                     <GitBranch className="h-4 w-4 flex-shrink-0 text-blue-500" />
@@ -288,14 +288,14 @@ export const Header = (props: HeaderProps) => {
                                 <ChevronDown className={cn("h-4 w-4 flex-shrink-0 text-slate-400 transition-transform", isBranchPopoverOpen && "rotate-180")} />
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-80 bg-white p-0" align="start">
-                            <div className="border-b border-slate-100 bg-slate-50 p-2">
+                        <PopoverContent className="w-80 p-0" align="start">
+                            <div className="border-b border-slate-100 p-2">
                                 <div className="relative">
                                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                                     <input
                                         type="text"
                                         placeholder={t('searchBranches')}
-                                        className="w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                        className="w-full rounded-md border border-slate-200 bg-surface py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                         value={branchSearchQuery}
                                         onChange={(event) => setBranchSearchQuery(event.target.value)}
                                     />
@@ -329,7 +329,7 @@ export const Header = (props: HeaderProps) => {
                     </Popover>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-12 text-right text-xs font-bold text-slate-500">{t('periodLabel')}</div>
+                    <div className="whitespace-nowrap kicker">{t('periodLabel')}</div>
                     <div className="w-72">
                     <DatePickerWithRange date={date} setDate={setDate} />
                     </div>

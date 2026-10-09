@@ -14,7 +14,7 @@ export function TrendBadge({ trend }: { trend?: MetricTrend }) {
   const good = trend.lowerIsBetter ? !up : up;
   const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
   return <span title={t('detail', { current: trend.current ?? '—', previous: trend.previous ?? '—' }) + (trend.dailyNormalized ? ' · ' + t('dailyNormalized') : '')}
-    className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold ${flat ? 'bg-slate-100 text-slate-500' : good ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+    className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[10.5px] font-bold tabular ${flat ? 'bg-slate-500/10 text-slate-500' : good ? 'bg-emerald-500/12 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
     <Icon className="h-3 w-3" aria-hidden="true" />
     {flat ? '0.0%' : (up ? '+' : '') + percent.toFixed(1) + '%'}
     {trend.dailyNormalized && <span>{t('daily')}</span>}

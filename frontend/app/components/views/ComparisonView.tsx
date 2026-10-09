@@ -105,14 +105,14 @@ const TotalScoreValue = ({
         <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span className="text-2xl font-black">{displayScore.toFixed(1)}</span>
-                <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-bold text-blue-50">
+                <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-bold text-white/90">
                     {hasAiCorrection ? t('aiCorrectedScore') : t('rawScore')}
                 </span>
                 {hasAiCorrection && entity?.rawStats.aiCorrection?.reason && (
                     <HelpTooltip text={formatAiEvaluationText(entity.rawStats.aiCorrection.reason)} />
                 )}
                 {aiEnabled && isAiLoading && !hasAiCorrection && (
-                    <span className="inline-flex items-center gap-1 rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-bold text-blue-50">
+                    <span className="inline-flex items-center gap-1 rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-bold text-white/90">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         AI補正中
                     </span>
@@ -120,7 +120,7 @@ const TotalScoreValue = ({
             </div>
             {hasAiCorrection && (
                 <>
-                    <span className="text-xs font-semibold text-blue-50">
+                    <span className="text-xs font-semibold text-white/90">
                         {t('rawScore')}: {rawScore.toFixed(1)} / {t('aiCorrectionDelta', { delta: `${sign}${delta.toFixed(1)}` })}
                     </span>
                 </>
@@ -192,7 +192,7 @@ const HelpTooltip = ({ text }: { text: string }) => {
             {isOpen && typeof document !== 'undefined' && createPortal(
                 <span
                     role="tooltip"
-                    className="pointer-events-none fixed z-[100] max-h-[min(20rem,calc(100vh-2rem))] overflow-y-auto whitespace-pre-line rounded-md border border-slate-200 bg-white p-3 text-[11px] font-medium normal-case leading-5 text-slate-600 shadow-lg"
+                    className="pointer-events-none fixed z-[100] max-h-[min(20rem,calc(100vh-2rem))] overflow-y-auto whitespace-pre-line rounded-md border border-slate-200 bg-white/90 backdrop-blur-2xl p-3 text-[11px] font-medium normal-case leading-5 text-slate-600 shadow-lg"
                     style={{
                         left: position.left,
                         top: position.top,
@@ -222,7 +222,7 @@ const RadarScoreTooltip = ({
     if (!active || payload.length === 0) return null;
 
     return (
-        <div className="min-w-40 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs shadow-lg">
+        <div className="min-w-40 rounded-lg border border-slate-200 bg-surface px-3 py-2.5 text-xs shadow-lg">
             <p className="mb-2 font-bold text-slate-700">{label}</p>
             <div className="space-y-1.5">
                 {payload.map((entry) => {
@@ -307,8 +307,8 @@ const MetricValue = ({
 };
 
 const LoadingOverlay = ({ label }: { label: string }) => (
-    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-white/75 backdrop-blur-[1px]">
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-surface/75 backdrop-blur-[1px]">
+        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-surface px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
             <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
             <span>{label}</span>
         </div>
@@ -765,7 +765,7 @@ export const ComparisonView = ({
                     />
 
                     <div className="flex items-center justify-center">
-                        <div className="bg-white px-3 py-1 border border-slate-200 rounded-full text-slate-400 font-bold text-xs shadow-sm">VS</div>
+                        <div className="bg-surface px-3 py-1 border border-slate-200 rounded-full text-slate-400 font-bold text-xs shadow-sm">VS</div>
                     </div>
 
                     <EntityControl
@@ -787,7 +787,7 @@ export const ComparisonView = ({
                 </div>
 
                 <div
-                    className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white p-6 rounded-lg shadow-sm border border-slate-200"
+                    className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 bg-surface p-6 rounded-lg shadow-sm border border-slate-200"
                     aria-busy={isComparisonLoading}
                 >
                     {isComparisonLoading && <LoadingOverlay label={tTable('loading')} />}
@@ -800,9 +800,9 @@ export const ComparisonView = ({
                         <h4 className="text-sm font-bold text-slate-500 uppercase mb-6 tracking-wider">{t('radarTitle')}</h4>
                         <ResponsiveContainer width="100%" height={350}>
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                                <PolarGrid stroke="#e2e8f0" />
-                                <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={12} fontWeight={500} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} stroke="#e2e8f0" />
+                                <PolarGrid stroke="var(--color-slate-200, #e2e8f0)" />
+                                <PolarAngleAxis dataKey="subject" stroke="var(--color-slate-300, #cbd5e1)" tick={{ fill: 'var(--color-slate-600, #475569)' }} fontSize={12} fontWeight={500} />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} stroke="var(--color-slate-200, #e2e8f0)" />
                                 <Tooltip
                                     cursor={false}
                                     content={(props) => (
@@ -813,24 +813,24 @@ export const ComparisonView = ({
                                     <Radar
                                         name={entity1Data.name}
                                         dataKey="A"
-                                        stroke="#3b82f6"
-                                        fill="#3b82f6"
+                                        stroke="var(--color-blue-500, #3b82f6)"
+                                        fill="var(--color-blue-500, #3b82f6)"
                                         fillOpacity={0.35}
                                         strokeWidth={2}
-                                        dot={{ r: 4, fill: '#ffffff', strokeWidth: 2 }}
-                                        activeDot={{ r: 6, fill: '#ffffff', strokeWidth: 3 }}
+                                        dot={{ r: 4, fill: 'white', strokeWidth: 2 }}
+                                        activeDot={{ r: 6, fill: 'white', strokeWidth: 3 }}
                                     />
                                 )}
                                 {entity2Data && (
                                     <Radar
                                         name={entity2Data.name}
                                         dataKey="B"
-                                        stroke="#10b981"
-                                        fill="#10b981"
+                                        stroke="var(--color-emerald-500, #10b981)"
+                                        fill="var(--color-emerald-500, #10b981)"
                                         fillOpacity={0.35}
                                         strokeWidth={2}
-                                        dot={{ r: 4, fill: '#ffffff', strokeWidth: 2 }}
-                                        activeDot={{ r: 6, fill: '#ffffff', strokeWidth: 3 }}
+                                        dot={{ r: 4, fill: 'white', strokeWidth: 2 }}
+                                        activeDot={{ r: 6, fill: 'white', strokeWidth: 3 }}
                                     />
                                 )}
                             </RadarChart>
@@ -928,7 +928,7 @@ export const ComparisonView = ({
                                             {group.metrics
                                                 .filter(metric => activeMetricsByGroup.activeMetrics.has(metric.key))
                                                 .map(metric => (
-                                                    <div key={metric.key} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm transition-colors hover:border-slate-300">
+                                                    <div key={metric.key} className="bg-surface border border-slate-200 rounded-lg p-3 shadow-sm transition-colors hover:border-slate-300">
                                                         <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase text-slate-500">
                                                             <span>{metric.label}</span>
                                                             <HelpTooltip text={metric.description} />

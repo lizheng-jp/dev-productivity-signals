@@ -8,7 +8,7 @@ interface ComparisonModalProps {
 
 const ComparisonModal: React.FC<ComparisonModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-background p-6 rounded-lg shadow-lg max-w-lg w-full relative">
         <h2 className="text-xl font-semibold mb-4 text-foreground">Comparison Details</h2>
         <p className="text-foreground">This is a placeholder for the comparison modal content.</p>

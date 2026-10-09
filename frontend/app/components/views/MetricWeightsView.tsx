@@ -38,7 +38,7 @@ const MetricItem = ({ metric, onUpdate }: { metric: MetricWeight, onUpdate: Metr
     const label = metricConfig ? tTable(metricConfig.labelKey as never) : metric.metricKey;
 
     return (
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm transition-colors hover:border-slate-300 space-y-4">
+        <div className="bg-surface border border-slate-200 rounded-lg p-4 shadow-sm transition-colors hover:border-slate-300 space-y-4">
             <div className="flex items-center justify-between">
                 <label htmlFor={`active-${metric.id}`} className="text-sm font-bold text-slate-700 truncate pr-2">{label}</label>
                 <Switch
@@ -263,7 +263,7 @@ export const MetricWeightsView = ({ onSaveSuccess }: { onSaveSuccess: () => void
                                         max="1"
                                         value={parentMetric.weight}
                                         onChange={(e) => handleUpdate(parentMetric.id, 'weight', parseFloat(e.target.value))}
-                                        className="text-sm font-mono bg-white border border-slate-200 rounded-md px-2 py-1 w-20 text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                        className="text-sm font-mono bg-surface border border-slate-200 rounded-md px-2 py-1 w-20 text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                         disabled={!parentMetric.active}
                                     />
                                     <button type="button" onClick={() => handleResetGroup(parentMetric.metricKey)} className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-md" title={tGeneral('reset')}>

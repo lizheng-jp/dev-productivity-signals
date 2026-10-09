@@ -58,7 +58,7 @@ const AiCorrectionReasonPopover = ({ reason }: { reason: string }) => {
           <CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="center" className="w-72 border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600">
+      <PopoverContent align="center" className="w-72 p-3 text-xs leading-5 text-slate-600">
         {displayReason}
       </PopoverContent>
     </Popover>
@@ -141,7 +141,7 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
       {/* Header Info */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-slate-800">{data.name}</h2>
-        <div className="flex max-w-2xl flex-wrap items-center justify-end gap-2 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+        <div className="flex max-w-2xl flex-wrap items-center justify-end gap-2 bg-surface px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
           <div className="text-xs text-slate-500 font-semibold uppercase">Overall SPACE Score</div>
           <div className="flex items-center gap-1 text-2xl font-bold text-blue-600">
             <span>{data.totalScore.toFixed(1)}</span><TrendBadge trend={projectStats.trends?.spaceTotalScore} />
@@ -185,14 +185,14 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
                   <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isProjectPopoverOpen && "rotate-180")} />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 w-80 bg-white" align="start">
+              <PopoverContent className="p-0 w-80" align="start">
                 <div className="p-2 border-b border-slate-100 bg-slate-50">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                     <input
                       type="text"
                       placeholder="Search projects..."
-                      className="w-full bg-white border border-slate-200 rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full bg-surface border border-slate-200 rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -236,21 +236,21 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
               <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={11} />
+                    <PolarGrid stroke="var(--color-slate-200, #e2e8f0)" />
+                    <PolarAngleAxis dataKey="subject" stroke="var(--color-slate-300, #cbd5e1)" tick={{ fill: 'var(--color-slate-600, #475569)' }} fontSize={11} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                     <Radar
                       name={data.name}
                       dataKey="A"
-                      stroke="#3b82f6"
-                      fill="#3b82f6"
+                      stroke="var(--color-blue-500, #3b82f6)"
+                      fill="var(--color-blue-500, #3b82f6)"
                       fillOpacity={0.5}
                     />
                     <Radar
                       name={compareData.name}
                       dataKey="B"
-                      stroke="#10b981"
-                      fill="#10b981"
+                      stroke="var(--color-emerald-500, #10b981)"
+                      fill="var(--color-emerald-500, #10b981)"
                       fillOpacity={0.5}
                     />
                   </RadarChart>
@@ -310,7 +310,7 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
 
 const ProjectDimensionCardCompact = ({ dimension }: { dimension: ProjectDimension }) => {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+    <div className="bg-surface border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
       <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-xs font-bold uppercase tracking-tight text-slate-600">{dimension.name}</span>

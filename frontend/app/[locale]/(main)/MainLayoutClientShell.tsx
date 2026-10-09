@@ -177,10 +177,16 @@ export function MainLayoutClientShell({ children }: MainLayoutClientShellProps) 
 
     return (
         <MainLayoutProvider value={contextValue}>
-            <div className="min-h-screen bg-slate-100 font-sans text-slate-900 flex">
+            <div className="relative flex min-h-screen font-sans text-slate-900">
+                <div className="aurora-backdrop" aria-hidden="true">
+                    <div className="blob blob-1" />
+                    <div className="blob blob-2" />
+                    <div className="blob blob-3" />
+                    <div className="dot-grid" />
+                </div>
                 <Sidebar onSettingsClick={() => setIsSettingsOpen(true)} />
 
-                <div className="flex min-w-0 flex-1 md:ml-64">
+                <div className="relative z-[1] flex min-w-0 flex-1 md:ml-64">
                     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                         {!isComparisonPage && !isFeedbackPage && !isManualPage && (
                             <Header
@@ -196,7 +202,7 @@ export function MainLayoutClientShell({ children }: MainLayoutClientShellProps) 
                             />
                         )}
 
-                        <main className="flex-1 overflow-y-auto bg-slate-100 p-4 pb-24 md:p-8">
+                        <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-8">
                             <div className="max-w-7xl mx-auto">{children}</div>
                         </main>
                     </div>

@@ -102,12 +102,12 @@ export const SettingsView = ({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] transition-opacity animate-in fade-in duration-300"
+        className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm z-[100] transition-opacity animate-in fade-in duration-300"
         onClick={onClose}
       />
 
       <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-white shadow-2xl w-[1100px] max-w-[calc(100vw-2rem)] h-[760px] rounded-2xl flex flex-col border border-slate-200 pointer-events-auto animate-in zoom-in-95 duration-300">
+        <div className="bg-white/90 backdrop-blur-2xl ring-1 ring-slate-900/5 shadow-2xl w-[1100px] max-w-[calc(100vw-2rem)] h-[760px] rounded-2xl flex flex-col border border-slate-200 pointer-events-auto animate-in zoom-in-95 duration-300">
           {/* Header */}
           <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
             <div className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export const SettingsView = ({
               <button
                 onClick={() => setActiveTab('system')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'system'
-                    ? 'bg-white text-blue-700 shadow-md'
+                    ? 'bg-surface text-blue-700 shadow-md'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -140,7 +140,7 @@ export const SettingsView = ({
               <button
                 onClick={() => setActiveTab('groups')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
-                    ? 'bg-white text-blue-700 shadow-md'
+                    ? 'bg-surface text-blue-700 shadow-md'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -150,7 +150,7 @@ export const SettingsView = ({
               <button
                 onClick={() => setActiveTab('metricWeights')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'metricWeights'
-                    ? 'bg-white text-blue-700 shadow-md'
+                    ? 'bg-surface text-blue-700 shadow-md'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -160,7 +160,7 @@ export const SettingsView = ({
               <button
                 onClick={() => setActiveTab('mrAnalysis')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'mrAnalysis'
-                    ? 'bg-white text-blue-700 shadow-md'
+                    ? 'bg-surface text-blue-700 shadow-md'
                     : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
@@ -252,7 +252,7 @@ export const SettingsView = ({
                     )}
                   </section>
 
-                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
                     <div>
                       <label htmlFor="ai-enabled" className="text-sm font-bold text-slate-800 cursor-pointer">
                         {tSettings('aiMode')}
@@ -274,7 +274,7 @@ export const SettingsView = ({
                     </label>
                   </div>
 
-                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
                     <div>
                       <label htmlFor="comparison-period" className="text-sm font-bold text-slate-800">
                         {tSettings('comparisonPeriod')}
@@ -287,7 +287,7 @@ export const SettingsView = ({
                       id="comparison-period"
                       value={comparisonDays}
                       onChange={event => onComparisonDaysChange(Number(event.target.value))}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700"
+                      className="rounded-lg border border-slate-200 bg-surface px-3 py-2 text-sm font-bold text-slate-700"
                     >
                       <option value={7}>{tSettings('comparisonWeek')}</option>
                       <option value={30}>{tSettings('comparisonMonth')}</option>
@@ -304,13 +304,13 @@ export const SettingsView = ({
                       </div>
                       <select id="agent-model" value={agentModel}
                         onChange={event => onAgentModelChange(event.target.value as AgentModel)}
-                        className="w-full rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-900 sm:w-52 sm:shrink-0">
+                        className="w-full rounded-md border border-slate-300 bg-surface px-2 py-2 text-sm text-slate-900 sm:w-52 sm:shrink-0">
                         {AGENT_MODELS.map(model => <option key={model} value={model}>{AGENT_MODEL_LABELS[model]}</option>)}
                       </select>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-6 rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
                     <div className="flex items-start gap-3">
                       <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
                         <Languages className="h-4 w-4" />

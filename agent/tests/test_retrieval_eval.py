@@ -1,6 +1,8 @@
 import unittest
 
-from app.retrieval_eval import recall_at_k, recall_ceiling, reciprocal_rank, score_query, summarize
+from app.evidence import EMBEDDING_DIMENSIONS
+from app.retrieval_eval import (recall_at_k, recall_ceiling, reciprocal_rank, reembedded_points,
+                                score_query, summarize)
 
 
 def search(*hits, insufficient=False):
@@ -22,6 +24,20 @@ class RetrievalEvalTests(unittest.TestCase):
         result = score_query({"query": "q", "relevant": relevant},
                              search(("mr:1:comment:2", 0.8), ("mr:9:description", 0.7)))
         self.assertEqual(result["entityRecall@3"], 0.5)
+
+    def test_reembedded_points_keep_payload_under_a_model_specific_id(self):
+        payload = {"chunk_id": "p:main:mr:1:description:0", "content": "text",
+                   "embedding_model": "BAAI/bge-base-en-v1.5"}
+        vector = [3.0, 4.0] + [0.0] * (EMBEDDING_DIMENSIONS - 2)
+        first, = reembedded_points([payload], [vector], "Qwen/Qwen3-Embedding-0.6B")
+        second, = reembedded_points([payload], [vector], "other-model")
+        self.assertEqual(first["payload"]["embedding_model"], "Qwen/Qwen3-Embedding-0.6B")
+        self.assertEqual(first["payload"]["chunk_id"], payload["chunk_id"])
+        self.assertEqual(payload["embedding_model"], "BAAI/bge-base-en-v1.5")
+        self.assertNotEqual(first["id"], second["id"])
+        self.assertAlmostEqual(first["vector"][0], 0.6)
+        with self.assertRaises(ValueError):
+            reembedded_points([payload], [], "m")
 
     def test_summary_separates_answerable_and_unanswerable_queries(self):
         results = [

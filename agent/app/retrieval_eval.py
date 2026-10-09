@@ -13,6 +13,13 @@ the search should report insufficientEvidence.
     python -m app.retrieval_eval run --project-id github~owner~repo --ref-name main \
         --labels eval/labels.jsonl
 
+To compare embedding models on the same corpus, copy the indexed chunks and embed them with the configured
+EMBEDDING_PROVIDER / EMBEDDING_MODEL (re-indexing would fetch a new GitHub sample). Copies sit beside the
+originals and searches filter by model; run reembed again after re-indexing the source model:
+
+    python -m app.retrieval_eval reembed --project-id github~owner~repo --ref-name main \
+        --source-model BAAI/bge-base-en-v1.5
+
 Recall and MRR are computed on what the agent would receive: after the score threshold, bot filter and
 per-entity diversification. recallCeiling is the best recall that diversification allows; entityRecall@3
 counts a PR or issue as found when any of its sources is in the top three. Labels made only from retrieved results inflate recall; label from the
@@ -22,6 +29,7 @@ import argparse
 import asyncio
 import json
 import os
+import time
 from datetime import date
 from statistics import mean
 from typing import Any
@@ -29,12 +37,14 @@ from typing import Any
 import httpx
 
 from app.evidence import configured_embedding
-from app.qdrant_evidence import COLLECTION, _day, configured_index
+from app.evidence import _unit_vector
+from app.qdrant_evidence import COLLECTION, _day, _point_id, configured_index
 
 TOP_K = 8
 CUTOFFS = (1, 3, 5, 8)
 # Mirrors select_evidence_hits: at most this many sources per PR or issue reach the agent.
 PER_ENTITY = 2
+REEMBED_BATCH_SIZE = 64
 
 
 def recall_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
@@ -120,6 +130,36 @@ async def candidates(args: argparse.Namespace) -> None:
                              ensure_ascii=False))
 
 
+def reembedded_points(payloads: list[dict[str, Any]], vectors: list[list[float]],
+                      model: str) -> list[dict[str, Any]]:
+    if len(payloads) != len(vectors):
+        raise ValueError("Embedding response count mismatch")
+    # The model is part of the point id so the copy never overwrites the source model's chunk.
+    return [{"id": _point_id("chunk", f"{model}:{payload['chunk_id']}"), "vector": _unit_vector(vector),
+             "payload": {**payload, "embedding_model": model}}
+            for payload, vector in zip(payloads, vectors)]
+
+
+async def reembed(args: argparse.Namespace) -> None:
+    async with httpx.AsyncClient(timeout=120) as client:
+        index = configured_index(client)
+        embedding = configured_embedding(client)
+        if embedding is None or embedding.model == args.source_model:
+            raise SystemExit("Configure a different EMBEDDING_PROVIDER / EMBEDDING_MODEL than --source-model")
+        scope = index._scope_filter(args.project_id, args.ref_name)
+        scope["must"].append({"key": "embedding_model", "match": {"value": args.source_model}})
+        payloads = [point["payload"] async for point in index._scroll(COLLECTION, scope)]
+        if not payloads:
+            raise SystemExit(f"No chunks indexed with {args.source_model}")
+        start = time.monotonic()
+        vectors = await embedding.embed_documents([payload["content"] for payload in payloads])
+        points = reembedded_points(payloads, vectors, embedding.model)
+        for offset in range(0, len(points), REEMBED_BATCH_SIZE):
+            await index._upsert(COLLECTION, points[offset:offset + REEMBED_BATCH_SIZE])
+        print(json.dumps({"chunks": len(points), "model": embedding.model,
+                          "embeddingSeconds": round(time.monotonic() - start, 1)}))
+
+
 async def run(args: argparse.Namespace) -> None:
     with open(args.labels, encoding="utf-8") as handle:
         labels = [json.loads(line) for line in handle if line.strip()]
@@ -145,16 +185,18 @@ def main() -> None:
     listing.add_argument("--until", type=date.fromisoformat, required=True)
     scoring = commands.add_parser("run", help="Score labelled queries")
     scoring.add_argument("--labels", required=True)
-    for command in (listing, scoring):
+    copying = commands.add_parser("reembed", help="Embed another model's indexed chunks with the configured model")
+    copying.add_argument("--source-model", required=True)
+    for command in (listing, scoring, copying):
         command.add_argument("--project-id", required=True)
         command.add_argument("--ref-name")
     args = parser.parse_args()
     if not args.project_id.startswith("github~") or len(args.project_id.split("~")) != 3:
         parser.error("--project-id must be a github~owner~repo project")
-    if (args.command == "run" and os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower() == "gemini"
+    if (args.command in ("run", "reembed") and os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower() == "gemini"
             and not os.getenv("GEMINI_API_KEY")):
         parser.error("GEMINI_API_KEY is required to embed queries unless EMBEDDING_PROVIDER=local")
-    asyncio.run(candidates(args) if args.command == "candidates" else run(args))
+    asyncio.run({"candidates": candidates, "run": run, "reembed": reembed}[args.command](args))
 
 
 if __name__ == "__main__":

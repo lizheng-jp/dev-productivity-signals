@@ -53,7 +53,37 @@ export const getGitHubRateLimit = (): Promise<GitHubRateLimit> => {
 
 const GITHUB_PROJECTS_STORAGE_KEY = 'signals.githubProjects';
 
-export const loadStoredGitHubProjects = (): Project[] => {
+// Always listed for every visitor and cannot be removed in Settings.
+export const DEFAULT_GITHUB_PROJECTS: Project[] = [
+  {
+    id: 'github~lizheng-jp~dev-productivity-signals',
+    name: 'dev-productivity-signals',
+    fullName: 'lizheng-jp/dev-productivity-signals',
+    description: 'Dev Productivity Signals — engineering metrics and evidence-grounded analysis with Signals Agent.',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/lizheng-jp/dev-productivity-signals',
+  },
+  {
+    id: 'github~google~gson',
+    name: 'gson',
+    fullName: 'google/gson',
+    description: 'A Java serialization/deserialization library to convert Java Objects into JSON and back',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/google/gson',
+  },
+];
+
+export const isDefaultGitHubProject = (projectId: string) =>
+  DEFAULT_GITHUB_PROJECTS.some(project => project.id === projectId);
+
+export const withDefaultGitHubProjects = (projects: Project[]): Project[] => [
+  ...DEFAULT_GITHUB_PROJECTS,
+  ...projects.filter(project => !isDefaultGitHubProject(project.id)),
+];
+
+const readStoredGitHubProjects = (): Project[] => {
   if (typeof window === 'undefined') return [];
   try {
     const value = JSON.parse(window.localStorage.getItem(GITHUB_PROJECTS_STORAGE_KEY) || '[]');
@@ -69,10 +99,16 @@ export const loadStoredGitHubProjects = (): Project[] => {
   }
 };
 
+/** User-added GitHub projects only; the defaults are not part of this list. */
+export const hasUserGitHubProjects = () =>
+  readStoredGitHubProjects().some(project => !isDefaultGitHubProject(project.id));
+
+export const loadStoredGitHubProjects = (): Project[] => withDefaultGitHubProjects(readStoredGitHubProjects());
+
 export const saveStoredGitHubProjects = (projects: Project[]) => {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(
     GITHUB_PROJECTS_STORAGE_KEY,
-    JSON.stringify(projects.filter(project => project.provider === 'github')),
+    JSON.stringify(projects.filter(project => project.provider === 'github' && !isDefaultGitHubProject(project.id))),
   );
 };

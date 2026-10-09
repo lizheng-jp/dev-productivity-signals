@@ -130,8 +130,9 @@ public class GitHubRepositoryService {
         for (int page = 1; page <= maxPages; page++) {
             JSONArray contributors = getArray(repository.path() + "/contributors?per_page=100&page=" + page);
             for (int i = 0; i < contributors.length(); i++) {
-                String login = contributors.getJSONObject(i).optString("login", "");
-                if (!login.isBlank()) {
+                JSONObject contributor = contributors.getJSONObject(i);
+                String login = contributor.optString("login", "");
+                if (!login.isBlank() && !isBot(contributor)) {
                     members.add(login);
                 }
             }
@@ -425,6 +426,9 @@ public class GitHubRepositoryService {
             JSONObject user = actor == null ? null : new JSONObject()
                     .put("login", actor.optString("login", ""))
                     .put("type", actor.optString("__typename", ""));
+            if (user != null && isBot(user)) {
+                continue;
+            }
             notes.put(new JSONObject()
                     .put("id", source.optLong("databaseId"))
                     .put("system", false)
@@ -657,6 +661,10 @@ public class GitHubRepositoryService {
                 if (review && "PENDING".equalsIgnoreCase(source.optString("state", ""))) {
                     continue;
                 }
+                JSONObject sourceUser = source.optJSONObject("user");
+                if (sourceUser != null && isBot(sourceUser)) {
+                    continue;
+                }
                 JSONObject note = new JSONObject();
                 String createdAt = review
                         ? source.optString("submitted_at", source.optString("created_at", ""))
@@ -687,8 +695,14 @@ public class GitHubRepositoryService {
         String login = source.optString("login", "");
         user.put("username", login);
         user.put("name", login);
-        user.put("bot", "Bot".equalsIgnoreCase(source.optString("type", "")) || login.endsWith("[bot]"));
+        user.put("bot", isBot(source));
         return user;
+    }
+
+    /** GitHub Apps report type "Bot"; their logins also end with "[bot]". */
+    private static boolean isBot(JSONObject user) {
+        return "Bot".equalsIgnoreCase(user.optString("type", ""))
+                || user.optString("login", "").endsWith("[bot]");
     }
 
     private String loginOrName(JSONObject user, JSONObject gitIdentity) {

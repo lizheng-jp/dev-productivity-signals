@@ -395,7 +395,8 @@
         "githubProjectRemoved": "GitHub project removed.",
         "githubConnectionError": "Could not connect to GitHub.",
         "openGitHub": "Open on GitHub",
-        "removeProject": "Remove project"
+        "removeProject": "Remove project",
+        "defaultGitHubProject": "Default"
     },
     "AiFeedback": {
         "helpful": "Helpful",

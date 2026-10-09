@@ -427,6 +427,7 @@
         "githubConnectionError": "GitHubに接続できませんでした。",
         "openGitHub": "GitHubで開く",
         "removeProject": "プロジェクトを削除",
+        "defaultGitHubProject": "デフォルト",
         "defaultProject": "デフォルトプロジェクト",
         "dataRetention": "データ保持期間（日）",
         "enableEmail": "メールレポートを有効にする",

@@ -209,7 +209,7 @@ export const MrAnalysisBatchView = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
           <div className="mb-4">
             <h3 className="text-base font-bold text-slate-800">MR AI分析（逐次実行）</h3>
             <p className="mt-1 text-xs text-slate-500">
@@ -224,7 +224,7 @@ export const MrAnalysisBatchView = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-800 outline-none transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-surface px-3 py-2 text-left text-sm font-medium text-slate-800 outline-none transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
                     disabled={loading || running}
                   >
                     <div className="flex min-w-0 items-center gap-2">
@@ -234,14 +234,14 @@ export const MrAnalysisBatchView = () => {
                     <ChevronDown className={cn('h-4 w-4 flex-shrink-0 text-slate-400 transition-transform', isProjectPopoverOpen && 'rotate-180')} />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white p-0" align="start">
+                <PopoverContent className="w-80 p-0" align="start">
                   <div className="border-b border-slate-100 bg-slate-50 p-2">
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                       <input
                         type="text"
                         placeholder="Search projects..."
-                        className="w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full rounded-md border border-slate-200 bg-surface py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                         value={projectSearchQuery}
                         onChange={(event) => setProjectSearchQuery(event.target.value)}
                       />
@@ -376,7 +376,7 @@ export const MrAnalysisBatchView = () => {
           {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
           <h3 className="mb-3 text-base font-bold text-slate-800">ジョブ明細</h3>
           {detailLoading ? (
             <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -414,7 +414,7 @@ export const MrAnalysisBatchView = () => {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-surface p-5 shadow-sm">
         <h3 className="mb-3 text-base font-bold text-slate-800">実行履歴</h3>
         <div className="max-h-80 overflow-auto rounded-lg border border-slate-100">
           <table className="w-full text-left text-xs">

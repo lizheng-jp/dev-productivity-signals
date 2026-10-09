@@ -109,7 +109,7 @@ export const GroupsView = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {groups.map((group) => (
-                        <div key={group.groupId} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div key={group.groupId} className="bg-surface rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                             <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                                 <div>
                                     <h3 className="font-bold text-slate-800">{group.groupName}</h3>
@@ -143,7 +143,7 @@ export const GroupsView = () => {
                                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                                         {group.users && group.users.length > 0 ? (
                                             group.users.map((user) => (
-                                                <div key={user.userCode} className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-100 group">
+                                                <div key={user.userCode} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-slate-100 group">
                                                     <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
                                                         <User className="w-4 h-4" />
                                                     </div>
@@ -176,8 +176,8 @@ export const GroupsView = () => {
 
             {/* Add Group Modal */}
             {isAddGroupModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                <div className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white/90 backdrop-blur-2xl ring-1 ring-slate-900/5 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                         <div className="p-6 border-b border-slate-100">
                             <h3 className="text-lg font-bold text-slate-800">Add New Group</h3>
                         </div>
@@ -226,8 +226,8 @@ export const GroupsView = () => {
 
             {/* Add User Modal */}
             {isAddUserModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                <div className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white/90 backdrop-blur-2xl ring-1 ring-slate-900/5 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                         <div className="p-6 border-b border-slate-100">
                             <h3 className="text-lg font-bold text-slate-800">Add Member to Group</h3>
                         </div>

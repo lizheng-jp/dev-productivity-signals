@@ -74,13 +74,13 @@ export const TeamAnalyticsView = ({ developerStats, isLoadingStats }: Props) => 
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-slate-800">Team Performance Overview</h2>
-        <button className="px-3 py-1.5 text-sm bg-white border border-slate-300 rounded text-slate-600 hover:bg-slate-50">
+        <button className="px-3 py-1.5 text-sm bg-surface border border-slate-300 rounded text-slate-600 hover:bg-slate-50">
           Export Report
         </button>
       </div>
 
       {groupStats.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
+        <div className="text-center py-12 bg-surface rounded-lg border border-slate-200">
           <p className="text-slate-500">No groups found or no group members assigned to this project.</p>
         </div>
       ) : (
@@ -93,7 +93,7 @@ export const TeamAnalyticsView = ({ developerStats, isLoadingStats }: Props) => 
                   <h3 className="font-bold text-base text-slate-800">{team.name}</h3>
                   <p className="text-xs text-slate-500">Group ID: {team.id}</p>
                 </div>
-                <span className="bg-white border border-slate-200 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium shadow-sm">
+                <span className="bg-surface border border-slate-200 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium shadow-sm">
                   {team.members} Active Members
                 </span>
               </div>

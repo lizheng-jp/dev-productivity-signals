@@ -69,7 +69,7 @@ export const AiInsightsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose:
   const suggestions = activeTab === 'individual' ? AI_SUGGESTIONS.individual : AI_SUGGESTIONS.team;
 
   return (
-    <div className="w-80 bg-white border-r border-slate-200 flex flex-col h-full shadow-xl z-20 transition-all duration-300">
+    <div className="w-80 bg-surface border-r border-slate-200 flex flex-col h-full shadow-xl z-20 transition-all duration-300">
       {/* Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
         <div className="flex items-center gap-2 text-indigo-700">
@@ -109,7 +109,7 @@ export const AiInsightsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose:
         {/* Summary Badge */}
         <div className="bg-indigo-600 text-white p-4 rounded-lg shadow-sm">
           <h4 className="font-bold text-sm mb-1">Weekly Summary</h4>
-          <p className="text-xs text-indigo-100 leading-relaxed">
+          <p className="text-xs text-white/85 leading-relaxed">
             {activeTab === 'individual'
               ? "Your coding efficiency is top 10% this week, but code review participation is slightly below average."
               : "Team velocity is stable, but communication overhead has increased by 12% due to long MR threads."
@@ -120,7 +120,7 @@ export const AiInsightsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose:
         <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4">Actionable Suggestions</h5>
 
         {suggestions.map((item) => (
-          <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-default group">
+          <div key={item.id} className="bg-surface border border-slate-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-default group">
             <div className="flex items-start gap-3">
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", item.bg, item.color)}>
                 <item.icon className="w-4 h-4" />

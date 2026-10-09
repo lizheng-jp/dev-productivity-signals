@@ -143,12 +143,12 @@ export const DeveloperDetailPanel = ({ isOpen, onClose, developer, metricConfigs
     <>
       {/* */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 transition-opacity"
+        className="fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-40 transition-opacity"
         onClick={onClose}
       />
 
       {/* Slide-over Panel */}
-      <div className="fixed inset-y-0 right-0 w-[600px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col">
+      <div className="fixed inset-y-0 right-0 w-[600px] bg-white/90 backdrop-blur-2xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col">
 
         {/* 1. Header Area */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 bg-slate-50">
@@ -198,7 +198,7 @@ export const DeveloperDetailPanel = ({ isOpen, onClose, developer, metricConfigs
         </div>
 
         {/* 2. Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-white">
+        <div className="flex-1 overflow-y-auto p-6 bg-surface">
 
           {/* AI Evaluations Section
           {developer.aiEvaluations && developer.aiEvaluations.length > 0 && (
@@ -256,7 +256,7 @@ export const DeveloperDetailPanel = ({ isOpen, onClose, developer, metricConfigs
 
         {/* 3. Footer Actions */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
-          <button className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 shadow-sm">
+          <button className="px-4 py-2 bg-surface border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 shadow-sm">
             {t('exportPdf')}
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm flex items-center gap-2">
@@ -284,7 +284,7 @@ const DimensionCard = ({ dimension }: { dimension: DeveloperDimension }) => {
                 <CircleHelp className="h-4 w-4" aria-hidden="true" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="z-[100] max-w-[calc(100vw-2rem)] bg-white text-sm leading-6 text-slate-600" sideOffset={8}>
+            <PopoverContent className="z-[100] max-w-[calc(100vw-2rem)] text-sm leading-6 text-slate-600" sideOffset={8}>
               <p>{dimension.description}</p>
             </PopoverContent>
           </Popover>
@@ -297,7 +297,7 @@ const DimensionCard = ({ dimension }: { dimension: DeveloperDimension }) => {
       {/* Metrics Grid */}
       <div className="p-4 space-y-2">
         {dimension.metrics.map((metric, idx) => (
-          <div key={idx} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
+          <div key={idx} className="bg-surface border border-slate-200 rounded-lg p-3 shadow-sm">
             <div className="mb-1.5 flex items-center justify-between gap-2"><span className="text-[10px] font-bold text-slate-500 uppercase">{metric.label}</span><TrendBadge trend={metric.trend} /></div>
             <div className="grid grid-cols-1">
               <div className="flex flex-col">

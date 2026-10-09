@@ -23,7 +23,7 @@ const ComparisonSelector = ({ label, selected, onChange, options }: { label: str
         <select
             value={selected}
             onChange={onChange}
-            className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm bg-surface border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
             {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
@@ -158,7 +158,7 @@ export const ComparisonCard = ({ developerStats, projectStats, metricConfigs }: 
 
             {entity1Data && (
                 <div className="mt-8 pt-8 border-t border-slate-200">
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8 bg-white text-slate-800 rounded-xl border border-slate-200 shadow-sm">
+                    <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8 bg-surface text-slate-800 rounded-xl border border-slate-200 shadow-sm">
                         {/* Entity 1 */}
                         <div className="flex flex-col items-center text-center">
                             <h3 className="text-lg font-semibold text-blue-600">{entity1Data.name}</h3>
@@ -176,12 +176,12 @@ export const ComparisonCard = ({ developerStats, projectStats, metricConfigs }: 
                         <div className="col-span-1 flex flex-col items-center justify-center min-h-[300px]">
                             <ResponsiveContainer width="100%" height={300}>
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                                    <PolarGrid stroke="#e2e8f0" />
-                                    <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={12} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} stroke="#e2e8f0" />
-                                    <Radar name={entity1Data.name} dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
+                                    <PolarGrid stroke="var(--color-slate-200, #e2e8f0)" />
+                                    <PolarAngleAxis dataKey="subject" stroke="var(--color-slate-300, #cbd5e1)" tick={{ fill: 'var(--color-slate-600, #475569)' }} fontSize={12} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} stroke="var(--color-slate-200, #e2e8f0)" />
+                                    <Radar name={entity1Data.name} dataKey="A" stroke="var(--color-blue-500, #3b82f6)" fill="var(--color-blue-500, #3b82f6)" fillOpacity={0.5} />
                                     {entity2Data && (
-                                        <Radar name={entity2Data.name} dataKey="B" stroke="#10b981" fill="#10b981" fillOpacity={0.5} />
+                                        <Radar name={entity2Data.name} dataKey="B" stroke="var(--color-emerald-500, #10b981)" fill="var(--color-emerald-500, #10b981)" fillOpacity={0.5} />
                                     )}
                                 </RadarChart>
                             </ResponsiveContainer>

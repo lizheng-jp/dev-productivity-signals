@@ -191,15 +191,15 @@ export function AgentView({ onOpenSettings, model }: {
             title={isJapanese ? 'Signals Agent を開く' : 'Open Signals Agent'}
             aria-label={isJapanese ? 'Signals Agent を開く' : 'Open Signals Agent'}
             aria-expanded={isOpen} aria-controls="agent-dialog"
-            className={`fixed bottom-[5.5rem] right-4 z-[60] flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 md:bottom-6 md:right-6 ${isOpen ? 'hidden' : ''}`}>
+            className={`fixed bottom-[5.5rem] right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl bg-aurora text-white shadow-[0_12px_30px_-6px_rgb(139_92_246/0.6)] transition-transform hover:-translate-y-0.5 hover:scale-105 md:bottom-6 md:right-6 ${isOpen ? 'hidden' : ''}`}>
             <Bot className="h-6 w-6" aria-hidden="true" />
         </button>
 
         {isOpen && <section id="agent-dialog" role="dialog" aria-modal="false" aria-label="Signals Agent"
-            className="fixed inset-x-3 bottom-[5.5rem] top-3 z-[60] flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:top-auto sm:h-[min(38rem,calc(100dvh-3rem))] sm:w-[min(28rem,calc(100vw-3rem))]">
-            <header className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3">
+            className="fixed inset-x-3 bottom-[5.5rem] top-3 z-[60] flex flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-2xl animate-rise sm:inset-x-auto sm:bottom-6 sm:right-6 sm:top-auto sm:h-[min(38rem,calc(100dvh-3rem))] sm:w-[min(28rem,calc(100vw-3rem))]">
+            <header className="flex shrink-0 items-center justify-between border-b border-slate-200/70 px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <Bot className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                    <span className="bg-aurora flex h-7 w-7 items-center justify-center rounded-lg text-white"><Bot className="h-4 w-4" aria-hidden="true" /></span>
                     <h2 className="text-sm font-semibold text-slate-900">Signals Agent</h2>
                     {loading && <span className="h-2 w-2 animate-pulse rounded-full bg-blue-600" aria-label={isJapanese ? '処理中' : 'Processing'} />}
                 </div>
@@ -217,23 +217,23 @@ export function AgentView({ onOpenSettings, model }: {
                 </div>
             </header>
 
-            <div className="shrink-0 space-y-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="shrink-0 space-y-2 border-b border-slate-200/70 bg-slate-50/60 px-4 py-3">
                 {githubProjects.length > 0 ? <>
                     <label className="sr-only" htmlFor="agent-project">{isJapanese ? 'GitHub プロジェクト' : 'GitHub project'}</label>
                     <select id="agent-project" value={project?.id || ''} onChange={event => setProjectOverride(event.target.value)}
-                        className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-900">
+                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900">
                         {githubProjects.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
                     </select>
                     <div className="flex min-w-0 items-center gap-2">
                         <label className="sr-only" htmlFor="agent-since">{isJapanese ? '開始日' : 'Start date'}</label>
                         <input id="agent-since" type="date" value={since} max={until}
                             onChange={event => setSinceOverride(event.target.value)}
-                            className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-900" />
+                            className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-900" />
                         <span className="shrink-0 text-xs text-slate-500">-</span>
                         <label className="sr-only" htmlFor="agent-until">{isJapanese ? '終了日' : 'End date'}</label>
                         <input id="agent-until" type="date" value={until} min={since} max={format(new Date(), 'yyyy-MM-dd')}
                             onChange={event => setUntilOverride(event.target.value)}
-                            className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-900" />
+                            className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-900" />
                     </div>
                     {rangeTooLong && <p className="text-xs text-red-700" role="status">
                         {isJapanese ? '期間は365日以内にしてください。' : 'Select a period of 365 days or less.'}
@@ -253,9 +253,9 @@ export function AgentView({ onOpenSettings, model }: {
                 </div>}
                 {messages.map(message => <article key={message.id} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {message.role === 'assistant' && <Bot className="mt-2 h-4 w-4 shrink-0 text-blue-600" aria-hidden="true" />}
-                    <div className={`min-w-0 rounded-lg px-3 py-2.5 ${message.role === 'user' ? 'max-w-[88%]' : 'w-full'} ${message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : message.isError ? 'border border-red-200 bg-red-50 text-red-800' : 'bg-slate-100 text-slate-800'}`}>
+                    <div className={`min-w-0 rounded-2xl px-3.5 py-2.5 ${message.role === 'user' ? 'max-w-[88%]' : 'w-full'} ${message.role === 'user'
+                        ? 'bg-aurora text-white shadow-md'
+                        : message.isError ? 'border border-red-200 bg-red-50 text-red-800' : 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'}`}>
                         {message.context && <p className="mb-1 break-words text-[10px] opacity-75">{message.context}</p>}
                         {message.role === 'assistant' && !message.isError
                             ? <div className="min-w-0 break-words text-sm leading-6">
@@ -271,7 +271,7 @@ export function AgentView({ onOpenSettings, model }: {
                 <div ref={transcriptEndRef} />
             </div>
 
-            <form onSubmit={submit} className="shrink-0 border-t border-slate-200 p-3">
+            <form onSubmit={submit} className="shrink-0 border-t border-slate-200/70 p-3">
                 <label className="sr-only" htmlFor="agent-question">{isJapanese ? '質問' : 'Question'}</label>
                 <div className="flex items-end gap-2">
                     <textarea ref={questionRef} id="agent-question" value={question} maxLength={1000} rows={2}
@@ -283,10 +283,10 @@ export function AgentView({ onOpenSettings, model }: {
                             }
                         }}
                         placeholder={isJapanese ? '質問を入力' : 'Ask a question'}
-                        className="max-h-32 min-h-11 min-w-0 flex-1 resize-y rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600" />
+                        className="max-h-32 min-h-11 min-w-0 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" />
                     <button type="submit" disabled={!canAsk || loading} title={isJapanese ? '送信' : 'Send'}
                         aria-label={isJapanese ? '送信' : 'Send'}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
                         <ArrowUp className="h-5 w-5" aria-hidden="true" />
                     </button>
                 </div>

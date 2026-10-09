@@ -106,7 +106,7 @@ function InsightCard({ title, value, detail, icon, tone, isLoading, isAiCorrecti
           {isLoading ? '...' : value}
         </div>
         {!isLoading && isAiCorrecting && (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-bold text-blue-600">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-surface/70 px-2 py-0.5 text-[10px] font-bold text-blue-600">
             <Loader2 className="h-3 w-3 animate-spin" />
             AI補正中
           </span>
@@ -189,14 +189,14 @@ export const TrendsPanel = ({ isOpen, onToggle }: TrendsPanelProps) => {
           onClick={onToggle}
           aria-label={t('openPanel')}
           title={t('openPanel')}
-          className="fixed right-3 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+          className="fixed right-3 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white/90 backdrop-blur-2xl text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
         >
           <ChevronLeft size={18} />
         </button>
       )}
 
       <aside
-        className={`fixed right-0 top-0 z-30 h-screen w-80 overflow-y-auto border-l border-slate-200 bg-white transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 z-30 h-screen w-80 overflow-y-auto border-l border-slate-200 bg-white/90 backdrop-blur-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
         aria-hidden={!isOpen}
@@ -272,11 +272,11 @@ export const TrendsPanel = ({ isOpen, onToggle }: TrendsPanelProps) => {
               ) : activityTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={activityTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-slate-100, #f1f5f9)" />
                     <XAxis dataKey="label" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="commits" stroke="#2563eb" strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="commits" stroke="var(--color-blue-600, #2563eb)" strokeWidth={2} dot={{ r: 4 }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (

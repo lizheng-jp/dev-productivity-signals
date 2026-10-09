@@ -15,7 +15,7 @@ export function FeedbackView() {
     const [details, setDetails] = useState('');
     const [status, setStatus] = useState<'saved' | 'error' | null>(null);
     const [saving, setSaving] = useState(false);
-    const fieldClass = 'mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100';
+    const fieldClass = 'mt-2 w-full rounded-lg border border-slate-300 bg-surface px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100';
 
     async function saveFeedback(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -44,7 +44,7 @@ export function FeedbackView() {
         <div className="space-y-6">
             <header className="space-y-3">
                 <MessageSquareText className="h-8 w-8 text-blue-600" aria-hidden="true" />
-                <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{t('title')}</h1>
                 <p className="max-w-3xl text-sm leading-7 text-slate-600">{t('description')}</p>
             </header>
 

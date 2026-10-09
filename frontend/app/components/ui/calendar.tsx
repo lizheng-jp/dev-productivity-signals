@@ -32,8 +32,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       // 変更前
       //className={cn("p-3", className)}
 
-      // 変更後（bg-white を追加）
-      className={cn("p-3 bg-white", className)}
+      // 変更後（bg-surface を追加）
+      className={cn("p-3 bg-surface", className)}
 
       classNames={{
         [UI.Months]: "relative",
@@ -42,11 +42,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         [UI.CaptionLabel]: "text-sm font-semibold text-slate-800",
         [UI.PreviousMonthButton]: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 border-slate-200 bg-white p-0 text-slate-500 opacity-70 hover:bg-slate-50 hover:opacity-100"
+          "h-7 w-7 border-slate-200 bg-surface p-0 text-slate-500 opacity-70 hover:bg-slate-50 hover:opacity-100"
         ),
         [UI.NextMonthButton]: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 border-slate-200 bg-white p-0 text-slate-500 opacity-70 hover:bg-slate-50 hover:opacity-100"
+          "h-7 w-7 border-slate-200 bg-surface p-0 text-slate-500 opacity-70 hover:bg-slate-50 hover:opacity-100"
         ),
         [UI.MonthGrid]: "w-full border-collapse space-y-1",
         [UI.Weekdays]: "flex",

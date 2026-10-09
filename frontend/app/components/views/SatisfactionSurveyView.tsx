@@ -97,7 +97,7 @@ const ScoreButton = ({
       "min-h-11 rounded border px-2 py-2 text-center text-[11px] font-semibold leading-4 transition",
       selected
         ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+        : "border-slate-200 bg-surface text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
     )}
   >
     {label}
@@ -315,7 +315,7 @@ export const SatisfactionSurveyView = () => {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{t('title')}</h1>
           <p className="mt-1 text-sm text-slate-500">
             {selectedProject?.name || t('noProject')}
             {selectedMember && <span className="ml-2 text-slate-400">/ {getMemberName(selectedMember)}</span>}

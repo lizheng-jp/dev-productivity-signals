@@ -45,7 +45,7 @@ const SectionList = ({
   };
 
   return (
-    <div className="border border-slate-200 rounded-lg bg-white p-4">
+    <div className="border border-slate-200 rounded-lg bg-surface p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className={cn("w-8 h-8 rounded-md border flex items-center justify-center", toneClasses[tone])}>
           <Icon className="w-4 h-4" />
@@ -119,7 +119,7 @@ export const AiEvaluationSection = ({
     : 0;
 
   return (
-    <Card className="overflow-hidden bg-white border border-slate-200 shadow-sm">
+    <Card className="overflow-hidden bg-surface border border-slate-200 shadow-sm">
       <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">

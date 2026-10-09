@@ -67,7 +67,7 @@ export function ManualView() {
       <header className="border-b border-slate-200 pb-6">
         <div className="flex items-center gap-3 text-blue-700">
           <BookOpen className="h-6 w-6" />
-          <h1 className="text-2xl font-bold text-slate-900">{copy.title}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{copy.title}</h1>
         </div>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{copy.intro}</p>
       </header>
@@ -76,7 +76,7 @@ export function ManualView() {
         <h2 className="text-base font-bold text-slate-800">{copy.stepsTitle}</h2>
         <ol className="mt-4 grid gap-3 md:grid-cols-2">
           {copy.steps.map((step, index) => (
-            <li key={step} className="flex gap-3 border-l-2 border-blue-500 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
+            <li key={step} className="flex gap-3 border-l-2 border-blue-500 bg-surface px-4 py-3 text-sm leading-6 text-slate-600">
               <span className="font-bold text-blue-700">{index + 1}</span>
               <span>{step}</span>
             </li>

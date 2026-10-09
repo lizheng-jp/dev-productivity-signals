@@ -15,6 +15,7 @@ services:
     restart: unless-stopped
 
   backend:
+    image: ${IMAGE_REPOSITORY:-ghcr.io/lizheng-jp/dev-productivity-signals}-backend:${IMAGE_TAG:-latest}
     build: ./backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/signals_demo
@@ -50,6 +51,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: ${IMAGE_REPOSITORY:-ghcr.io/lizheng-jp/dev-productivity-signals}-frontend:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       args:
@@ -63,6 +65,7 @@ services:
 
   agent:
     profiles: [agent]
+    image: ${IMAGE_REPOSITORY:-ghcr.io/lizheng-jp/dev-productivity-signals}-agent:${IMAGE_TAG:-latest}
     build: ./agent
     environment:
       Signals_BACKEND_URL: http://backend:8080

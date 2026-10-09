@@ -1,6 +1,6 @@
 import unittest
 
-from app.retrieval_eval import recall_at_k, reciprocal_rank, score_query, summarize
+from app.retrieval_eval import recall_at_k, recall_ceiling, reciprocal_rank, score_query, summarize
 
 
 def search(*hits, insufficient=False):
@@ -15,6 +15,13 @@ class RetrievalEvalTests(unittest.TestCase):
         self.assertEqual(recall_at_k(retrieved, {"b", "x"}, 3), 0.5)
         self.assertEqual(reciprocal_rank(retrieved, {"c", "d"}), 1 / 3)
         self.assertEqual(reciprocal_rank(retrieved, {"x"}), 0.0)
+
+    def test_ceiling_and_entity_recall_follow_per_entity_cap(self):
+        relevant = ["mr:1:description", "mr:1:comment:2", "mr:1:comment:3", "issue:4:description"]
+        self.assertEqual(recall_ceiling(set(relevant)), 0.75)
+        result = score_query({"query": "q", "relevant": relevant},
+                             search(("mr:1:comment:2", 0.8), ("mr:9:description", 0.7)))
+        self.assertEqual(result["entityRecall@3"], 0.5)
 
     def test_summary_separates_answerable_and_unanswerable_queries(self):
         results = [

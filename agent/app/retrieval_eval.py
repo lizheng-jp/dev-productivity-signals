@@ -14,7 +14,8 @@ the search should report insufficientEvidence.
         --labels eval/labels.jsonl
 
 Recall and MRR are computed on what the agent would receive: after the score threshold, bot filter and
-per-entity diversification. Labels made only from retrieved results inflate recall; label from the
+per-entity diversification. recallCeiling is the best recall that diversification allows; entityRecall@3
+counts a PR or issue as found when any of its sources is in the top three. Labels made only from retrieved results inflate recall; label from the
 candidate list instead.
 """
 import argparse
@@ -32,10 +33,25 @@ from app.qdrant_evidence import COLLECTION, _day, configured_index
 
 TOP_K = 8
 CUTOFFS = (1, 3, 5, 8)
+# Mirrors select_evidence_hits: at most this many sources per PR or issue reach the agent.
+PER_ENTITY = 2
 
 
 def recall_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
     return len(set(retrieved[:k]) & relevant) / len(relevant)
+
+
+def entity(source_id: str) -> str:
+    """mr:17:comment:3 -> mr:17; ids without that shape are their own entity."""
+    return ":".join(source_id.split(":")[:2])
+
+
+def recall_ceiling(relevant: set[str]) -> float:
+    """Best recall the per-entity cap allows when a query's answer spans many sources of one PR or issue."""
+    counts: dict[str, int] = {}
+    for source_id in relevant:
+        counts[entity(source_id)] = counts.get(entity(source_id), 0) + 1
+    return sum(min(count, PER_ENTITY) for count in counts.values()) / len(relevant)
 
 
 def reciprocal_rank(retrieved: list[str], relevant: set[str]) -> float:
@@ -53,6 +69,8 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
         for k in CUTOFFS:
             summary[f"recall@{k}"] = round(mean(item[f"recall@{k}"] for item in answerable), 4)
         summary["mrr"] = round(mean(item["rr"] for item in answerable), 4)
+        summary["recallCeiling"] = round(mean(item["recallCeiling"] for item in answerable), 4)
+        summary["entityRecall@3"] = round(mean(item["entityRecall@3"] for item in answerable), 4)
         summary["flaggedInsufficientWhenAnswerable"] = sum(
             item["insufficientEvidence"] for item in answerable)
     if unanswerable:
@@ -77,6 +95,10 @@ def score_query(label: dict[str, Any], search: dict[str, Any]) -> dict[str, Any]
         for k in CUTOFFS:
             result[f"recall@{k}"] = recall_at_k(retrieved, relevant, k)
         result["rr"] = reciprocal_rank(retrieved, relevant)
+        result["recallCeiling"] = recall_ceiling(relevant)
+        relevant_entities = {entity(item) for item in relevant}
+        result["entityRecall@3"] = (len({entity(item) for item in retrieved[:3]} & relevant_entities)
+                                    / len(relevant_entities))
     return result
 
 

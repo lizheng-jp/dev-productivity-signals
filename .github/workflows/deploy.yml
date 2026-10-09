@@ -69,6 +69,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          sparse-checkout: docker-compose.prod.yml
+          sparse-checkout-cone-mode: false
+
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -87,11 +94,15 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
+          # The server directory is not a git checkout, so ship the compose file
+          # and keep the previous one as a backup.
+          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \
+            docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.prod.yml.new"
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "set -eu
              cd '$DEPLOY_PATH'
-             git fetch --quiet origin main
-             git checkout --quiet --detach '$IMAGE_TAG'
+             cp docker-compose.prod.yml docker-compose.prod.yml.bak
+             mv docker-compose.prod.yml.new docker-compose.prod.yml
              export IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG'
              docker compose -f docker-compose.prod.yml pull --quiet
              docker compose -f docker-compose.prod.yml up -d --no-build --remove-orphans

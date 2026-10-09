@@ -93,7 +93,23 @@ jobs:
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+          RUNTIME_GITHUB_API_TOKEN: ${{ secrets.RUNTIME_GITHUB_API_TOKEN }}
         run: |
+          # The backend calls the GitHub API at runtime; without a token it gets
+          # 60 requests per hour. Pass the token over stdin so it never appears in
+          # a command line, and upsert it into the server's .env.
+          if [ -n "$RUNTIME_GITHUB_API_TOKEN" ]; then
+            printf '%s\n' "$RUNTIME_GITHUB_API_TOKEN" | \
+              ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+              "cd '$DEPLOY_PATH' && "'set -eu
+               IFS= read -r token
+               tmp=$(mktemp)
+               grep -v "^GITHUB_API_TOKEN=" .env > "$tmp" || true
+               printf "GITHUB_API_TOKEN=%s\n" "$token" >> "$tmp"
+               cat "$tmp" > .env
+               rm -f "$tmp"'
+          fi
+
           # The server directory is not a git checkout, so ship the compose file
           # and keep the previous one as a backup.
           scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \

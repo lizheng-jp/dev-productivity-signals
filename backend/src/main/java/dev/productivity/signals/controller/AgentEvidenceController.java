@@ -33,6 +33,9 @@ import java.util.Map;
 public class AgentEvidenceController {
     private static final int PR_LIMIT = 12;
     private static final int ISSUE_LIMIT = 20;
+    private static final int ISSUES_WITH_COMMENTS = 8;
+    // Offline retrieval evaluation asks for a wider sample so recall@k is not inflated by a tiny corpus.
+    private static final int MAX_SAMPLE_SCALE = 5;
     private static final int COMMENTS_PER_ITEM = 8;
     private final GitHubRepositoryService github;
     private final AiMrEvaluationRepository evaluations;
@@ -74,12 +77,19 @@ public class AgentEvidenceController {
             @RequestParam LocalDate since, @RequestParam LocalDate until,
             @RequestParam(required = false) String refName,
             @RequestParam(required = false) OffsetDateTime updatedAfter,
+            @RequestParam(defaultValue = "1") int sampleScale,
             @RequestHeader(value = "X-Agent-Internal-Key", required = false) String key) {
         authorize(projectId, key);
         validatePeriod(since, until);
         if (since.isBefore(until.minusDays(92))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Index window must be at most 93 days");
         }
+        if (sampleScale < 1 || sampleScale > MAX_SAMPLE_SCALE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sampleScale must be between 1 and 5");
+        }
+        int prLimit = PR_LIMIT * sampleScale;
+        int issueLimit = ISSUE_LIMIT * sampleScale;
+        int issuesWithComments = ISSUES_WITH_COMMENTS * sampleScale;
         var pulls = github.getRecentPullRequestsPage(projectId, since.toString(), until.toString(), refName);
         var issues = github.getRecentIssuesPage(projectId, since.toString(), until.toString());
         List<JSONObject> changedPulls = pulls.items().stream()
@@ -88,10 +98,10 @@ public class AgentEvidenceController {
                 .filter(item -> changedAfter(item, updatedAfter)).toList();
         List<Map<String, Object>> documents = new ArrayList<>();
         boolean truncated = pulls.hasMoreInPeriod() || issues.hasMoreInPeriod()
-                || changedPulls.size() > PR_LIMIT || changedIssues.size() > ISSUE_LIMIT
-                || changedIssues.size() > 8;
+                || changedPulls.size() > prLimit || changedIssues.size() > issueLimit
+                || changedIssues.size() > issuesWithComments;
 
-        for (JSONObject mr : selectPullRequests(changedPulls, since, until)) {
+        for (JSONObject mr : selectPullRequests(changedPulls, since, until, prLimit)) {
             int number = mr.getInt("iid");
             String url = mr.optString("web_url", "");
             String mrEventAt = mr.optString("merged_at", "");
@@ -117,7 +127,7 @@ public class AgentEvidenceController {
         }
 
         int issueIndex = 0;
-        for (JSONObject issue : changedIssues.stream().limit(ISSUE_LIMIT).toList()) {
+        for (JSONObject issue : changedIssues.stream().limit(issueLimit).toList()) {
             int number = issue.getInt("iid");
             String url = issue.optString("web_url", "");
             List<String> labels = new ArrayList<>();
@@ -131,7 +141,7 @@ public class AgentEvidenceController {
                         issue.optJSONObject("author"), issue.optString("created_at"),
                         issue.optString("updated_at"), issue.optString("created_at"), url, labels);
             }
-            if (issueIndex++ >= 8 || issue.optInt("comments", 0) == 0) continue;
+            if (issueIndex++ >= issuesWithComments || issue.optInt("comments", 0) == 0) continue;
             JSONArray notes = github.getRecentIssueComments(projectId, number);
             List<JSONObject> selectedNotes = relevantNotes(notes, since, until);
             if (notes.length() >= 100 || selectedNotes.size() > COMMENTS_PER_ITEM) truncated = true;
@@ -152,15 +162,16 @@ public class AgentEvidenceController {
                 .isAfter(updatedAfter);
     }
 
-    private List<JSONObject> selectPullRequests(List<JSONObject> pulls, LocalDate since, LocalDate until) {
+    private List<JSONObject> selectPullRequests(List<JSONObject> pulls, LocalDate since, LocalDate until,
+            int prLimit) {
         Map<Integer, JSONObject> selected = new LinkedHashMap<>();
         pulls.stream().filter(mr -> withinPeriod(mr.optString("merged_at", ""), since, until))
                 .filter(mr -> leadHours(mr) >= 0)
                 .sorted(Comparator.comparingLong(this::leadHours).reversed())
-                .limit(PR_LIMIT / 2)
+                .limit(prLimit / 2)
                 .forEach(mr -> selected.put(mr.getInt("iid"), mr));
         for (JSONObject mr : pulls) {
-            if (selected.size() >= PR_LIMIT) break;
+            if (selected.size() >= prLimit) break;
             selected.putIfAbsent(mr.getInt("iid"), mr);
         }
         return new ArrayList<>(selected.values());

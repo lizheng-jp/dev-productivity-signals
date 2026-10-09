@@ -173,7 +173,8 @@ class QdrantEvidenceIndex:
         return newest is None or bool(newest["truncated"])
 
     async def sync(self, project_id: str, documents: list[EvidenceDocument],
-                   embedding: EmbeddingProvider, ref_name: str | None = None) -> dict:
+                   embedding: EmbeddingProvider, ref_name: str | None = None,
+                   max_chunks: int = MAX_CHUNKS) -> dict:
         start = time.monotonic()
         await self._ensure_evidence()
         scope = ref_name or ""
@@ -193,7 +194,7 @@ class QdrantEvidenceIndex:
                 continue
             contents = _chunks(document.content)
             # Skip whole documents so a partly indexed source never loses its existing chunks.
-            if len(chunks) + len(contents) > MAX_CHUNKS:
+            if len(chunks) + len(contents) > max_chunks:
                 truncated = True
                 continue
             ids_by_source.setdefault(document.sourceId, set())

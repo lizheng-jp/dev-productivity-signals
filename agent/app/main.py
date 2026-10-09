@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from app.citations import answer_references, evidence_references
 from app.evidence import (EvidenceDocument, EmbeddingProvider,
-                          SOURCE_TYPES, configured_embedding)
+                          MAX_CHUNKS, SOURCE_TYPES, configured_embedding)
 from app.qdrant_evidence import QdrantEvidenceIndex, QdrantRequestError, configured_index
 from app.metrics import (EXECUTIONS, EXECUTION_DURATION, MODEL_CALLS, MODEL_DURATION,
                          TOOL_CALLS, TOOL_DURATION, INDEX_RUNS, INDEX_DURATION,
@@ -157,6 +157,8 @@ class IndexRequest(BaseModel):
     until: date | None = None
     refName: str | None = Field(default=None, max_length=255)
     fullRefresh: bool = False
+    # Retrieval evaluation only: multiplies the Spring sample and chunk limits.
+    sampleScale: int = Field(default=1, ge=1, le=5)
 
 
 class ModelGateway(Protocol):
@@ -570,6 +572,8 @@ async def index_project(project_id: str, request: IndexRequest,
             response = await client.get(url, params={"since": since.isoformat(),
                                                     "until": until.isoformat(),
                                                     **({"updatedAfter": updated_after} if updated_after else {}),
+                                                    **({"sampleScale": request.sampleScale}
+                                                       if request.sampleScale > 1 else {}),
                                                     **({"refName": request.refName} if request.refName else {})},
                                         headers={"X-Agent-Internal-Key": expected_key}, timeout=180)
             response.raise_for_status()
@@ -577,7 +581,8 @@ async def index_project(project_id: str, request: IndexRequest,
             documents = [EvidenceDocument.model_validate(item)
                          for item in payload.get("documents", [])]
             embedding = configured_embedding(client)
-            result = await index.sync(project_id, documents, embedding, request.refName)
+            result = await index.sync(project_id, documents, embedding, request.refName,
+                                      max_chunks=MAX_CHUNKS * request.sampleScale)
             truncated = bool(payload.get("truncated", False) or result.get("truncated", False))
             await index.record_refresh(project_id, since, until, request.refName, truncated)
             if truncated:

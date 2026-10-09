@@ -312,6 +312,39 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
                 await provider.embed_documents(["review delay"])
         self.assertEqual(attempts, 3)
 
+    async def test_index_endpoint_forwards_sample_scale_and_widens_chunk_limit(self):
+        until = date.today()
+        seen = {}
+
+        class FakeIndex:
+            async def updated_after(self, project_id, start, end, ref_name):
+                return None
+
+            async def sync(self, project_id, documents, embedding, ref_name, max_chunks=250):
+                seen["max_chunks"] = max_chunks
+                return {"sources": 0, "embeddedChunks": 0, "unchangedChunks": 0}
+
+            async def record_refresh(self, project_id, start, end, ref_name, truncated):
+                pass
+
+        def respond(request):
+            seen["url"] = str(request.url)
+            return httpx.Response(200, json={"documents": [], "truncated": False, "selection": "bounded"})
+
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(respond)
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=FakeIndex()):
+            await index_project(PROJECT, IndexRequest(until=until, sampleScale=4), "internal-key")
+        self.assertIn("sampleScale=4", seen["url"])
+        self.assertEqual(seen["max_chunks"], 1000)
+        with self.assertRaises(ValueError):
+            IndexRequest(sampleScale=6)
+
     async def test_index_endpoint_reuses_spring_feed_and_skips_unchanged_embedding(self):
         until = date.today()
         since = until - timedelta(days=6)
@@ -325,7 +358,7 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
             async def updated_after(self, project_id, start, end, ref_name):
                 return "2026-09-27T00:00:00+00:00" if self.refreshed else None
 
-            async def sync(self, project_id, documents, embedding, ref_name):
+            async def sync(self, project_id, documents, embedding, ref_name, max_chunks=250):
                 if documents:
                     await embedding.embed_documents([item.content for item in documents])
                 return {"sources": len(documents), "embeddedChunks": len(documents),

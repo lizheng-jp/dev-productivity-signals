@@ -9,9 +9,12 @@ import { AgentView } from '@/components/views/AgentView';
 import { DEFAULT_AGENT_MODEL, isAgentModel, type AgentModel } from '@/lib/agent-models';
 import {
     getProjects,
+    hasUserGitHubProjects,
+    isDefaultGitHubProject,
     loadStoredGitHubProjects,
     Project,
     saveStoredGitHubProjects,
+    withDefaultGitHubProjects,
 } from '@/lib/api/projects';
 import { MetricWeight } from '@/lib/api/metric-weights';
 import { MainLayoutProvider, type ComparisonSeed, type DashboardStatsState } from '@/contexts/MainLayoutContext';
@@ -77,10 +80,13 @@ export function MainLayoutClientShell({ children }: MainLayoutClientShellProps) 
 
         const loadProjects = async () => {
             const storedGitHubProjects = loadStoredGitHubProjects();
-            if (storedGitHubProjects.length > 0) {
+            // Defaults are always listed, but only user-added projects are worth
+            // selecting before the backend answers.
+            const userHasGitHubProjects = hasUserGitHubProjects();
+            if (userHasGitHubProjects) {
                 setGitHubProjects(storedGitHubProjects);
                 setProjects(storedGitHubProjects);
-                const firstProject = storedGitHubProjects[0];
+                const firstProject = storedGitHubProjects.find(project => !isDefaultGitHubProject(project.id)) ?? storedGitHubProjects[0];
                 setSelectedProjectId(firstProject.id);
                 setSelectedBranch(firstProject.defaultBranch || '');
                 setIsLoadingProjects(false);
@@ -103,7 +109,7 @@ export function MainLayoutClientShell({ children }: MainLayoutClientShellProps) 
             } catch (error) {
                 if (ignore) return;
                 console.error('Failed to load projects:', error);
-                if (storedGitHubProjects.length === 0) {
+                if (!userHasGitHubProjects) {
                     setProjects([]);
                     setSelectedProjectId(null);
                     setSelectedBranch('');
@@ -120,7 +126,8 @@ export function MainLayoutClientShell({ children }: MainLayoutClientShellProps) 
         };
     }, []);
 
-    const handleGitHubProjectsChange = useCallback((nextProjects: Project[]) => {
+    const handleGitHubProjectsChange = useCallback((changedProjects: Project[]) => {
+        const nextProjects = withDefaultGitHubProjects(changedProjects);
         saveStoredGitHubProjects(nextProjects);
         setGitHubProjects(nextProjects);
         setProjects(currentProjects => {

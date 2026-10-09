@@ -267,6 +267,59 @@ class GitHubRepositoryServiceTest {
     }
 
     @Test
+    void excludesBotContributorsFromProjectMembers() {
+        server.expect(once(), requestTo(
+                        "https://api.github.test/repos/octocat/Hello-World/contributors?per_page=100&page=1"))
+                .andRespond(withSuccess("""
+                        [{"login":"octocat","type":"User"},
+                         {"login":"dependabot[bot]","type":"Bot"},
+                         {"login":"release-app[bot]","type":"User"}]
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(service.getProjectMembers("github~octocat~Hello-World")).containsExactly("octocat");
+        server.verify();
+    }
+
+    @Test
+    void dropsBotCommentsAndReviewsFromBatchedNotes() throws Exception {
+        server.expect(once(), requestTo("https://api.github.test/graphql"))
+                .andRespond(withSuccess("""
+                        {"data":{"repository":{"p0":{
+                          "comments":{"nodes":[
+                            {"databaseId":11,"createdAt":"2026-09-02T10:00:00Z","author":{"login":"reviewer","__typename":"User"}},
+                            {"databaseId":12,"createdAt":"2026-09-02T10:05:00Z","author":{"login":"vercel","__typename":"Bot"}}],
+                            "pageInfo":{"hasNextPage":false}},
+                          "reviews":{"nodes":[
+                            {"databaseId":13,"submittedAt":"2026-09-02T11:00:00Z","state":"COMMENTED","author":{"login":"copilot-pull-request-reviewer","__typename":"Bot"}}],
+                            "pageInfo":{"hasNextPage":false}}
+                        }}}}
+                        """, MediaType.APPLICATION_JSON));
+
+        var notes = service.getPullRequestNotesBatch("github~octocat~Hello-World", List.of(1));
+
+        assertThat(notes.get(1).length()).isEqualTo(1);
+        assertThat(notes.get(1).getJSONObject(0).getJSONObject("author").getString("username"))
+                .isEqualTo("reviewer");
+        server.verify();
+    }
+
+    @Test
+    void dropsBotCommentsFromRestNotes() throws Exception {
+        server.expect(once(), requestTo(
+                        "https://api.github.test/repos/octocat/Hello-World/issues/5/comments?per_page=100&page=1"))
+                .andRespond(withSuccess("""
+                        [{"id":1,"created_at":"2026-09-02T10:00:00Z","body":"Looks good","user":{"login":"octocat","type":"User"}},
+                         {"id":2,"created_at":"2026-09-02T10:01:00Z","body":"Deployment ready","user":{"login":"github-actions[bot]","type":"Bot"}}]
+                        """, MediaType.APPLICATION_JSON));
+
+        var notes = service.getRecentIssueComments("github~octocat~Hello-World", 5);
+
+        assertThat(notes.length()).isEqualTo(1);
+        assertThat(notes.getJSONObject(0).getString("body")).isEqualTo("Looks good");
+        server.verify();
+    }
+
+    @Test
     void fallsBackToPaginatedRestForOverflowingPullRequest() {
         server.expect(once(), requestTo("https://api.github.test/graphql"))
                 .andRespond(withSuccess("""

@@ -18,7 +18,7 @@ import { MetricWeightsView } from './MetricWeightsView';
 import { MrAnalysisBatchView } from './MrAnalysisBatchView';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '../../../i18n/routing';
-import { type Project, resolveGitHubProject } from '@/lib/api/projects';
+import { isDefaultGitHubProject, type Project, resolveGitHubProject } from '@/lib/api/projects';
 import { AGENT_MODELS, AGENT_MODEL_LABELS, type AgentModel } from '@/lib/agent-models';
 
 
@@ -238,14 +238,20 @@ export const SettingsView = ({
                                 <ExternalLink className="h-4 w-4" />
                               </a>
                             )}
-                            <button
-                              type="button"
-                              title={tSettings('removeProject')}
-                              onClick={() => removeGitHubProject(project.id)}
-                              className="rounded-md p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {isDefaultGitHubProject(project.id) ? (
+                              <span className="rounded-full bg-blue-500/10 px-2.5 py-1 text-[11px] font-semibold text-blue-600">
+                                {tSettings('defaultGitHubProject')}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                title={tSettings('removeProject')}
+                                onClick={() => removeGitHubProject(project.id)}
+                                className="rounded-md p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>

@@ -63,6 +63,7 @@ export const spaceGroupsConfig = [
             { labelKey: SPACE_METRICS.satisfactionDeveloperEfficacy, key: SPACE_METRICS.satisfactionDeveloperEfficacy, unit: undefined },
             { labelKey: SPACE_METRICS.satisfactionSustainability, key: SPACE_METRICS.satisfactionSustainability, unit: undefined },
             { labelKey: SPACE_METRICS.satisfactionImprovementPotential, key: SPACE_METRICS.satisfactionImprovementPotential, unit: undefined },
+            { labelKey: SPACE_METRICS.contributorRetentionRate, key: SPACE_METRICS.contributorRetentionRate, unit: '%' },
         ]
     }
 ];

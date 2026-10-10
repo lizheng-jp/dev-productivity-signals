@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Brain, Database, Scale, TriangleAlert } from 'lucide-react';
+import { BookOpen, Brain, Database, HeartHandshake, Scale, TriangleAlert } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/Common';
 import { spaceGroupsConfig } from '@/lib/space-config';
@@ -14,12 +14,15 @@ const content = {
       'ダッシュボードでプロジェクト、ブランチ、期間を選択します。',
       '総合スコアだけでなく、各SPACE次元と元の指標を確認します。',
       '比較画面で対象や期間をそろえ、変化の背景を確認します。',
+      'プロジェクト分析で、GitHubプロジェクトごとのSPACE指標を並べて比較します。カードを開くと詳細を確認できます。',
       'AI評価は参考情報として、実際のMRやチーム状況と合わせて判断します。',
     ],
     sourceTitle: 'データについて',
     source: '公開デモでは、匿名化されたmockデータに加えて、設定画面からGitHubリポジトリを接続できます。GitHub APIへの接続にはサーバー側で管理するTokenを利用します。満足度調査とフィードバックはデモ用PostgreSQLに保存されます。',
     scoringTitle: 'スコアの読み方',
     scoring: '各指標を0～100点に換算し、設定した重みで次元スコアと総合スコアを計算します。欠損値は0点として扱わず、利用可能な指標の重みを再配分します。',
+    satisfactionTitle: '満足度の算出',
+    satisfaction: '満足度はSPACEの中で本人の感じ方を表す次元で、満足度調査の回答から算出します。調査回答がないGitHubプロジェクトでは、SPACEで調査不要の満足度指標として挙げられているコントリビューター定着率を使います。前の同じ長さの期間に活動した人のうち、当期間も活動した人の割合です（活動＝コミットまたはマージされたPR、botは除外）。前期間の活動者が3人未満の場合は未測定とします。定着率は一度きりの貢献者や異動にも左右されるため、カードに表示される人数と合わせて参考にしてください。',
     aiTitle: 'AI評価について',
     ai: 'AIモードでは、デモ用MRまたはGitHub PRの分析結果とSPACE指標をまとめて、強み・課題・改善提案を生成します。生成AIの評価には設定済みのGemini APIを利用します。',
     cautionTitle: '評価時の注意',
@@ -34,12 +37,15 @@ const content = {
       'Select a project, branch, and date range on the dashboard.',
       'Review the source metrics and each SPACE dimension, not only the overall score.',
       'Use Comparison with aligned subjects and periods to investigate changes.',
+      'Use Project Analytics to compare SPACE signals across GitHub projects, and open a card for details.',
       'Treat AI evaluation as supporting information and verify it against actual MRs and team context.',
     ],
     sourceTitle: 'Data sources',
     source: 'In addition to anonymized mock data, the public demo can connect a GitHub repository from Settings. GitHub API requests use a server-managed token. Satisfaction responses and product feedback are stored in the demo PostgreSQL database.',
     scoringTitle: 'Reading scores',
     scoring: 'Metrics are converted to a 0–100 scale and combined with configured weights. Missing values are excluded instead of being treated as zero, and the remaining weights are redistributed.',
+    satisfactionTitle: 'How satisfaction is measured',
+    satisfaction: 'Satisfaction is the SPACE dimension for how people feel about their work, and it comes from survey responses. For GitHub projects without responses, it uses contributor retention, the satisfaction metric SPACE lists that needs no survey: the share of people active in the previous period of equal length who are still active (active means a commit or a merged pull request; bots are excluded). With fewer than three previously active contributors it is left unmeasured. Retention is also driven by one-time contributors and role changes, so read it together with the contributor counts shown on each card.',
     aiTitle: 'AI evaluation',
     ai: 'AI mode combines analysis of demo MRs or GitHub pull requests with SPACE metrics to generate strengths, concerns, and improvement suggestions through the configured Gemini API.',
     cautionTitle: 'Interpretation',
@@ -58,6 +64,7 @@ export function ManualView() {
   const overview = [
     { icon: Database, title: copy.sourceTitle, text: copy.source },
     { icon: Scale, title: copy.scoringTitle, text: copy.scoring },
+    { icon: HeartHandshake, title: copy.satisfactionTitle, text: copy.satisfaction },
     { icon: Brain, title: copy.aiTitle, text: copy.ai },
     { icon: TriangleAlert, title: copy.cautionTitle, text: copy.caution },
   ];

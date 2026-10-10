@@ -73,6 +73,42 @@ export const DEFAULT_GITHUB_PROJECTS: Project[] = [
     provider: 'github',
     webUrl: 'https://github.com/google/gson',
   },
+  {
+    id: 'github~anthropics~claude-code',
+    name: 'claude-code',
+    fullName: 'anthropics/claude-code',
+    description: 'Claude Code is an agentic coding tool that lives in your terminal.',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/anthropics/claude-code',
+  },
+  {
+    id: 'github~google-gemini~gemini-cli',
+    name: 'gemini-cli',
+    fullName: 'google-gemini/gemini-cli',
+    description: 'An open-source AI agent that brings the power of Gemini directly into your terminal.',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/google-gemini/gemini-cli',
+  },
+  {
+    id: 'github~openai~openai-agents-python',
+    name: 'openai-agents-python',
+    fullName: 'openai/openai-agents-python',
+    description: 'A lightweight, powerful framework for multi-agent workflows',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/openai/openai-agents-python',
+  },
+  {
+    id: 'github~ollama~ollama',
+    name: 'ollama',
+    fullName: 'ollama/ollama',
+    description: 'Get up and running with Kimi, GLM, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.',
+    defaultBranch: 'main',
+    provider: 'github',
+    webUrl: 'https://github.com/ollama/ollama',
+  },
 ];
 
 export const isDefaultGitHubProject = (projectId: string) =>

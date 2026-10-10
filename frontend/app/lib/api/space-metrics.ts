@@ -57,6 +57,10 @@ export interface SpaceMetricsResponse {
   [SPACE_METRICS.satisfactionDeveloperEfficacy]?: number;
   [SPACE_METRICS.satisfactionSustainability]?: number;
   [SPACE_METRICS.satisfactionImprovementPotential]?: number;
+  [SPACE_METRICS.satisfactionSource]?: 'survey' | 'retention';
+  [SPACE_METRICS.contributorRetentionRate]?: number;
+  [SPACE_METRICS.retainedContributorCount]?: number;
+  [SPACE_METRICS.previousActiveContributorCount]?: number;
   [SPACE_METRICS.hasActivity]?: boolean;
 
   // Score versions of individual metrics (if needed)

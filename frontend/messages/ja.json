@@ -33,6 +33,7 @@
         "projectsLeaderboard": "プロジェクトリーダーボード"
     },
     "Table": {
+        "contributorRetentionRate": "コントリビューター定着率",
         "noGroup": "グループなし",
         "teamEntityDescription": "{count}人のメンバー",
         "projectEntityDescription": "プロジェクト全体の統計",
@@ -121,6 +122,7 @@
             "satisfaction": "採点：5段階回答を0～100点に換算（閾値なし）"
         },
         "metricDescriptions": {
+            "contributorRetentionRate": "前の同じ長さの期間に活動したコントリビューターのうち、当期間も活動した割合です（活動＝コミットまたはマージされたPR、botは除外）。満足度調査の回答がないGitHubプロジェクトでは、この値を満足度スコアとして使います。",
             "spaceTotalScore": "有効な次元スコアと指標の重みに基づいて計算したSPACE総合スコアです。",
             "mergedCount": "選択期間内にマージされたMR数です。開発者の場合は、その開発者が作成してマージされたMR数を示します。",
             "mergedLeadTimeHours": "選択期間内にマージされたMRについて、作成からマージまでにかかった平均時間です。マージ数と同じMR集合を対象にします。",
@@ -477,5 +479,24 @@
         "saving": "送信中...",
         "saved": "フィードバックを保存しました。",
         "error": "保存できませんでした。時間をおいてもう一度お試しください。"
+    },
+    "ProjectPortfolio": {
+        "title": "プロジェクト分析",
+        "subtitle": "選択期間における各 GitHub プロジェクトの SPACE 指標です。",
+        "progress": "読み込み中 {done}/{total}",
+        "sortBy": "ソート:",
+        "score": "SPACEスコア",
+        "commits": "コミット",
+        "merges": "マージ",
+        "leadTime": "リードタイム",
+        "name": "名前",
+        "empty": "GitHub プロジェクトがありません。設定から追加してください。",
+        "loading": "GitHub から計算中…",
+        "queued": "待機中…",
+        "loadError": "指標を取得できませんでした。GitHub API の上限に達した可能性があります。しばらくしてから再試行してください。",
+        "satisfactionSurvey": "満足度：満足度調査（{count} 件）",
+        "satisfactionRetention": "満足度：コントリビューター定着率 {rate}%（{retained}/{previous} 人）",
+        "satisfactionNone": "満足度：未測定（調査・定着率データなし）",
+        "viewDetails": "詳細を見る"
     }
 }

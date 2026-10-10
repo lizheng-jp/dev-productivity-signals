@@ -33,6 +33,7 @@
         "projectsLeaderboard": "Projects Leaderboard"
     },
     "Table": {
+        "contributorRetentionRate": "Contributor retention",
         "rank": "Rank",
         "developer": "Developer",
         "group": "Group",
@@ -124,6 +125,7 @@
             "satisfaction": "Scoring: 5-point responses converted to 0–100 (no thresholds)"
         },
         "metricDescriptions": {
+            "contributorRetentionRate": "Share of contributors active in the previous period of equal length who are still active in this period (a commit or a merged pull request; bots excluded). For GitHub projects without survey responses, this is used as the satisfaction score.",
             "spaceTotalScore": "Weighted total SPACE score calculated from active dimension scores and metric weights.",
             "mergedCount": "Number of merge requests merged in the selected period. For a developer, this is MRs created by that developer and merged.",
             "mergedLeadTimeHours": "Average hours from MR creation to merge for MRs merged in the selected period. This uses the same MR set as merge count.",
@@ -441,5 +443,24 @@
         "saving": "Submitting...",
         "saved": "Your feedback was saved.",
         "error": "Feedback could not be saved. Please try again later."
+    },
+    "ProjectPortfolio": {
+        "title": "Project Analytics",
+        "subtitle": "SPACE signals for each GitHub project over the selected period.",
+        "progress": "Loading {done}/{total}",
+        "sortBy": "Sort by:",
+        "score": "SPACE score",
+        "commits": "Commits",
+        "merges": "Merges",
+        "leadTime": "Lead time",
+        "name": "Name",
+        "empty": "No GitHub projects yet. Add one in Settings.",
+        "loading": "Calculating from GitHub…",
+        "queued": "Waiting…",
+        "loadError": "Could not load metrics. The GitHub API limit may have been reached; try again later.",
+        "satisfactionSurvey": "Satisfaction: survey ({count} responses)",
+        "satisfactionRetention": "Satisfaction: contributor retention {rate}% ({retained}/{previous})",
+        "satisfactionNone": "Satisfaction: not measured (no survey or retention data)",
+        "viewDetails": "View details"
     }
 }

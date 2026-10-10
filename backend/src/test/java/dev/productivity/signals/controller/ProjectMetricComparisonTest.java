@@ -16,7 +16,8 @@ class ProjectMetricComparisonTest {
                 mock(CommitService.class), mock(MergeService.class), mock(IssueService.class),
                 mock(SpaceMetricScoringService.class), mock(GitService.class),
                 mock(AiCorrectionService.class), mock(ProjectSatisfactionSurveyService.class),
-                mock(SpaceMetricSnapshotService.class), mock(SpaceMetricAiCorrectionService.class), demo));
+                mock(SpaceMetricSnapshotService.class), mock(SpaceMetricAiCorrectionService.class), demo,
+                mock(ContributorRetentionService.class)));
         String project = "github~openai~openai-java";
         doReturn(Map.of("spaceTotalScore", 62.0, "mergedCount", 4))
                 .when(controller).getSpaceMetrics(project, "2026-09-08", "2026-09-14", null, "main", null, false);

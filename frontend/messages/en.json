@@ -128,7 +128,7 @@
             "contributorRetentionRate": "Share of contributors active in the previous period of equal length who are still active in this period (a commit or a merged pull request; bots excluded). For GitHub projects without survey responses, this is used as the satisfaction score.",
             "spaceTotalScore": "Weighted total SPACE score calculated from active dimension scores and metric weights.",
             "mergedCount": "Number of merge requests merged in the selected period. For a developer, this is MRs created by that developer and merged.",
-            "mergedLeadTimeHours": "Average hours from MR creation to merge for MRs merged in the selected period. This uses the same MR set as merge count.",
+            "mergedLeadTimeHours": "Hours from MR creation to merge for MRs merged in the selected period. The average is shown, and the median, which resists outliers, is used for scoring. This uses the same MR set as merge count.",
             "bugCausedCount": "Number of bug issues attributed to this project or developer in the selected period.",
             "bugFixLeadTimeHours": "Average hours from bug issue creation to completion for fixed bugs in the selected period.",
             "commitCount": "Total commits in the selected period, filtered by project, branch, and developer when selected.",

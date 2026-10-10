@@ -112,6 +112,9 @@ public class AiCorrectionService {
         if (correctedMetrics.containsKey(mergedLeadTimeHours)) {
             correctedMetrics.put(mergedLeadTimeHours, rawMetrics.get(mergedLeadTimeHours).doubleValue() / avgC1);
         }
+        if (correctedMetrics.containsKey(mergedLeadTimeMedianHours)) {
+            correctedMetrics.put(mergedLeadTimeMedianHours, rawMetrics.get(mergedLeadTimeMedianHours).doubleValue() / avgC1);
+        }
         // bugsCausedCount: bugsCausedCount / C1
         if (correctedMetrics.containsKey(bugCausedCount)) {
             correctedMetrics.put(bugCausedCount, rawMetrics.get(bugCausedCount).doubleValue() / avgC1);

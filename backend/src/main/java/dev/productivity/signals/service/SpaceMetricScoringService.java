@@ -27,6 +27,11 @@ public class SpaceMetricScoringService {
 
     private static final Set<String> NON_SCORING_METRICS = Set.of();
 
+    // Bug metrics are left unscored when the project has no bug-labelled issues in the period,
+    // so a project that never labels bugs is not rewarded with a perfect "no bugs" score.
+    private static final Set<String> BUG_METRICS = Set.of(
+            bugCausedCount, bugFoundCount, bugFixedCount, bugFixLeadTimeHours);
+
     private static final Set<String> ACTIVITY_DETECTION_METRICS = Set.of(
             mergedCount,
             bugCausedCount,
@@ -80,8 +85,19 @@ public class SpaceMetricScoringService {
         Map<String, Object> results = new HashMap<>(metrics);
         Map<String, Double> scoredMetrics = new HashMap<>();
 
+        // Project-wide totals are scored per core contributor so they use the same
+        // per-developer thresholds as individual scores instead of rewarding team size.
+        Number contributorValue = metrics.get(coreContributorCount);
+        double contributors = contributorValue == null ? 1.0 : Math.max(1.0, contributorValue.doubleValue());
+        Number bugData = metrics.get(bugDataAvailable);
+        boolean scoreBugMetrics = bugData == null || bugData.doubleValue() > 0;
+        Number medianLeadTime = metrics.get(mergedLeadTimeMedianHours);
+
         // 1. 個別の指標スコアを計算
         metrics.forEach((key, value) -> {
+            if (!scoreBugMetrics && BUG_METRICS.contains(key)) {
+                return;
+            }
             if (metricConfigMap.containsKey(key) && value != null && !NON_SCORING_METRICS.contains(key)) {
                 // 依存関係のチェック
                 String dependencyKey = METRIC_DEPENDENCIES.get(key);
@@ -93,8 +109,11 @@ public class SpaceMetricScoringService {
                 }
 
                 double valForScoring = value.doubleValue();
+                if (mergedLeadTimeHours.equals(key) && medianLeadTime != null) {
+                    valForScoring = medianLeadTime.doubleValue();
+                }
                 if (WEEKLY_NORMALIZED_METRICS.contains(key) && weeks > 0) {
-                    valForScoring = valForScoring / weeks;
+                    valForScoring = valForScoring / weeks / contributors;
                 }
 
                 double score = calculateSingleScore(metricConfigMap.get(key), valForScoring);

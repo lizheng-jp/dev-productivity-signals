@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +49,35 @@ public class ActiveMemberService {
                 .toList();
         PerformanceTimingLog.addCount("members.active", activeMembers.size());
         return activeMembers;
+    }
+
+    /**
+     * Number of contributors with at least {@code minContributions} contributions in the period, at least 1.
+     * A contribution count is the larger of a person's commits and merged pull requests rather than their sum,
+     * because a squash-merged pull request also appears as one commit by the same author.
+     */
+    public int countCoreContributors(String projectId, String since, String until, String refName, int minContributions) {
+        List<String> userCodes = gitService.getAllProjectUserCodes(projectId);
+        Map<String, Long> commits = new HashMap<>();
+        commitService.getCommitMetricsByUser(projectId, userCodes, since, until, refName)
+                .forEach((userCode, metrics) -> commits.put(normalizeUserCode(userCode), (long) metrics.getTotalCommitCount()));
+
+        Map<String, Long> merges = new HashMap<>();
+        for (JSONObject mr : mergeService.fetchAllMergedMergeRequests(projectId, since, until, refName)) {
+            JSONObject author = mr.optJSONObject("author");
+            String username = author == null ? "" : author.optString("username", "");
+            if (!username.isBlank()) {
+                merges.merge(normalizeUserCode(username), 1L, Long::sum);
+            }
+        }
+
+        long core = userCodes.stream()
+                .map(this::normalizeUserCode)
+                .distinct()
+                .filter(userCode -> Math.max(commits.getOrDefault(userCode, 0L), merges.getOrDefault(userCode, 0L))
+                        >= minContributions)
+                .count();
+        return (int) Math.max(1, core);
     }
 
     private void addMrAuthors(Set<String> activeUserCodes, List<JSONObject> mergeRequests) {

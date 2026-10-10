@@ -163,7 +163,7 @@ class AgentEvidenceControllerTest {
         when(github.getRecentIssueComments(PROJECT, 23))
                 .thenReturn(new JSONArray().put(issueNote));
 
-        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, KEY);
+        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY);
 
         @SuppressWarnings("unchecked")
         var documents = (List<java.util.Map<String, Object>>) feed.get("documents");
@@ -203,7 +203,7 @@ class AgentEvidenceControllerTest {
                 .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
         when(github.getRecentPullRequestNotes(PROJECT, 17)).thenReturn(notes);
 
-        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, KEY);
+        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY);
 
         @SuppressWarnings("unchecked")
         var documents = (List<java.util.Map<String, Object>>) feed.get("documents");
@@ -225,7 +225,7 @@ class AgentEvidenceControllerTest {
                 .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
         when(github.getRecentPullRequestNotes(PROJECT, 17)).thenReturn(new JSONArray());
 
-        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, KEY);
+        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY);
 
         assertThat((List<?>) feed.get("documents")).isEmpty();
     }
@@ -252,7 +252,7 @@ class AgentEvidenceControllerTest {
                 .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
         when(github.getRecentPullRequestNotes(eq(PROJECT), anyInt())).thenReturn(new JSONArray());
 
-        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, KEY);
+        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY);
 
         @SuppressWarnings("unchecked")
         var documents = (List<java.util.Map<String, Object>>) feed.get("documents");
@@ -264,7 +264,7 @@ class AgentEvidenceControllerTest {
 
     @Test
     void indexFeedRejectsMissingKeyBeforeFetchingGitHub() {
-        assertThatThrownBy(() -> controller.indexDocuments(PROJECT, since, until, "main", null, null))
+        assertThatThrownBy(() -> controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", null))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
         verifyNoInteractions(github);
@@ -282,7 +282,7 @@ class AgentEvidenceControllerTest {
                 .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
 
         var feed = controller.indexDocuments(PROJECT, since, until, "main",
-                OffsetDateTime.parse(until + "T00:00:00Z"), KEY);
+                OffsetDateTime.parse(until + "T00:00:00Z"), 1, "recent", KEY);
 
         assertThat((List<?>) feed.get("documents")).isEmpty();
         verify(github, never()).getRecentPullRequestNotes(PROJECT, 17);
@@ -305,12 +305,66 @@ class AgentEvidenceControllerTest {
                 .thenReturn(new GitHubRepositoryService.IssuePage(List.of(issue), false));
         when(github.getRecentIssueComments(PROJECT, 23)).thenReturn(new JSONArray().put(comment));
 
-        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, KEY);
+        var feed = controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY);
 
         @SuppressWarnings("unchecked")
         var documents = (List<java.util.Map<String, Object>>) feed.get("documents");
         assertThat(documents).hasSize(1);
         assertThat(documents.get(0)).containsEntry("sourceType", "issue_comment")
                 .containsEntry("eventAt", until + "T09:00:00Z");
+    }
+
+    @Test
+    void indexFeedSampleScaleWidensPullRequestLimitWithinBounds() throws Exception {
+        List<JSONObject> pulls = new java.util.ArrayList<>();
+        for (int number = 1; number <= 30; number++) {
+            pulls.add(new JSONObject().put("iid", number).put("title", "PR " + number)
+                    .put("created_at", until + "T10:00:00Z").put("updated_at", until + "T10:00:00Z")
+                    .put("web_url", "https://github.com/octocat/Hello-World/pull/" + number));
+        }
+        when(github.getRecentPullRequestsPage(PROJECT, since.toString(), until.toString(), "main"))
+                .thenReturn(new GitHubRepositoryService.PullRequestPage(pulls, false));
+        when(github.getRecentIssuesPage(PROJECT, since.toString(), until.toString()))
+                .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
+        when(github.getRecentPullRequestNotes(eq(PROJECT), anyInt())).thenReturn(new JSONArray());
+
+        assertThat((List<?>) controller.indexDocuments(PROJECT, since, until, "main", null, 1, "recent", KEY)
+                .get("documents")).hasSize(12);
+        assertThat((List<?>) controller.indexDocuments(PROJECT, since, until, "main", null, 2, "recent", KEY)
+                .get("documents")).hasSize(24);
+        assertThatThrownBy(() -> controller.indexDocuments(PROJECT, since, until, "main", null, 6, "recent", KEY))
+                .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void indexFeedStratifiedSamplingSpreadsPullRequestsOverCreationMonths() throws Exception {
+        LocalDate windowStart = LocalDate.now().minusDays(80);
+        List<JSONObject> pulls = new java.util.ArrayList<>();
+        for (int number = 1; number <= 40; number++) {
+            LocalDate created = windowStart.plusDays(number * 2L);
+            pulls.add(new JSONObject().put("iid", number).put("title", "PR " + number)
+                    .put("created_at", created + "T10:00:00Z").put("updated_at", until + "T10:00:00Z")
+                    .put("web_url", "https://github.com/octocat/Hello-World/pull/" + number));
+        }
+        when(github.getPullRequestsCreatedIn(PROJECT, windowStart.toString(), until.toString(), "main"))
+                .thenReturn(new GitHubRepositoryService.PullRequestPage(pulls, false));
+        when(github.getIssuesCreatedIn(PROJECT, windowStart.toString(), until.toString()))
+                .thenReturn(new GitHubRepositoryService.IssuePage(List.of(), false));
+        when(github.getRecentPullRequestNotes(eq(PROJECT), anyInt())).thenReturn(new JSONArray());
+
+        var feed = controller.indexDocuments(PROJECT, windowStart, until, "main", null, 1, "stratified", KEY);
+
+        @SuppressWarnings("unchecked")
+        var documents = (List<java.util.Map<String, Object>>) feed.get("documents");
+        assertThat(documents).hasSize(12);
+        var windowMonths = pulls.stream().map(pull -> pull.optString("created_at").substring(0, 7))
+                .collect(java.util.stream.Collectors.toSet());
+        assertThat(documents).extracting(item -> item.get("eventAt").toString().substring(0, 7))
+                .containsAll(windowMonths);
+        assertThat(feed.get("selection").toString()).contains("12 of 40 PRs");
+        assertThat(feed.get("truncated")).isEqualTo(true);
+        verify(github, never()).getRecentPullRequestsPage(PROJECT, windowStart.toString(), until.toString(), "main");
+        assertThatThrownBy(() -> controller.indexDocuments(PROJECT, windowStart, until, "main", null, 1, "random", KEY))
+                .isInstanceOf(ResponseStatusException.class);
     }
 }

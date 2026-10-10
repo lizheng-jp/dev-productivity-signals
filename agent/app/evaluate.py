@@ -18,7 +18,8 @@ QUESTIONS = (
 
 
 async def evaluate(project_id: str, since: date, until: date, ref_name: str | None,
-                   index_first: bool, index_only: bool, full_index: bool = False) -> None:
+                   index_first: bool, index_only: bool, full_index: bool = False,
+                   sample_scale: int = 1, sampling: str = "stratified") -> None:
     key = os.environ.get("AGENT_INTERNAL_KEY", "")
     if not key:
         raise SystemExit("AGENT_INTERNAL_KEY is required")
@@ -29,7 +30,8 @@ async def evaluate(project_id: str, since: date, until: date, ref_name: str | No
             response = await client.post(
                 f"{base}/index/projects/{quote(project_id, safe='')}", headers=headers,
                 json={"since": since.isoformat(), "until": until.isoformat(),
-                      "refName": ref_name, "fullRefresh": full_index})
+                      "refName": ref_name, "fullRefresh": full_index,
+                      "sampleScale": sample_scale, "sampling": sampling})
             response.raise_for_status()
             print(json.dumps({"index": response.json()}, ensure_ascii=False))
         if index_only:
@@ -70,13 +72,18 @@ def main() -> None:
     parser.add_argument("--index", action="store_true", help="Refresh evidence before evaluation")
     parser.add_argument("--index-only", action="store_true", help="Refresh evidence without asking the model")
     parser.add_argument("--full-index", action="store_true", help="Ignore the last refresh timestamp")
+    parser.add_argument("--sample-scale", type=int, default=1, choices=range(1, 6),
+                        help="Index a wider sample for retrieval evaluation (multiplies PR, issue and chunk limits)")
+    parser.add_argument("--sampling", choices=("recent", "stratified"), default="stratified",
+                        help="stratified samples the whole window by creation month; recent reads only recent items")
     args = parser.parse_args()
     if not args.project_id.startswith("github~") or len(args.project_id.split("~")) != 3:
         parser.error("--project-id must be a github~owner~repo project")
     if args.full_index and not (args.index or args.index_only):
         parser.error("--full-index requires --index or --index-only")
     asyncio.run(evaluate(args.project_id, args.since, args.until, args.ref_name,
-                         args.index, args.index_only, args.full_index))
+                         args.index, args.index_only, args.full_index, args.sample_scale,
+                         args.sampling))
 
 
 if __name__ == "__main__":

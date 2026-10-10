@@ -1,0 +1,55 @@
+{"id": "q01", "relevant": ["mr:19881:description"], "reason": "The source explains collision handling and continuous series across classic-to-NHCB migration cutovers."}
+{"id": "q02", "relevant": ["issue:19745:note:5736573241", "issue:19745:note:5737372368", "issue:19745:note:5762980833"], "reason": "These sources describe the numeric-validation grouping, three-PR split, and separate field-ordering follow-up."}
+{"id": "q03", "relevant": ["mr:19425:description"], "reason": "The translator emits two +Inf samples for explicit infinite bounds and the fix skips the explicit one."}
+{"id": "q04", "relevant": ["mr:19911:comment:6032882601", "mr:19911:description"], "reason": "The proposal adds timeout to the lint, while review explains why scrape-start timestamps make that check questionable."}
+{"id": "q05", "relevant": ["issue:19832:description", "issue:19832:note:5831061653", "issue:19832:note:5915874816"], "reason": "These sources propose operator-controlled metadata and discuss concrete relabeling and cache semantics."}
+{"id": "q06", "relevant": ["mr:19927:description"], "reason": "PromQL callers already guard empty buckets, so the fix only repairs the exported helper contract."}
+{"id": "q07", "relevant": [], "reason": "No source states whether the client upgrade changed default histogram buckets."}
+{"id": "q08", "relevant": ["issue:19976:description"], "reason": "The proposal calls for migrating all remaining internal summaries and histograms to native histograms."}
+{"id": "q09", "relevant": [], "reason": "No source records agreement to publish Windows ARM64 binaries."}
+{"id": "q10", "relevant": ["mr:19335:description"], "reason": "Series and label commands lacked custom headers required for header-based multi-tenancy."}
+{"id": "q11", "relevant": ["mr:19973:description"], "reason": "A NaN-sum scan overwrote the selected quantile bucket and caused incorrect interpolation."}
+{"id": "q12", "relevant": ["mr:19429:comment:5302664198", "mr:19429:description"], "reason": "These sources identify histogram fixtures whose declared count disagrees with their bucket observations."}
+{"id": "q13", "relevant": [], "reason": "No source discusses silences expiring after Alertmanager cluster failover."}
+{"id": "q14", "relevant": ["mr:19750:description"], "reason": "The AWS MQ discovery role targets managed RabbitMQ brokers with Prometheus metrics."}
+{"id": "q15", "relevant": ["mr:19050:description"], "reason": "Alphabetically grouped histogram lines cause the streaming NHCB parser to emit incomplete histograms."}
+{"id": "q16", "relevant": [], "reason": "No source explains the default query concurrency limit."}
+{"id": "q17", "relevant": [], "reason": "A comment reports a compliance-test timeout but gives no cause."}
+{"id": "q18", "relevant": ["mr:19812:description"], "reason": "The source details migration of the remote write receiver to AppenderV2 and ExemplarAppenderV2."}
+{"id": "q19", "relevant": ["mr:19200:comment:6056167991", "mr:19200:description"], "reason": "Integer hashes avoid string storage overhead and repeated encoding or decoding during comparisons and deduplication."}
+{"id": "q20", "relevant": ["mr:19950:description", "mr:19951:comment:6034775623", "mr:19951:description"], "reason": "The sources present competing deprecation and removal approaches and suggest waiting until Prometheus 4.0 for removal."}
+{"id": "q21", "relevant": ["issue:19832:description", "issue:19832:note:5831061653", "issue:19832:note:5915874816"], "reason": "The sources explain metadata-channel inconsistencies, family-versus-series semantics, validation, cost, and ingestion-path gaps."}
+{"id": "q22", "relevant": [], "reason": "No source explains a default scrape interval change to fifteen seconds."}
+{"id": "q23", "relevant": ["mr:19165:comment:5904285019", "mr:19165:comment:5911963730", "mr:19165:comment:5932073039", "mr:19165:comment:5985633761", "mr:19165:comment:6034920307", "mr:19165:description", "mr:19873:description"], "reason": "These sources debate intermediate-sample counting and describe both inclusion and exclusion implementations."}
+{"id": "q24", "relevant": [], "reason": "The corpus gives synthetic tests and benchmarks but no production-dashboard TotalSamples measurements."}
+{"id": "q25", "relevant": [], "reason": "No source provides Consul service discovery TLS client certificate configuration."}
+{"id": "q26", "relevant": ["mr:19821:description"], "reason": "A signed left operand of exponentiation needs parentheses to preserve meaning when reparsed."}
+{"id": "q27", "relevant": ["issue:19943:description", "mr:19944:description"], "reason": "Empty BucketFraction input panics before the fix and returns NaN after the proposed repair."}
+{"id": "q28", "relevant": [], "reason": "No source discusses removal of a Thanos sidecar from a Helm chart."}
+{"id": "q29", "relevant": ["issue:18324:note:6031436266"], "reason": "The completion note identifies #19446, #17156, and #19880 and explains the remaining NHCBParser uses."}
+{"id": "q30", "relevant": [], "reason": "The XOR2 proposal mentions chunk-size benchmarking but supplies no measured size reduction."}
+{"id": "q31", "relevant": ["issue:19745:description", "issue:19745:note:5736573241"], "reason": "The tracking issue and detailed follow-up explain negative histogram counts wrapping when cast to uint64."}
+{"id": "q32", "relevant": [], "reason": "No source explains UI dark-mode implementation."}
+{"id": "q33", "relevant": ["issue:2537:note:6065515151"], "reason": "The comment explicitly states that mDNS names are not resolved by dns_sd_config."}
+{"id": "q34", "relevant": [], "reason": "The corpus discusses discovery metric labels after job renames but gives no alerting-rule migration guidance."}
+{"id": "q35", "relevant": ["mr:19427:description"], "reason": "The experimental promtool tsdb check-histograms command scans stored classic histograms for contradictions."}
+{"id": "q36", "relevant": ["mr:19972:description"], "reason": "The lexer consumes NaNx3 and stalex3 as identifiers and the fix permits expanding notation."}
+{"id": "q37", "relevant": [], "reason": "No source discusses endpoint slice discovery memory leaks after pod restarts."}
+{"id": "q38", "relevant": ["issue:19887:description", "mr:19878:description", "mr:19878:review:5399204007", "mr:19878:review:5458227034"], "reason": "These sources explain premature refresh-metric deletion on reload and provider-lifecycle handling that preserves them."}
+{"id": "q39", "relevant": ["mr:19942:description"], "reason": "Start timestamp keys depended on source label order and sorting label-pair indexes fixes matching."}
+{"id": "q40", "relevant": [], "reason": "No source explains a remote write compression switch to zstd."}
+{"id": "q41", "relevant": ["mr:19284:description"], "reason": "The tasks API omits container labels and the proposed inspect call adds a per-task cost still awaiting a decision."}
+{"id": "q42", "relevant": ["mr:19200:comment:5276752713", "mr:19200:comment:6056167991"], "reason": "The discussion explains how whole-series hashes can mask duplicate label sets and proposes engine-aware handling."}
+{"id": "q43", "relevant": [], "reason": "No source provides benchmark measurements for Docker Swarm container inspect overhead."}
+{"id": "q44", "relevant": [], "reason": "No source states whether HTTP/3 scraping is supported."}
+{"id": "q45", "relevant": [], "reason": "No source identifies ARM WAL corruption following power loss."}
+{"id": "q46", "relevant": ["mr:19940:description"], "reason": "Compaction can drop series identities needed to recover retained exemplar WAL records after restart."}
+{"id": "q47", "relevant": ["mr:19939:description"], "reason": "Internal group_right operand swaps must also swap fill defaults to preserve the original query sides."}
+{"id": "q48", "relevant": ["mr:19590:description"], "reason": "Memory snapshots lost series-reference expiries and the fix persists and restores them before WAL replay."}
+{"id": "q49", "relevant": ["mr:19429:comment:5727686755", "mr:19429:comment:5727946567"], "reason": "The maintainer says the bucketless fixtures do not appear deliberate and the follow-up adds valid minimal buckets."}
+{"id": "q50", "relevant": [], "reason": "No source identifies a release that made the OpenMetrics 2.0 parser the scrape default."}
+{"id": "q51", "relevant": ["issue:19897:description", "mr:19908:description"], "reason": "stripDomain mistakes zoned IPv6 addresses for hostnames because net.ParseIP rejects zone identifiers."}
+{"id": "q52", "relevant": [], "reason": "No source recommends a retention size for a 1 TB disk."}
+{"id": "q53", "relevant": [], "reason": "The fill-modifier source calls the feature experimental and provides no stable-promotion decision."}
+{"id": "q54", "relevant": ["mr:19425:comment:5315824177", "mr:19425:description"], "reason": "The sources compare NHCB rejection with OTLP normalization and warnings and explain the trade-off."}
+{"id": "q55", "relevant": ["mr:19913:description"], "reason": "The upgrade changes client query return signatures, requires Go 1.26, and updates transitive dependencies."}

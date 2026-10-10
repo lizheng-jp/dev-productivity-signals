@@ -1,0 +1,212 @@
+[
+ {
+  "id": "g01",
+  "policy": "open",
+  "query": "The template helper that strips domain names cuts IPv6 addresses whose interface zone contains a dot"
+ },
+ {
+  "id": "g02",
+  "policy": "open",
+  "query": "What happens when BucketFraction gets an empty bucket list?"
+ },
+ {
+  "id": "g03",
+  "policy": "open",
+  "query": "Should the promtool lint about scrape interval and lookback delta also include the scrape timeout?"
+ },
+ {
+  "id": "g04",
+  "policy": "open",
+  "query": "promtool series and label queries cannot be used with tenant headers"
+ },
+ {
+  "id": "g05",
+  "policy": "open",
+  "query": "What retention size is recommended for a 1 TB disk?"
+ },
+ {
+  "id": "g06",
+  "policy": "metrics_first",
+  "query": "Why was the Thanos sidecar removed from the official Helm chart?"
+ },
+ {
+  "id": "g07",
+  "policy": "open",
+  "query": "histogram_quantile picks the wrong bucket when the histogram sum is NaN"
+ },
+ {
+  "id": "g08",
+  "policy": "open",
+  "query": "Which Prometheus release made the OpenMetrics 2.0 parser the default for scrapes?"
+ },
+ {
+  "id": "g09",
+  "policy": "metrics_first",
+  "query": "What retention size is recommended for a 1 TB disk?"
+ },
+ {
+  "id": "g10",
+  "policy": "open",
+  "query": "OTel histograms with an explicit infinite bucket boundary write the +Inf bucket twice"
+ },
+ {
+  "id": "g11",
+  "policy": "open",
+  "query": "Why was the Thanos sidecar removed from the official Helm chart?"
+ },
+ {
+  "id": "g12",
+  "policy": "open",
+  "query": "How should alerting rules be migrated when a scrape job is renamed?"
+ },
+ {
+  "id": "g13",
+  "policy": "open",
+  "query": "Why did remote write switch its compression to zstd?"
+ },
+ {
+  "id": "g14",
+  "policy": "open",
+  "query": "Alertmanager silences expiring early after a cluster failover"
+ },
+ {
+  "id": "g15",
+  "policy": "metrics_first",
+  "query": "Is there a command to scan stored data for classic histograms whose buckets contradict each other?"
+ },
+ {
+  "id": "g16",
+  "policy": "open",
+  "query": "Did maintainers agree to publish Windows ARM64 release binaries?"
+ },
+ {
+  "id": "g17",
+  "policy": "open",
+  "query": "Does DNS service discovery resolve .local multicast names?"
+ },
+ {
+  "id": "g18",
+  "policy": "open",
+  "query": "Was the experimental fill_left / fill_right modifier promoted to stable?"
+ },
+ {
+  "id": "g19",
+  "policy": "open",
+  "query": "Why do the service discovery refresh failure metrics vanish after reloading the config, until Prometheus is restarted?"
+ },
+ {
+  "id": "g20",
+  "policy": "metrics_first",
+  "query": "Why is PromQL query concurrency limited to 20 by default?"
+ },
+ {
+  "id": "g21",
+  "policy": "open",
+  "query": "Restoring from a memory snapshot forgets when series references expire"
+ },
+ {
+  "id": "g22",
+  "policy": "open",
+  "query": "Kubernetes endpoint slice discovery leaking memory after many pod restarts"
+ },
+ {
+  "id": "g23",
+  "policy": "open",
+  "query": "Why was the default scrape interval changed from one minute to fifteen seconds?"
+ },
+ {
+  "id": "g24",
+  "policy": "open",
+  "query": "Why did the BucketQuantile empty-slice fix not claim any user-facing PromQL failure?"
+ },
+ {
+  "id": "g25",
+  "policy": "open",
+  "query": "Why does the remote write compliance test time out in CI?"
+ },
+ {
+  "id": "g26",
+  "policy": "open",
+  "query": "Exemplars disappear after compaction followed by a restart"
+ },
+ {
+  "id": "g27",
+  "policy": "open",
+  "query": "Does Prometheus support scraping targets over HTTP/3?"
+ },
+ {
+  "id": "g28",
+  "policy": "metrics_first",
+  "query": "Why did the BucketQuantile empty-slice fix not claim any user-facing PromQL failure?"
+ },
+ {
+  "id": "g29",
+  "policy": "open",
+  "query": "Why is PromQL query concurrency limited to 20 by default?"
+ },
+ {
+  "id": "g30",
+  "policy": "open",
+  "query": "Created timestamp is ignored when the _created line lists labels in a different order"
+ },
+ {
+  "id": "g31",
+  "policy": "open",
+  "query": "Why keep the original labels hash as an integer rather than encoding it into a label?"
+ },
+ {
+  "id": "g32",
+  "policy": "open",
+  "query": "A negative histogram count in the OM2 text parser ends up as an enormous unsigned number"
+ },
+ {
+  "id": "g33",
+  "policy": "open",
+  "query": "Replacing removed labels with a whole-series hash could hide duplicate label set errors in queries"
+ },
+ {
+  "id": "g34",
+  "policy": "open",
+  "query": "How do I configure TLS client certificates for Consul service discovery?"
+ },
+ {
+  "id": "g35",
+  "policy": "open",
+  "query": "What caused WAL corruption on ARM machines after a power loss?"
+ },
+ {
+  "id": "g36",
+  "policy": "open",
+  "query": "What breaking effects came with upgrading the Go client library to 1.25?"
+ },
+ {
+  "id": "g37",
+  "policy": "open",
+  "query": "Rule unit tests cannot repeat NaN or stale values with the x notation"
+ },
+ {
+  "id": "g38",
+  "policy": "open",
+  "query": "Discovering Amazon managed RabbitMQ brokers as scrape targets"
+ },
+ {
+  "id": "g39",
+  "policy": "open",
+  "query": "Is there a command to scan stored data for classic histograms whose buckets contradict each other?"
+ },
+ {
+  "id": "g40",
+  "policy": "metrics_first",
+  "query": "Does DNS service discovery resolve .local multicast names?"
+ },
+ {
+  "id": "g41",
+  "policy": "open",
+  "query": "A test fixture whose histogram count does not match the sum of its bucket counts"
+ },
+ {
+  "id": "g42",
+  "policy": "open",
+  "query": "group_right swaps operands but the fill defaults stay on the wrong side"
+ }
+]

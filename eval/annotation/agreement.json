@@ -1,0 +1,12 @@
+{
+ "annotators": [
+  "Claude (first pass)",
+  "OpenAI Codex (blind, shuffled queries, same written rules)"
+ ],
+ "pairs": 6765,
+ "pairKappa": 0.874,
+ "answerabilityKappa": 1.0,
+ "exactSetMatch": "40/55",
+ "disagreements": 15,
+ "resolution": "all 15 resolved for Codex under the written rule: 10 sources Claude kept only asked, pinged or acknowledged; 5 sources Codex added state the answer deep in long texts or as part of a thread"
+}

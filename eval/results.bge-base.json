@@ -1,0 +1,3001 @@
+{
+  "summary": {
+    "queries": 55,
+    "answerable": 35,
+    "unanswerable": 20,
+    "recall@1": 0.5881,
+    "recall@3": 0.8415,
+    "recall@5": 0.8486,
+    "recall@8": 0.8486,
+    "mrr": 0.8857,
+    "recallCeiling": 0.948,
+    "entityRecall@3": 0.9714,
+    "flaggedInsufficientWhenAnswerable": 4,
+    "confidentWhenUnanswerable": 6,
+    "meanScoreRelevant": 0.7823,
+    "meanScoreOther": 0.6584
+  },
+  "queries": [
+    {
+      "query": "Why do the service discovery refresh failure metrics vanish after reloading the config, until Prometheus is restarted?",
+      "relevant": [
+        "issue:19887:description",
+        "mr:19878:description",
+        "mr:19878:review:5399204007",
+        "mr:19878:review:5458227034"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19878:description",
+          "score": 0.8382,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.831,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.8214,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5399204007",
+          "score": 0.7227,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19918:comment:6042159300",
+          "score": 0.701,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.6989,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:2537:note:5409844598",
+          "score": 0.6979,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:description",
+          "score": 0.6813,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.25,
+      "recall@3": 0.5,
+      "recall@5": 0.75,
+      "recall@8": 0.75,
+      "rr": 1.0,
+      "recallCeiling": 0.75,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Should samples produced by a subquery be counted again in the TotalSamples query statistic?",
+      "relevant": [
+        "mr:19165:comment:5904285019",
+        "mr:19165:comment:5911963730",
+        "mr:19165:comment:5932073039",
+        "mr:19165:comment:5985633761",
+        "mr:19165:comment:6034920307",
+        "mr:19165:description",
+        "mr:19873:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19165:comment:5922338679",
+          "score": 0.8559,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5911963730",
+          "score": 0.8523,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19873:description",
+          "score": 0.8063,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.659,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6588,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.6466,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.6365,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.636,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.2857142857142857,
+      "recall@5": 0.2857142857142857,
+      "recall@8": 0.2857142857142857,
+      "rr": 0.5,
+      "recallCeiling": 0.42857142857142855,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "The template helper that strips domain names cuts IPv6 addresses whose interface zone contains a dot",
+      "relevant": [
+        "issue:19897:description",
+        "mr:19908:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19908:description",
+          "score": 0.8597,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19897:description",
+          "score": 0.8389,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:2537:note:6065515151",
+          "score": 0.6392,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6031,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.5863,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.5818,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.5817,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.5768,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What happens when BucketFraction gets an empty bucket list?",
+      "relevant": [
+        "issue:19943:description",
+        "mr:19944:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19943:description",
+          "score": 0.7346,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.7071,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19927:description",
+          "score": 0.654,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19927:comment:6015925239",
+          "score": 0.645,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6085,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.608,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5399204007",
+          "score": 0.6019,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.5968,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why did the BucketQuantile empty-slice fix not claim any user-facing PromQL failure?",
+      "relevant": [
+        "mr:19927:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19927:description",
+          "score": 0.8525,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.8491,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19943:description",
+          "score": 0.8231,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.757,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7569,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19939:description",
+          "score": 0.7265,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19873:description",
+          "score": 0.7248,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7202,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "How were the OpenMetrics 2.0 parser follow-up items split across pull requests to keep reviews small?",
+      "relevant": [
+        "issue:19745:note:5736573241",
+        "issue:19745:note:5737372368",
+        "issue:19745:note:5762980833"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:note:5737372368",
+          "score": 0.768,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:note:5762980833",
+          "score": 0.7182,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.7105,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.6967,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6921,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:6061985114",
+          "score": 0.6905,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6895,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6732,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 0.6666666666666666,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "A negative histogram count in the OM2 text parser ends up as an enormous unsigned number",
+      "relevant": [
+        "issue:19745:description",
+        "issue:19745:note:5736573241"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7215,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7204,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19868:description",
+          "score": 0.6805,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.6795,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:18324:note:6031436266",
+          "score": 0.6776,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19971:description",
+          "score": 0.6758,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6719,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6617,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Proposal to let operators correct a metric's type, unit and help text instead of trusting the exporter",
+      "relevant": [
+        "issue:19832:description",
+        "issue:19832:note:5831061653",
+        "issue:19832:note:5915874816"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.7321,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.7144,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.69,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5762980833",
+          "score": 0.6851,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19974:description",
+          "score": 0.6814,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.6703,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:comment:5727946567",
+          "score": 0.6702,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19971:description",
+          "score": 0.6651,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 0.6666666666666666,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What are the drawbacks of fixing metadata by relabeling __type__ and __unit__?",
+      "relevant": [
+        "issue:19832:description",
+        "issue:19832:note:5831061653",
+        "issue:19832:note:5915874816"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.7857,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.7777,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19200:comment:5276752713",
+          "score": 0.6745,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:6056167991",
+          "score": 0.6695,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6667,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.6652,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.656,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.6517,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 0.6666666666666666,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Has the NHCBParser start timestamp optimisation been completed, and which pull requests did it?",
+      "relevant": [
+        "issue:18324:note:6031436266"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:18324:note:5286126719",
+          "score": 0.8502,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:18324:note:6031436266",
+          "score": 0.8168,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.7138,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19971:description",
+          "score": 0.7006,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6989,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6947,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6942,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.6875,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Docker Swarm discovery never fills container labels; is an extra API call per task acceptable?",
+      "relevant": [
+        "mr:19284:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19284:description",
+          "score": 0.7953,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19284:comment:5224713573",
+          "score": 0.7771,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.686,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:description",
+          "score": 0.6377,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6346,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.6323,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.6318,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:5584739305",
+          "score": 0.6192,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Replacing removed labels with a whole-series hash could hide duplicate label set errors in queries",
+      "relevant": [
+        "mr:19200:comment:5276752713",
+        "mr:19200:comment:6056167991"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19200:comment:5276752713",
+          "score": 0.8223,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19200:description",
+          "score": 0.768,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.6913,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.6822,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5399204007",
+          "score": 0.6774,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6709,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.67,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19916:description",
+          "score": 0.6682,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why keep the original labels hash as an integer rather than encoding it into a label?",
+      "relevant": [
+        "mr:19200:comment:6056167991",
+        "mr:19200:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19200:comment:6056167991",
+          "score": 0.79,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19200:description",
+          "score": 0.7768,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.6734,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6612,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19974:description",
+          "score": 0.6564,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6535,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.6458,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6383,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "OTel histograms with an explicit infinite bucket boundary write the +Inf bucket twice",
+      "relevant": [
+        "mr:19425:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.7941,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.713,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7107,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.7051,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6963,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.6849,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19916:description",
+          "score": 0.6712,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.6709,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Should the OTLP translator reject an explicit +Inf bound like the NHCB path does, or just warn?",
+      "relevant": [
+        "mr:19425:comment:5315824177",
+        "mr:19425:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.7942,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.7554,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.7142,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.7065,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6939,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5736573241",
+          "score": 0.6859,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:18324:note:5286126719",
+          "score": 0.6712,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19821:description",
+          "score": 0.666,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "A test fixture whose histogram count does not match the sum of its bucket counts",
+      "relevant": [
+        "mr:19429:comment:5302664198",
+        "mr:19429:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.7674,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:comment:5727946567",
+          "score": 0.7596,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7541,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7538,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.7354,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.714,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:description",
+          "score": 0.6786,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.6747,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Were the TestTemporality exponential histogram fixtures with no buckets intentional?",
+      "relevant": [
+        "mr:19429:comment:5727686755",
+        "mr:19429:comment:5727946567"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19429:comment:5727946567",
+          "score": 0.8392,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.7607,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7083,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19916:description",
+          "score": 0.6977,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:comment:5816951084",
+          "score": 0.6838,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:description",
+          "score": 0.6838,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.6827,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.6823,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Should the promtool lint about scrape interval and lookback delta also include the scrape timeout?",
+      "relevant": [
+        "mr:19911:comment:6032882601",
+        "mr:19911:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:description",
+          "score": 0.9126,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19911:comment:6032882601",
+          "score": 0.8072,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6942,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6633,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6613,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.661,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6592,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.6563,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Is there a command to scan stored data for classic histograms whose buckets contradict each other?",
+      "relevant": [
+        "mr:19427:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7306,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:description",
+          "score": 0.7296,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.722,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.711,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.7108,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.6964,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:comment:5727946567",
+          "score": 0.6895,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19916:description",
+          "score": 0.6846,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "promtool series and label queries cannot be used with tenant headers",
+      "relevant": [
+        "mr:19335:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19335:description",
+          "score": 0.841,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.696,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:5276752713",
+          "score": 0.6946,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.6885,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.6832,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6795,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.6713,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:description",
+          "score": 0.6708,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Exemplars disappear after compaction followed by a restart",
+      "relevant": [
+        "mr:19940:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.7823,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.6631,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:6015695165",
+          "score": 0.6412,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6285,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6241,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6172,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6161,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19916:description",
+          "score": 0.6133,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Restoring from a memory snapshot forgets when series references expire",
+      "relevant": [
+        "mr:19590:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.7753,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.7492,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.7275,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6842,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.6767,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.6633,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.662,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:5276752713",
+          "score": 0.6599,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What breaking effects came with upgrading the Go client library to 1.25?",
+      "relevant": [
+        "mr:19913:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19913:description",
+          "score": 0.7618,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6917,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.664,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.6579,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6567,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.6386,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19651:description",
+          "score": 0.6381,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.6287,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Discovering Amazon managed RabbitMQ brokers as scrape targets",
+      "relevant": [
+        "mr:19750:description"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6753,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19750:description",
+          "score": 0.6573,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6356,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:5584739305",
+          "score": 0.6339,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19750:comment:5741945420",
+          "score": 0.6115,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6016,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6007,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5737372368",
+          "score": 0.6003,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Printing inf ^ 2 gives a query that parses back with a different meaning",
+      "relevant": [
+        "mr:19821:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19821:description",
+          "score": 0.7387,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.6394,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.637,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19972:description",
+          "score": 0.635,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5922338679",
+          "score": 0.6339,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5736573241",
+          "score": 0.6318,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5911963730",
+          "score": 0.6268,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:description",
+          "score": 0.6266,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "group_right swaps operands but the fill defaults stay on the wrong side",
+      "relevant": [
+        "mr:19939:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19939:description",
+          "score": 0.7941,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6449,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6166,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.6024,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5911963730",
+          "score": 0.5983,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19821:review:5435330978",
+          "score": 0.5971,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5680486751",
+          "score": 0.5965,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5762980833",
+          "score": 0.5947,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Handling queries during a migration where both classic and custom-bucket native histograms exist for one metric",
+      "relevant": [
+        "mr:19881:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19976:description",
+          "score": 0.7451,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.7233,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.7059,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:6015695165",
+          "score": 0.7033,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.6985,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19971:description",
+          "score": 0.6948,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.6826,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:description",
+          "score": 0.6823,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Moving the remote write receiver to the new appender interface",
+      "relevant": [
+        "mr:19812:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.7768,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19940:comment:6019143220",
+          "score": 0.6678,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:5997811016",
+          "score": 0.6405,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.613,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:comment:6019443293",
+          "score": 0.6117,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.6097,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.6083,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19951:description",
+          "score": 0.6078,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Does DNS service discovery resolve .local multicast names?",
+      "relevant": [
+        "issue:2537:note:6065515151"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:2537:note:6065515151",
+          "score": 0.7669,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:2537:note:5409844598",
+          "score": 0.6763,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5399204007",
+          "score": 0.6599,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6574,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19897:description",
+          "score": 0.6114,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19908:description",
+          "score": 0.6102,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:comment:5680486256",
+          "score": 0.5987,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.5958,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Created timestamp is ignored when the _created line lists labels in a different order",
+      "relevant": [
+        "mr:19942:description"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.7034,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19200:comment:5276752713",
+          "score": 0.6774,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6573,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19974:description",
+          "score": 0.6525,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6505,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19050:description",
+          "score": 0.647,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.6463,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.6449,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Exporters that sort histogram lines alphabetically break conversion to native histograms",
+      "relevant": [
+        "mr:19050:description"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.672,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5315824177",
+          "score": 0.6668,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19976:description",
+          "score": 0.6641,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.6616,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6583,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.6533,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.6518,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:6015695165",
+          "score": 0.6477,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@8": 0.0,
+      "rr": 0.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.0
+    },
+    {
+      "query": "Should delta-to-cumulative conversion for OTLP be deprecated or removed right away?",
+      "relevant": [
+        "mr:19950:description",
+        "mr:19951:comment:6034775623",
+        "mr:19951:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19951:description",
+          "score": 0.8495,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19950:description",
+          "score": 0.8194,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.7026,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.6941,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.6928,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.6808,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6791,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6614,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Rule unit tests cannot repeat NaN or stale values with the x notation",
+      "relevant": [
+        "mr:19972:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19972:description",
+          "score": 0.7639,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.7032,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5736573241",
+          "score": 0.6862,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6831,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.6824,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.6779,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6727,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6658,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "histogram_quantile picks the wrong bucket when the histogram sum is NaN",
+      "relevant": [
+        "mr:19973:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.7966,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.6886,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.686,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6799,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19927:description",
+          "score": 0.6723,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.6718,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:comment:5302664198",
+          "score": 0.6689,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19943:description",
+          "score": 0.6687,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Plan to switch Prometheus's own internal summaries to native histograms",
+      "relevant": [
+        "issue:19976:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19976:description",
+          "score": 0.7771,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7276,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.701,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:5584739305",
+          "score": 0.6837,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.6741,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:description",
+          "score": 0.673,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5763653270",
+          "score": 0.6711,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.6677,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why was the Thanos sidecar removed from the official Helm chart?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.5734,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:6056167991",
+          "score": 0.5679,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.5571,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.5492,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19284:comment:5224713573",
+          "score": 0.5463,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.5447,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.5421,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19873:description",
+          "score": 0.5388,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Kubernetes endpoint slice discovery leaking memory after many pod restarts",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6588,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6473,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6202,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.614,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:description",
+          "score": 0.6049,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19943:description",
+          "score": 0.5991,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.5952,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:6056167991",
+          "score": 0.5929,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Did maintainers agree to publish Windows ARM64 release binaries?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.6665,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:comment:6019143220",
+          "score": 0.6388,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6258,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:comment:6019443293",
+          "score": 0.6218,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.6158,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.6122,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6091,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.597,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Alertmanager silences expiring early after a cluster failover",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:comment:5997811016",
+          "score": 0.621,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6058,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.5994,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:18324:note:5286126719",
+          "score": 0.5948,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:comment:5816961890",
+          "score": 0.5938,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19284:comment:5224713573",
+          "score": 0.5909,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19427:comment:5680486256",
+          "score": 0.587,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.5841,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Why was the default scrape interval changed from one minute to fifteen seconds?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:comment:6032882601",
+          "score": 0.7345,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.7139,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:description",
+          "score": 0.6971,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5985633761",
+          "score": 0.6706,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.6567,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5911963730",
+          "score": 0.6302,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:comment:5816961890",
+          "score": 0.6284,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:comment:5816951084",
+          "score": 0.6258,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What benchmark numbers showed the cost of the extra Docker Swarm container inspect call?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19284:description",
+          "score": 0.7186,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19284:comment:5224713573",
+          "score": 0.7121,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.6594,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6397,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6362,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6239,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:description",
+          "score": 0.6145,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:5584739305",
+          "score": 0.6139,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How much smaller did chunks get with the XOR2 window selection change?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.7685,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6943,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6768,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6702,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6632,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19924:description",
+          "score": 0.6496,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.641,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19200:comment:6056167991",
+          "score": 0.6354,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Was the experimental fill_left / fill_right modifier promoted to stable?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19939:description",
+          "score": 0.7166,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.693,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6572,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6478,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5680486751",
+          "score": 0.6419,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.6316,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.6316,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.6262,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Did the client_golang 1.25 upgrade change the default histogram buckets?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7357,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:description",
+          "score": 0.7174,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:6015695165",
+          "score": 0.7069,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19913:description",
+          "score": 0.691,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6841,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6838,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19973:description",
+          "score": 0.6822,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19971:description",
+          "score": 0.6803,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Why does the remote write compliance test time out in CI?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:comment:5997811016",
+          "score": 0.8938,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6496,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19924:description",
+          "score": 0.6252,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:comment:6042159300",
+          "score": 0.6098,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.5912,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19588:comment:5816951084",
+          "score": 0.5906,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.5891,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.5868,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How should alerting rules be migrated when a scrape job is renamed?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19878:description",
+          "score": 0.7295,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.7135,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.6761,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6032882601",
+          "score": 0.6619,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.6316,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.6244,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:6061985114",
+          "score": 0.6237,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.6233,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which Prometheus release made the OpenMetrics 2.0 parser the default for scrapes?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.7631,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.7491,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.7419,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:note:5762980833",
+          "score": 0.7308,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.7197,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5831061653",
+          "score": 0.7154,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.7137,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.7111,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What were the TotalSamples numbers on real production dashboards after the subquery change?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19165:comment:5911963730",
+          "score": 0.7837,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:description",
+          "score": 0.7734,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19873:description",
+          "score": 0.7589,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6536,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6466,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.6465,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19942:description",
+          "score": 0.6463,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19429:description",
+          "score": 0.6416,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Does Prometheus support scraping targets over HTTP/3?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.7284,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.7283,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19924:description",
+          "score": 0.7065,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.7044,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:5584739305",
+          "score": 0.6984,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:description",
+          "score": 0.689,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:5907861997",
+          "score": 0.6662,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.665,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Why did remote write switch its compression to zstd?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:comment:5997811016",
+          "score": 0.6597,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19918:description",
+          "score": 0.6506,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:description",
+          "score": 0.6455,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.6393,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.6188,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.61,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6023,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.5967,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I configure TLS client certificates for Consul service discovery?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:2537:note:6065515151",
+          "score": 0.645,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:2537:note:5409844598",
+          "score": 0.6306,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19284:description",
+          "score": 0.6013,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059195968",
+          "score": 0.5968,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.5856,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19812:review:5435163462",
+          "score": 0.5685,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19913:description",
+          "score": 0.5634,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19897:description",
+          "score": 0.5622,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What retention size is recommended for a 1 TB disk?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19962:description",
+          "score": 0.5856,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.5744,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:description",
+          "score": 0.5669,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19881:description",
+          "score": 0.5642,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.5627,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19940:description",
+          "score": 0.5608,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.5524,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:2537:note:5409844598",
+          "score": 0.5467,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How did the new UI implement dark mode?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.5988,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.5489,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:17930:comment:6061985114",
+          "score": 0.5454,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5680486751",
+          "score": 0.54,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:5773687570",
+          "score": 0.536,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19878:review:5458227034",
+          "score": 0.5288,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19081:note:5178541442",
+          "score": 0.5283,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.5229,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Why is PromQL query concurrency limited to 20 by default?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19873:description",
+          "score": 0.7229,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19939:description",
+          "score": 0.7136,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19901:description",
+          "score": 0.7055,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:comment:6034920307",
+          "score": 0.7043,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19165:description",
+          "score": 0.6998,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19943:description",
+          "score": 0.6969,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19745:description",
+          "score": 0.6578,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19944:description",
+          "score": 0.6572,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What caused WAL corruption on ARM machines after a power loss?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:19590:description",
+          "score": 0.6254,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:6034610485",
+          "score": 0.6085,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19911:comment:5997811016",
+          "score": 0.6011,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19887:note:6059945941",
+          "score": 0.5981,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19802:note:6045588473",
+          "score": 0.589,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5872597901",
+          "score": 0.5724,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:19832:note:5915874816",
+          "score": 0.5639,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:19425:comment:5680486751",
+          "score": 0.5618,
+          "relevant": false
+        }
+      ]
+    }
+  ]
+}

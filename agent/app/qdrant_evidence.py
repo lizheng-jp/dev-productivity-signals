@@ -13,7 +13,7 @@ import httpx
 from app.evidence import (EMBEDDING_BATCH_SIZE, EMBEDDING_DIMENSIONS, MAX_CHUNKS,
                           SOURCE_TYPES, EmbeddingProvider, EvidenceDocument,
                           EvidenceSearchResult, _chunks, _unit_vector,
-                          is_bot_author, select_evidence_hits)
+                          insufficient_evidence_below, is_bot_author, select_evidence_hits)
 
 
 logger = logging.getLogger("signals.agent.evidence")
@@ -173,12 +173,14 @@ class QdrantEvidenceIndex:
         return newest is None or bool(newest["truncated"])
 
     async def sync(self, project_id: str, documents: list[EvidenceDocument],
-                   embedding: EmbeddingProvider, ref_name: str | None = None) -> dict:
+                   embedding: EmbeddingProvider, ref_name: str | None = None,
+                   max_chunks: int = MAX_CHUNKS) -> dict:
         start = time.monotonic()
         await self._ensure_evidence()
         scope = ref_name or ""
         chunks: list[tuple[EvidenceDocument, str, str, str]] = []
         ids_by_source: dict[str, set[str]] = {}
+        truncated = False
         owner, repo = project_id.split("~")[1:]
         project_url = f"https://github.com/{owner}/{repo}".lower()
         for document in documents:
@@ -190,13 +192,16 @@ class QdrantEvidenceIndex:
             datetime.fromisoformat(document.eventAt.replace("Z", "+00:00"))
             if is_bot_author(document.author):
                 continue
+            contents = _chunks(document.content)
+            # Skip whole documents so a partly indexed source never loses its existing chunks.
+            if len(chunks) + len(contents) > max_chunks:
+                truncated = True
+                continue
             ids_by_source.setdefault(document.sourceId, set())
-            for index, content in enumerate(_chunks(document.content)):
+            for index, content in enumerate(contents):
                 chunk_id = f"{project_id}:{scope}:{document.sourceId}:{index}"
                 ids_by_source[document.sourceId].add(chunk_id)
                 chunks.append((document, chunk_id, hashlib.sha256(content.encode()).hexdigest(), content))
-        if len(chunks) > MAX_CHUNKS:
-            raise ValueError("Index batch exceeds the chunk limit")
 
         existing = await self._get_points(COLLECTION,
                                           [_point_id("chunk", item[1]) for item in chunks], vectors=True)
@@ -250,7 +255,7 @@ class QdrantEvidenceIndex:
             await self._request("POST", f"/collections/{COLLECTION}/points/delete?wait=true",
                                 body={"points": stale_ids[offset:offset + POINT_BATCH_SIZE]})
         result = {"sources": len(ids_by_source), "embeddedChunks": len(pending),
-                  "unchangedChunks": len(chunks) - len(pending)}
+                  "unchangedChunks": len(chunks) - len(pending), "truncated": truncated}
         logger.info(json.dumps({"event": "evidence_index", "project_id": project_id,
                                 "ref_name": scope, **result, "embedding_ms": embedded_ms,
                                 "duration_ms": round((time.monotonic() - start) * 1000)}))
@@ -295,7 +300,8 @@ class QdrantEvidenceIndex:
                               "score": round(point["score"], 4)})
             items = select_evidence_hits(candidates, top_k)
         result = {"items": items, "candidateCount": count,
-                  "insufficientEvidence": not items or items[0]["score"] < 0.40,
+                  "insufficientEvidence": not items or items[0]["score"] < insufficient_evidence_below(
+                      embedding.model),
                   "candidateLimitReached": count > query_limit,
                   "coverageIncomplete": await self.coverage_incomplete(project_id, since, until,
                                                                         ref_name)}

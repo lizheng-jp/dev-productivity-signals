@@ -7,7 +7,7 @@ import re
 import secrets
 import time
 from datetime import date, timedelta
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -17,12 +17,13 @@ from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, model_validator
 
+from app.citations import answer_references, evidence_references
 from app.evidence import (EvidenceDocument, EmbeddingProvider,
-                          GeminiEmbeddingProvider, SOURCE_TYPES)
+                          MAX_CHUNKS, SOURCE_TYPES, configured_embedding)
 from app.qdrant_evidence import QdrantEvidenceIndex, QdrantRequestError, configured_index
 from app.metrics import (EXECUTIONS, EXECUTION_DURATION, MODEL_CALLS, MODEL_DURATION,
                          TOOL_CALLS, TOOL_DURATION, INDEX_RUNS, INDEX_DURATION,
-                         INCOMPLETE_COVERAGE)
+                         INCOMPLETE_COVERAGE, MODEL_TOKENS, ANSWER_REFERENCES)
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -140,6 +141,7 @@ class Source(BaseModel):
     entityId: int | None = None
     eventDate: str | None = None
     score: float | None = None
+    cited: bool | None = None
 
 
 class AskResponse(BaseModel):
@@ -155,17 +157,33 @@ class IndexRequest(BaseModel):
     until: date | None = None
     refName: str | None = Field(default=None, max_length=255)
     fullRefresh: bool = False
+    # Retrieval evaluation only: multiplies the Spring sample and chunk limits.
+    sampleScale: int = Field(default=1, ge=1, le=5)
+    # "stratified" samples the whole window by creation month; "recent" reads only recently updated items.
+    # Unset uses INDEX_SAMPLING (default stratified).
+    sampling: Literal["recent", "stratified"] | None = None
 
 
 class ModelGateway(Protocol):
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]: ...
 
 
+TOOL_POLICIES = ("open", "metrics_first")
+
+
 class GeminiGateway:
-    def __init__(self, client: httpx.AsyncClient, key: str, model: str):
+    """tool_policy "open" lets the model pick any tool from the first turn, following the system instruction.
+    "metrics_first" is the earlier policy: the first turn may not search evidence, and a why-question is then
+    forced to search. It is kept so evaluations can compare the two."""
+
+    def __init__(self, client: httpx.AsyncClient, key: str, model: str, tool_policy: str = "metrics_first"):
+        if tool_policy not in TOOL_POLICIES:
+            raise ValueError(f"Unknown tool policy: {tool_policy}")
         self.client = client
         self.key = key
         self.model = model
+        self.tool_policy = tool_policy
+        self.last_usage: dict[str, int] = {}
 
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
         payload = {
@@ -176,6 +194,9 @@ class GeminiGateway:
             payload["systemInstruction"]["parts"].append({
                 "text": "The tool budget is exhausted. Give a final text answer using only the supplied evidence."
             })
+        elif self.tool_policy == "open":
+            payload["tools"] = TOOLS
+            payload["toolConfig"] = {"functionCallingConfig": {"mode": mode}}
         else:
             function_config: dict[str, Any] = {"mode": mode}
             question = contents[0]["parts"][0].get("text", "")
@@ -230,10 +251,25 @@ class GeminiGateway:
                 _log("model_retry", error_type="network", attempt=attempt + 1,
                      delay_ms=round(delay * 1000))
                 await asyncio.sleep(delay)
-        candidates = response.json().get("candidates") or []
+        body = response.json()
+        self.last_usage = _usage(body.get("usageMetadata"))
+        for kind, count in self.last_usage.items():
+            MODEL_TOKENS.labels(kind).inc(count)
+        candidates = body.get("candidates") or []
         if not candidates or not candidates[0].get("content"):
             raise ValueError("Model returned no content")
         return candidates[0]["content"]
+
+
+USAGE_FIELDS = {"promptTokenCount": "input", "candidatesTokenCount": "output",
+                "thoughtsTokenCount": "thinking", "cachedContentTokenCount": "cached_input"}
+
+
+def _usage(metadata: Any) -> dict[str, int]:
+    if not isinstance(metadata, dict):
+        return {}
+    return {name: metadata[field] for field, name in USAGE_FIELDS.items()
+            if type(metadata.get(field)) is int and metadata[field] >= 0}
 
 
 class SignalsTools:
@@ -384,8 +420,20 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     contents: list[dict[str, Any]] = [{"role": "user", "parts": [{"text": request.question}]}]
     sources: list[Source] = []
     called: set[str] = set()
+    used: set[str] = set()
+    open_policy = getattr(model, "tool_policy", "metrics_first") == "open"
+
+    def call_key(name: str, args: dict[str, Any]) -> str:
+        # The open policy may search again with a different query; other tools still run once per request.
+        if open_policy and name == "search_project_evidence":
+            return name + ":" + json.dumps(args, sort_keys=True)
+        return name
     tool_count = 0
     iterations = 0
+    tokens: dict[str, int] = {}
+    supported: set[int] = set()
+    owner, repo = request.projectId.split("~")[1:]
+    project_url = f"https://github.com/{owner}/{repo}"
     for _ in range(MAX_TOOL_CALLS + 1):
         mode = "ANY" if tool_count == 0 else "NONE" if tool_count == MAX_TOOL_CALLS else "AUTO"
         model_start = time.monotonic()
@@ -393,8 +441,11 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             content = await model.generate(contents, mode)
             MODEL_CALLS.labels("success").inc()
             MODEL_DURATION.observe(time.monotonic() - model_start)
+            usage = getattr(model, "last_usage", None) or {}
+            for kind, count in usage.items():
+                tokens[kind] = tokens.get(kind, 0) + count
             _log("model", request_id=request_id, execution_id=execution_id,
-                 duration_ms=round((time.monotonic() - model_start) * 1000))
+                 duration_ms=round((time.monotonic() - model_start) * 1000), tokens=usage)
         except Exception as error:
             MODEL_CALLS.labels("failure").inc()
             MODEL_DURATION.observe(time.monotonic() - model_start)
@@ -412,16 +463,19 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             answer = "\n".join(part.get("text", "") for part in parts).strip()
             if not sources or not answer:
                 raise ValueError("Model did not produce a grounded answer")
+            _check_citations(answer, sources, supported, project_url, request_id, execution_id)
             _log("complete", request_id=request_id, execution_id=execution_id,
                  total_ms=round((time.monotonic() - start) * 1000), iterations=iterations,
-                 tool_count=tool_count)
+                 tool_count=tool_count, tokens=tokens)
             return AskResponse(requestId=request_id, executionId=execution_id,
                                answer=answer, sources=sources, iterations=iterations)
         if len(calls) > MAX_TOOL_CALLS:
             raise ValueError("Model exceeded tool budget")
         planned = []
         batch_arguments: dict[str, dict[str, Any]] = {}
-        has_structured = bool(called & {
+        # Under metrics_first, evidence may only follow structured metrics; the open policy lets the model
+        # search first and leaves metrics-first ordering for metric questions to the system instruction.
+        has_structured = open_policy or bool(called & {
             "get_project_metrics", "get_project_comparison", "get_member_metrics"})
         for call in calls:
             name = call.get("name", "")
@@ -430,20 +484,22 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             args = call.get("args")
             if args is None:
                 args = {}
-            if (name in called or not isinstance(args, dict)
-                    or (name in batch_arguments and batch_arguments[name] != args)):
+            if not isinstance(args, dict):
+                raise ValueError("Invalid tool call")
+            key = call_key(name, args)
+            if key in used or (key in batch_arguments and batch_arguments[key] != args):
                 raise ValueError("Invalid tool call")
             validate_tool_arguments(name, args)
-            batch_arguments[name] = args
+            batch_arguments[key] = args
             has_structured |= name in {"get_project_metrics", "get_project_comparison", "get_member_metrics"}
-            planned.append((call, name, args))
+            planned.append((call, name, args, key))
         if tool_count + len(batch_arguments) > MAX_TOOL_CALLS:
             raise ValueError("Model exceeded tool budget")
         responses = []
         batch_evidence: dict[str, Any] = {}
-        for call, name, args in planned:
-            if name in batch_evidence:
-                evidence = batch_evidence[name]
+        for call, name, args, key in planned:
+            if key in batch_evidence:
+                evidence = batch_evidence[key]
                 responses.append({"functionResponse": {
                     "name": name, "response": {"evidence": evidence},
                     **({"id": call["id"]} if call.get("id") else {})
@@ -463,8 +519,12 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                     sources.extend(hits or [source])
                 else:
                     sources.append(source)
+                supported |= evidence_references(evidence, project_url)
+                if "mrIid" in args:
+                    supported.add(args["mrIid"])
                 called.add(name)
-                batch_evidence[name] = evidence
+                used.add(key)
+                batch_evidence[key] = evidence
                 tool_count += 1
                 responses.append({"functionResponse": {
                     "name": name, "response": {"evidence": evidence},
@@ -482,6 +542,25 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         contents.append(content)
         contents.append({"role": "user", "parts": responses})
     raise ValueError("Agent exceeded iteration budget")
+
+
+def _check_citations(answer: str, sources: list[Source], supported: set[int], project_url: str,
+                     request_id: str, execution_id: str) -> None:
+    """Marks retrieved hits the answer cites and logs references no tool returned.
+
+    This observes answers; it does not block them. Unsupported references are a fabrication signal.
+    """
+    referenced, external = answer_references(answer, project_url)
+    hits = [source for source in sources if source.entityId is not None]
+    for source in hits:
+        source.cited = source.entityId in referenced
+    unsupported = sorted(referenced - supported)
+    ANSWER_REFERENCES.labels("supported").inc(len(referenced) - len(unsupported))
+    ANSWER_REFERENCES.labels("unsupported").inc(len(unsupported))
+    ANSWER_REFERENCES.labels("external").inc(external)
+    _log("citation_check", request_id=request_id, execution_id=execution_id,
+         retrieved_hits=len(hits), cited_hits=sum(1 for source in hits if source.cited),
+         referenced=len(referenced), unsupported=unsupported[:20], external_links=external)
 
 
 @app.get("/health")
@@ -503,10 +582,13 @@ async def index_project(project_id: str, request: IndexRequest,
         raise HTTPException(status_code=403, detail="Forbidden")
     if not re.fullmatch(r"github~[A-Za-z0-9_.-]+~[A-Za-z0-9_.-]+", project_id):
         raise HTTPException(status_code=400, detail="Select a real GitHub project")
-    if not os.getenv("GEMINI_API_KEY"):
+    if os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower() == "gemini" and not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="Embedding model is not configured")
     until = request.until or date.today()
     since = request.since or until - timedelta(days=89)
+    sampling = request.sampling or os.getenv("INDEX_SAMPLING", "stratified")
+    if sampling not in ("recent", "stratified"):
+        raise HTTPException(status_code=503, detail="Index sampling is misconfigured")
     if until < since or until > date.today() or (until - since).days > 92:
         raise HTTPException(status_code=400, detail="Index window must be within the last 93 days")
     project = quote(project_id, safe="")
@@ -522,21 +604,24 @@ async def index_project(project_id: str, request: IndexRequest,
             response = await client.get(url, params={"since": since.isoformat(),
                                                     "until": until.isoformat(),
                                                     **({"updatedAfter": updated_after} if updated_after else {}),
+                                                    **({"sampleScale": request.sampleScale}
+                                                       if request.sampleScale > 1 else {}),
+                                                    **({"sampling": sampling} if sampling != "recent" else {}),
                                                     **({"refName": request.refName} if request.refName else {})},
                                         headers={"X-Agent-Internal-Key": expected_key}, timeout=180)
             response.raise_for_status()
             payload = response.json()
             documents = [EvidenceDocument.model_validate(item)
                          for item in payload.get("documents", [])]
-            embedding = GeminiEmbeddingProvider(client, os.environ["GEMINI_API_KEY"])
-            result = await index.sync(project_id, documents, embedding, request.refName)
-            await index.record_refresh(project_id, since, until, request.refName,
-                                       bool(payload.get("truncated", False)))
-            if payload.get("truncated"):
+            embedding = configured_embedding(client)
+            result = await index.sync(project_id, documents, embedding, request.refName,
+                                      max_chunks=MAX_CHUNKS * request.sampleScale)
+            truncated = bool(payload.get("truncated", False) or result.get("truncated", False))
+            await index.record_refresh(project_id, since, until, request.refName, truncated)
+            if truncated:
                 INCOMPLETE_COVERAGE.labels("index").inc()
             index_outcome = "success"
-            return {**result, "truncated": payload.get("truncated", False),
-                    "selection": payload.get("selection", "")}
+            return {**result, "truncated": truncated, "selection": payload.get("selection", "")}
     except QdrantRequestError as error:
         _log("evidence_store_failure", project_id=project_id, status_code=error.status_code)
         raise HTTPException(status_code=503, detail="Evidence store unavailable") from None
@@ -567,9 +652,10 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
     outcome = "failure"
     async with httpx.AsyncClient() as client:
         model = GeminiGateway(client, gemini_key,
-                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"))
+                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+                              os.getenv("AGENT_TOOL_POLICY", "open"))
         tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
-                          embedding_provider=GeminiEmbeddingProvider(client, gemini_key))
+                          embedding_provider=configured_embedding(client))
         try:
             async with asyncio.timeout(240):
                 result = await run_agent(request, model, tools, request_id, execution_id)

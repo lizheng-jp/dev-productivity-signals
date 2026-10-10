@@ -121,6 +121,34 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "structured evidence first"):
             await run_agent(REQUEST, model, FakeTools(), "r", "e")
 
+    async def test_open_policy_allows_search_before_structured_tool(self):
+        model = FakeModel([
+            {"role": "model", "parts": [{"functionCall": {
+                "name": "search_project_evidence", "args": {"query": "review delay"}}}]},
+            {"role": "model", "parts": [{"text": "Measured: none. Evidence: none found."}]},
+        ])
+        model.tool_policy = "open"
+        tools = FakeTools()
+        await run_agent(REQUEST, model, tools, "r", "e")
+        self.assertEqual(tools.calls[0][0], "search_project_evidence")
+
+    async def test_open_policy_allows_a_different_second_search_but_not_a_repeat(self):
+        def search(query):
+            return {"role": "model", "parts": [{"functionCall": {
+                "name": "search_project_evidence", "args": {"query": query}}}]}
+
+        model = FakeModel([search("review delay"), search("approval wait"),
+                           {"role": "model", "parts": [{"text": "Measured: none. Evidence: none found."}]}])
+        model.tool_policy = "open"
+        tools = FakeTools()
+        await run_agent(REQUEST, model, tools, "r", "e")
+        self.assertEqual([call[2]["query"] for call in tools.calls], ["review delay", "approval wait"])
+
+        repeat = FakeModel([search("review delay"), search("review delay")])
+        repeat.tool_policy = "open"
+        with self.assertRaisesRegex(ValueError, "Invalid tool call"):
+            await run_agent(REQUEST, repeat, FakeTools(), "r", "e")
+
     async def test_model_tool_model_http_flow(self):
         model_calls = 0
 
@@ -195,6 +223,24 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
             result = await model.generate([{"role": "user", "parts": [{"text": "question"}]}], "ANY")
         self.assertEqual(result["parts"][0]["functionCall"]["name"], "get_project_metrics")
 
+    async def test_open_tool_policy_lets_the_first_turn_search_evidence(self):
+        configs = []
+
+        def respond(request):
+            configs.append(json.loads(request.content)["toolConfig"]["functionCallingConfig"])
+            return httpx.Response(200, json={"candidates": [{"content": {
+                "role": "model", "parts": [{"functionCall": {
+                    "name": "search_project_evidence", "args": {"query": "review delay"}}}]}}]})
+
+        question = [{"role": "user", "parts": [{"text": "Why did review slow down?"}]}]
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            await GeminiGateway(client, "key", "gemini-test", "open").generate(question, "ANY")
+            await GeminiGateway(client, "key", "gemini-test", "metrics_first").generate(question, "ANY")
+        self.assertEqual(configs[0], {"mode": "ANY"})
+        self.assertNotIn("search_project_evidence", configs[1]["allowedFunctionNames"])
+        with self.assertRaises(ValueError):
+            GeminiGateway(None, "key", "gemini-test", "random")
+
     async def test_merge_lead_question_requires_distribution_after_search(self):
         def respond(request):
             body = json.loads(request.content)
@@ -254,6 +300,27 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
             model = GeminiGateway(client, "test-model-key", "gemini-test")
             result = await model.generate([{"role": "user", "parts": [{"text": "question"}]}], "NONE")
         self.assertEqual(result["parts"][0]["text"], "Facts: the measured score is 62.")
+
+    async def test_token_usage_is_logged_per_call_and_summed_per_request(self):
+        usages = iter([{"promptTokenCount": 100, "candidatesTokenCount": 5, "totalTokenCount": 105},
+                       {"promptTokenCount": 300, "candidatesTokenCount": 40, "thoughtsTokenCount": 12}])
+        replies = iter([{"functionCall": {"name": "get_project_metrics", "args": {}}},
+                        {"text": "Facts: mergedCount is 4."}])
+
+        def respond(request):
+            return httpx.Response(200, json={"usageMetadata": next(usages), "candidates": [
+                {"content": {"role": "model", "parts": [next(replies)]}}]})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            with self.assertLogs("signals.agent", level="INFO") as logs:
+                await run_agent(REQUEST, GeminiGateway(client, "key", "gemini-test"), FakeTools(),
+                                "request-usage", "execution-usage")
+        events = [json.loads(line.split(":", 2)[2]) for line in logs.output]
+        self.assertEqual([event["tokens"] for event in events if event["event"] == "model"],
+                         [{"input": 100, "output": 5},
+                          {"input": 300, "output": 40, "thinking": 12}])
+        complete = next(event for event in events if event["event"] == "complete")
+        self.assertEqual(complete["tokens"], {"input": 400, "output": 45, "thinking": 12})
 
     async def test_http_endpoint_requires_internal_key(self):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),

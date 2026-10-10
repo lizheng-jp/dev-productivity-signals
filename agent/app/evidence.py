@@ -1,8 +1,12 @@
+import asyncio
+import functools
 import hashlib
 from contextlib import closing
 import json
 import logging
 import math
+import os
+import random
 import sqlite3
 import struct
 import time
@@ -19,6 +23,10 @@ SOURCE_TYPES = frozenset({"mr_description", "mr_discussion", "issue", "issue_com
 EMBEDDING_DIMENSIONS = 768
 MAX_CHUNKS = 250
 EMBEDDING_BATCH_SIZE = 50
+EMBEDDING_ATTEMPTS = 3
+# Questions keep the model gateway's policy of not waiting on 429.
+QUERY_RETRY_STATUSES = frozenset({500, 502, 503, 504})
+DOCUMENT_RETRY_STATUSES = QUERY_RETRY_STATUSES | {429}
 
 
 class EvidenceDocument(BaseModel):
@@ -84,9 +92,8 @@ class GeminiEmbeddingProvider:
             "taskType": "RETRIEVAL_DOCUMENT",
             "outputDimensionality": EMBEDDING_DIMENSIONS,
         } for text in texts]
-        response = await self.client.post(url, headers={"x-goog-api-key": self.key},
-                                          json={"requests": requests}, timeout=45)
-        response.raise_for_status()
+        # Indexing is offline, so it also waits out short free-tier rate limits.
+        response = await self._post(url, {"requests": requests}, DOCUMENT_RETRY_STATUSES)
         embeddings = response.json().get("embeddings", [])
         if len(embeddings) != len(texts):
             raise ValueError("Embedding response count mismatch")
@@ -95,14 +102,106 @@ class GeminiEmbeddingProvider:
     async def embed_query(self, text: str) -> list[float]:
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
                f"{self.model}:embedContent")
-        response = await self.client.post(url, headers={"x-goog-api-key": self.key}, json={
+        response = await self._post(url, {
             "model": f"models/{self.model}",
             "content": {"parts": [{"text": text}]},
             "taskType": "RETRIEVAL_QUERY",
             "outputDimensionality": EMBEDDING_DIMENSIONS,
-        }, timeout=45)
-        response.raise_for_status()
+        }, QUERY_RETRY_STATUSES)
         return _unit_vector(response.json().get("embedding", {}).get("values", []))
+
+    async def _post(self, url: str, body: dict, retry_statuses: frozenset[int]) -> httpx.Response:
+        for attempt in range(EMBEDDING_ATTEMPTS):
+            try:
+                response = await self.client.post(url, headers={"x-goog-api-key": self.key},
+                                                  json=body, timeout=45)
+                response.raise_for_status()
+                return response
+            except httpx.HTTPStatusError as error:
+                status = error.response.status_code
+                if status not in retry_statuses or attempt == EMBEDDING_ATTEMPTS - 1:
+                    raise
+                logger.info(json.dumps({"event": "embedding_retry", "status_code": status,
+                                        "attempt": attempt + 1}))
+            except (httpx.TimeoutException, httpx.NetworkError):
+                if attempt == EMBEDDING_ATTEMPTS - 1:
+                    raise
+                logger.info(json.dumps({"event": "embedding_retry", "error_type": "network",
+                                        "attempt": attempt + 1}))
+            await asyncio.sleep(2 ** attempt + random.uniform(0, 0.25))
+        raise AssertionError("unreachable")
+
+
+DEFAULT_LOCAL_MODEL = "BAAI/bge-base-en-v1.5"
+# Top-hit score below which a search reports insufficient evidence. Cosine scores are not comparable across
+# models: bge and Qwen3 values come from the prometheus/prometheus retrieval evaluation (eval/README.md),
+# picked on that labelled set, so confirm them on new data before relying on them.
+INSUFFICIENT_EVIDENCE_BELOW = {
+    "gemini-embedding-001": 0.40,
+    "BAAI/bge-base-en-v1.5": 0.73,
+    "Qwen/Qwen3-Embedding-0.6B": 0.59,
+}
+DEFAULT_INSUFFICIENT_EVIDENCE_BELOW = 0.40
+# Models without a query prompt in their sentence-transformers config need the prefix their card asks for.
+QUERY_PREFIXES = {
+    "BAAI/bge-base-en-v1.5": "Represent this sentence for searching relevant passages: ",
+    "BAAI/bge-small-en-v1.5": "Represent this sentence for searching relevant passages: ",
+    "intfloat/multilingual-e5-base": "query: ",
+}
+DOCUMENT_PREFIXES = {"intfloat/multilingual-e5-base": "passage: "}
+
+
+@functools.lru_cache(maxsize=2)
+def _load_local_model(model: str):
+    from sentence_transformers import SentenceTransformer
+
+    loaded = SentenceTransformer(model, device="cpu", truncate_dim=EMBEDDING_DIMENSIONS)
+    native = loaded.get_embedding_dimension()
+    if native is not None and native < EMBEDDING_DIMENSIONS:
+        raise ValueError(f"{model} produces {native}-dimensional vectors; "
+                         f"the index needs {EMBEDDING_DIMENSIONS}")
+    return loaded
+
+
+class LocalEmbeddingProvider:
+    """Embeds on CPU with sentence-transformers; larger models are truncated to the index dimension."""
+
+    def __init__(self, model: str = DEFAULT_LOCAL_MODEL, loader=_load_local_model):
+        self.model = model
+        self._loader = loader
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        prefix = DOCUMENT_PREFIXES.get(self.model, "")
+        return await asyncio.to_thread(self._encode, [prefix + text for text in texts], None)
+
+    async def embed_query(self, text: str) -> list[float]:
+        model = self._loader(self.model)
+        if "query" in getattr(model, "prompts", {}):
+            return (await asyncio.to_thread(self._encode, [text], "query"))[0]
+        return (await asyncio.to_thread(self._encode, [QUERY_PREFIXES.get(self.model, "") + text], None))[0]
+
+    def _encode(self, texts: list[str], prompt_name: str | None) -> list[list[float]]:
+        vectors = self._loader(self.model).encode(texts, prompt_name=prompt_name,
+                                                  batch_size=16, convert_to_numpy=True)
+        return [_unit_vector([float(value) for value in vector]) for vector in vectors]
+
+
+def insufficient_evidence_below(model: str) -> float:
+    override = os.getenv("EVIDENCE_MIN_TOP_SCORE", "").strip()
+    if override:
+        return float(override)
+    return INSUFFICIENT_EVIDENCE_BELOW.get(model, DEFAULT_INSUFFICIENT_EVIDENCE_BELOW)
+
+
+def configured_embedding(client: httpx.AsyncClient) -> EmbeddingProvider | None:
+    """EMBEDDING_PROVIDER=gemini (default) needs GEMINI_API_KEY; local runs EMBEDDING_MODEL on CPU."""
+    provider = os.getenv("EMBEDDING_PROVIDER", "gemini").strip().lower()
+    if provider == "local":
+        return LocalEmbeddingProvider(os.getenv("EMBEDDING_MODEL") or DEFAULT_LOCAL_MODEL)
+    if provider != "gemini":
+        raise ValueError(f"Unknown EMBEDDING_PROVIDER: {provider}")
+    key = os.getenv("GEMINI_API_KEY", "")
+    return GeminiEmbeddingProvider(client, key) if key else None
 
 
 def _unit_vector(values: list[float]) -> list[float]:
@@ -248,6 +347,7 @@ class EvidenceIndex:
         pending: list[tuple[EvidenceDocument, str, str, str]] = []
         unchanged: list[tuple[EvidenceDocument, str]] = []
         ids_by_source: dict[str, set[str]] = {}
+        truncated = False
         with closing(self._connect()) as database:
             existing = {row[0]: (row[1], row[2]) for row in database.execute(
                 "SELECT chunk_id, content_hash, embedding_model FROM evidence "
@@ -263,7 +363,11 @@ class EvidenceIndex:
             datetime.fromisoformat(document.eventAt.replace("Z", "+00:00"))
             if is_bot_author(document.author):
                 continue
-            for index, content in enumerate(_chunks(document.content)):
+            contents = _chunks(document.content)
+            if len(pending) + len(unchanged) + len(contents) > MAX_CHUNKS:
+                truncated = True
+                continue
+            for index, content in enumerate(contents):
                 chunk_id = f"{project_id}:{scope}:{document.sourceId}:{index}"
                 ids_by_source.setdefault(document.sourceId, set()).add(chunk_id)
                 content_hash = hashlib.sha256(content.encode()).hexdigest()
@@ -271,8 +375,6 @@ class EvidenceIndex:
                     pending.append((document, chunk_id, content_hash, content))
                 else:
                     unchanged.append((document, chunk_id))
-        if len(pending) + len(unchanged) > MAX_CHUNKS:
-            raise ValueError("Index batch exceeds the chunk limit")
 
         embedded_ms = 0
         for offset in range(0, len(pending), EMBEDDING_BATCH_SIZE):
@@ -320,7 +422,8 @@ class EvidenceIndex:
                 AND lower(author) LIKE '%[bot]'
             """, (project_id, scope))
         result = {"sources": len(ids_by_source), "embeddedChunks": len(pending),
-                  "unchangedChunks": sum(map(len, ids_by_source.values())) - len(pending)}
+                  "unchangedChunks": sum(map(len, ids_by_source.values())) - len(pending),
+                  "truncated": truncated}
         logger.info(json.dumps({"event": "evidence_index", "project_id": project_id,
                                 "ref_name": scope,
                                 **result, "embedding_ms": embedded_ms,
@@ -367,7 +470,8 @@ class EvidenceIndex:
                      for score, row in scored]
             items = select_evidence_hits(candidates, top_k)
             result = {"items": items, "candidateCount": len(rows),
-                      "insufficientEvidence": not items or items[0]["score"] < 0.40,
+                      "insufficientEvidence": not items or items[0]["score"] < insufficient_evidence_below(
+                          embedding.model),
                       "candidateLimitReached": len(rows) == 2000}
         result["coverageIncomplete"] = self.coverage_incomplete(project_id, since, until, ref_name)
         logger.info(json.dumps({"event": "evidence_search", "project_id": project_id,

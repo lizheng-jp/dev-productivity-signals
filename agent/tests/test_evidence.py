@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, patch
 import httpx
 
 from app.evidence import (EMBEDDING_BATCH_SIZE, EMBEDDING_DIMENSIONS, EvidenceDocument, EvidenceIndex,
-                          GeminiEmbeddingProvider, _chunks, select_evidence_hits)
+                          GeminiEmbeddingProvider, LocalEmbeddingProvider, _chunks,
+                          configured_embedding, insufficient_evidence_below, select_evidence_hits)
 from app.main import IndexRequest, index_project
 
 
@@ -195,6 +196,28 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         index.updated_after.assert_not_awaited()
         self.assertNotIn("updatedAfter", requests[0].url.params)
 
+    async def test_index_chunk_limit_marks_refresh_incomplete(self):
+        until = date.today()
+        since = until - timedelta(days=6)
+        index = type("FakeIndex", (), {})()
+        index.updated_after = AsyncMock(return_value=None)
+        index.sync = AsyncMock(return_value={"sources": 1, "embeddedChunks": 250,
+                                             "unchangedChunks": 0, "truncated": True})
+        index.record_refresh = AsyncMock()
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(lambda request: httpx.Response(
+            200, json={"documents": [], "truncated": False}))
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=index):
+            result = await index_project(PROJECT, IndexRequest(since=since, until=until),
+                                         "internal-key")
+        self.assertTrue(result["truncated"])
+        self.assertTrue(index.record_refresh.await_args.args[4])
+
     async def test_uses_distinct_document_and_query_tasks(self):
         calls = []
 
@@ -217,6 +240,131 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls[1][1]["taskType"], "RETRIEVAL_QUERY")
         self.assertEqual(calls[1][1]["outputDimensionality"], EMBEDDING_DIMENSIONS)
 
+    async def test_local_embedding_prefixes_queries_and_normalizes(self):
+        class FakeModel:
+            prompts = {}
+
+            def __init__(self):
+                self.calls = []
+
+            def encode(self, texts, prompt_name=None, **kwargs):
+                self.calls.append((texts, prompt_name))
+                return [[3.0, 4.0] + [0.0] * (EMBEDDING_DIMENSIONS - 2) for _ in texts]
+
+        model = FakeModel()
+        provider = LocalEmbeddingProvider("BAAI/bge-base-en-v1.5", loader=lambda name: model)
+        documents = await provider.embed_documents(["review delay"])
+        query = await provider.embed_query("why did review slow down")
+        self.assertEqual(model.calls[0], (["review delay"], None))
+        self.assertTrue(model.calls[1][0][0].startswith("Represent this sentence"))
+        self.assertAlmostEqual(documents[0][0], 0.6)
+        self.assertAlmostEqual(query[1], 0.8)
+
+        model.prompts = {"query": "Instruct: retrieve\nQuery:"}
+        await LocalEmbeddingProvider("Qwen/Qwen3-Embedding-0.6B",
+                                     loader=lambda name: model).embed_query("why")
+        self.assertEqual(model.calls[-1], (["why"], "query"))
+
+    def test_insufficient_evidence_threshold_depends_on_model(self):
+        with patch.dict(os.environ, {"EVIDENCE_MIN_TOP_SCORE": ""}):
+            self.assertEqual(insufficient_evidence_below("gemini-embedding-001"), 0.40)
+            self.assertEqual(insufficient_evidence_below("BAAI/bge-base-en-v1.5"), 0.73)
+            self.assertEqual(insufficient_evidence_below("unknown-model"), 0.40)
+        with patch.dict(os.environ, {"EVIDENCE_MIN_TOP_SCORE": "0.5"}):
+            self.assertEqual(insufficient_evidence_below("BAAI/bge-base-en-v1.5"), 0.5)
+
+    def test_configured_embedding_selects_provider(self):
+        client = httpx.AsyncClient()
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "local", "EMBEDDING_MODEL": "",
+                                     "GEMINI_API_KEY": ""}):
+            provider = configured_embedding(client)
+            self.assertIsInstance(provider, LocalEmbeddingProvider)
+            self.assertEqual(provider.model, "BAAI/bge-base-en-v1.5")
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "gemini", "GEMINI_API_KEY": ""}):
+            self.assertIsNone(configured_embedding(client))
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "gemini", "GEMINI_API_KEY": "key"}):
+            self.assertIsInstance(configured_embedding(client), GeminiEmbeddingProvider)
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "openai"}), self.assertRaises(ValueError):
+            configured_embedding(client)
+
+    async def test_document_embedding_retries_rate_limit_but_query_does_not(self):
+        statuses = iter([429, 200, 429])
+        vector = [1.0] + [0.0] * (EMBEDDING_DIMENSIONS - 1)
+
+        def respond(request):
+            status = next(statuses)
+            if status != 200:
+                return httpx.Response(status, json={})
+            return httpx.Response(200, json={"embeddings": [{"values": vector}]})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            provider = GeminiEmbeddingProvider(client, "test-key")
+            with patch("app.evidence.asyncio.sleep", new=AsyncMock()) as sleep:
+                self.assertEqual(len(await provider.embed_documents(["review delay"])), 1)
+                with self.assertRaises(httpx.HTTPStatusError):
+                    await provider.embed_query("why")
+        self.assertEqual(sleep.await_count, 1)
+
+    async def test_document_embedding_gives_up_after_bounded_attempts(self):
+        attempts = 0
+
+        def respond(request):
+            nonlocal attempts
+            attempts += 1
+            return httpx.Response(503, json={})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            provider = GeminiEmbeddingProvider(client, "test-key")
+            with patch("app.evidence.asyncio.sleep", new=AsyncMock()), \
+                    self.assertRaises(httpx.HTTPStatusError):
+                await provider.embed_documents(["review delay"])
+        self.assertEqual(attempts, 3)
+
+    async def test_index_endpoint_forwards_sample_scale_and_widens_chunk_limit(self):
+        until = date.today()
+        seen = {}
+
+        class FakeIndex:
+            async def updated_after(self, project_id, start, end, ref_name):
+                return None
+
+            async def sync(self, project_id, documents, embedding, ref_name, max_chunks=250):
+                seen["max_chunks"] = max_chunks
+                return {"sources": 0, "embeddedChunks": 0, "unchangedChunks": 0}
+
+            async def record_refresh(self, project_id, start, end, ref_name, truncated):
+                pass
+
+        def respond(request):
+            seen["url"] = str(request.url)
+            return httpx.Response(200, json={"documents": [], "truncated": False, "selection": "bounded"})
+
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(respond)
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=FakeIndex()):
+            await index_project(PROJECT, IndexRequest(until=until, sampleScale=4, sampling="stratified"),
+                                "internal-key")
+        self.assertIn("sampleScale=4", seen["url"])
+        self.assertIn("sampling=stratified", seen["url"])
+        self.assertEqual(seen["max_chunks"], 1000)
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test", "INDEX_SAMPLING": "recent"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=FakeIndex()):
+            await index_project(PROJECT, IndexRequest(until=until), "internal-key")
+        self.assertNotIn("sampling=", seen["url"])
+        with self.assertRaises(ValueError):
+            IndexRequest(sampleScale=6)
+        with self.assertRaises(ValueError):
+            IndexRequest(sampling="random")
+
     async def test_index_endpoint_reuses_spring_feed_and_skips_unchanged_embedding(self):
         until = date.today()
         since = until - timedelta(days=6)
@@ -230,7 +378,7 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
             async def updated_after(self, project_id, start, end, ref_name):
                 return "2026-09-27T00:00:00+00:00" if self.refreshed else None
 
-            async def sync(self, project_id, documents, embedding, ref_name):
+            async def sync(self, project_id, documents, embedding, ref_name, max_chunks=250):
                 if documents:
                     await embedding.embed_documents([item.content for item in documents])
                 return {"sources": len(documents), "embeddedChunks": len(documents),

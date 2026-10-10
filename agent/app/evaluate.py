@@ -19,7 +19,7 @@ QUESTIONS = (
 
 async def evaluate(project_id: str, since: date, until: date, ref_name: str | None,
                    index_first: bool, index_only: bool, full_index: bool = False,
-                   sample_scale: int = 1, sampling: str = "recent") -> None:
+                   sample_scale: int = 1, sampling: str = "stratified") -> None:
     key = os.environ.get("AGENT_INTERNAL_KEY", "")
     if not key:
         raise SystemExit("AGENT_INTERNAL_KEY is required")
@@ -74,8 +74,8 @@ def main() -> None:
     parser.add_argument("--full-index", action="store_true", help="Ignore the last refresh timestamp")
     parser.add_argument("--sample-scale", type=int, default=1, choices=range(1, 6),
                         help="Index a wider sample for retrieval evaluation (multiplies PR, issue and chunk limits)")
-    parser.add_argument("--sampling", choices=("recent", "stratified"), default="recent",
-                        help="stratified samples the whole window by creation month instead of recent items")
+    parser.add_argument("--sampling", choices=("recent", "stratified"), default="stratified",
+                        help="stratified samples the whole window by creation month; recent reads only recent items")
     args = parser.parse_args()
     if not args.project_id.startswith("github~") or len(args.project_id.split("~")) != 3:
         parser.error("--project-id must be a github~owner~repo project")

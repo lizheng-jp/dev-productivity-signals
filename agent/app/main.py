@@ -159,19 +159,29 @@ class IndexRequest(BaseModel):
     fullRefresh: bool = False
     # Retrieval evaluation only: multiplies the Spring sample and chunk limits.
     sampleScale: int = Field(default=1, ge=1, le=5)
-    # Retrieval evaluation only: "stratified" samples the whole window by creation month instead of recent items.
-    sampling: Literal["recent", "stratified"] = "recent"
+    # "stratified" samples the whole window by creation month; "recent" reads only recently updated items.
+    sampling: Literal["recent", "stratified"] = "stratified"
 
 
 class ModelGateway(Protocol):
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]: ...
 
 
+TOOL_POLICIES = ("open", "metrics_first")
+
+
 class GeminiGateway:
-    def __init__(self, client: httpx.AsyncClient, key: str, model: str):
+    """tool_policy "open" lets the model pick any tool from the first turn, following the system instruction.
+    "metrics_first" is the earlier policy: the first turn may not search evidence, and a why-question is then
+    forced to search. It is kept so evaluations can compare the two."""
+
+    def __init__(self, client: httpx.AsyncClient, key: str, model: str, tool_policy: str = "metrics_first"):
+        if tool_policy not in TOOL_POLICIES:
+            raise ValueError(f"Unknown tool policy: {tool_policy}")
         self.client = client
         self.key = key
         self.model = model
+        self.tool_policy = tool_policy
         self.last_usage: dict[str, int] = {}
 
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
@@ -183,6 +193,9 @@ class GeminiGateway:
             payload["systemInstruction"]["parts"].append({
                 "text": "The tool budget is exhausted. Give a final text answer using only the supplied evidence."
             })
+        elif self.tool_policy == "open":
+            payload["tools"] = TOOLS
+            payload["toolConfig"] = {"functionCallingConfig": {"mode": mode}}
         else:
             function_config: dict[str, Any] = {"mode": mode}
             question = contents[0]["parts"][0].get("text", "")
@@ -623,7 +636,8 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
     outcome = "failure"
     async with httpx.AsyncClient() as client:
         model = GeminiGateway(client, gemini_key,
-                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"))
+                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+                              os.getenv("AGENT_TOOL_POLICY", "open"))
         tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
                           embedding_provider=configured_embedding(client))
         try:

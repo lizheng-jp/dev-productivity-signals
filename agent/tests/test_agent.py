@@ -195,6 +195,24 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
             result = await model.generate([{"role": "user", "parts": [{"text": "question"}]}], "ANY")
         self.assertEqual(result["parts"][0]["functionCall"]["name"], "get_project_metrics")
 
+    async def test_open_tool_policy_lets_the_first_turn_search_evidence(self):
+        configs = []
+
+        def respond(request):
+            configs.append(json.loads(request.content)["toolConfig"]["functionCallingConfig"])
+            return httpx.Response(200, json={"candidates": [{"content": {
+                "role": "model", "parts": [{"functionCall": {
+                    "name": "search_project_evidence", "args": {"query": "review delay"}}}]}}]})
+
+        question = [{"role": "user", "parts": [{"text": "Why did review slow down?"}]}]
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            await GeminiGateway(client, "key", "gemini-test", "open").generate(question, "ANY")
+            await GeminiGateway(client, "key", "gemini-test", "metrics_first").generate(question, "ANY")
+        self.assertEqual(configs[0], {"mode": "ANY"})
+        self.assertNotIn("search_project_evidence", configs[1]["allowedFunctionNames"])
+        with self.assertRaises(ValueError):
+            GeminiGateway(None, "key", "gemini-test", "random")
+
     async def test_merge_lead_question_requires_distribution_after_search(self):
         def respond(request):
             body = json.loads(request.content)

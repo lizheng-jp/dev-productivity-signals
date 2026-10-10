@@ -9,7 +9,7 @@ import httpx
 
 from app.evidence import (EMBEDDING_BATCH_SIZE, EMBEDDING_DIMENSIONS, EvidenceDocument, EvidenceIndex,
                           GeminiEmbeddingProvider, LocalEmbeddingProvider, _chunks,
-                          configured_embedding, select_evidence_hits)
+                          configured_embedding, insufficient_evidence_below, select_evidence_hits)
 from app.main import IndexRequest, index_project
 
 
@@ -264,6 +264,14 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         await LocalEmbeddingProvider("Qwen/Qwen3-Embedding-0.6B",
                                      loader=lambda name: model).embed_query("why")
         self.assertEqual(model.calls[-1], (["why"], "query"))
+
+    def test_insufficient_evidence_threshold_depends_on_model(self):
+        with patch.dict(os.environ, {"EVIDENCE_MIN_TOP_SCORE": ""}):
+            self.assertEqual(insufficient_evidence_below("gemini-embedding-001"), 0.40)
+            self.assertEqual(insufficient_evidence_below("BAAI/bge-base-en-v1.5"), 0.73)
+            self.assertEqual(insufficient_evidence_below("unknown-model"), 0.40)
+        with patch.dict(os.environ, {"EVIDENCE_MIN_TOP_SCORE": "0.5"}):
+            self.assertEqual(insufficient_evidence_below("BAAI/bge-base-en-v1.5"), 0.5)
 
     def test_configured_embedding_selects_provider(self):
         client = httpx.AsyncClient()

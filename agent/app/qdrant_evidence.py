@@ -13,7 +13,7 @@ import httpx
 from app.evidence import (EMBEDDING_BATCH_SIZE, EMBEDDING_DIMENSIONS, MAX_CHUNKS,
                           SOURCE_TYPES, EmbeddingProvider, EvidenceDocument,
                           EvidenceSearchResult, _chunks, _unit_vector,
-                          is_bot_author, select_evidence_hits)
+                          insufficient_evidence_below, is_bot_author, select_evidence_hits)
 
 
 logger = logging.getLogger("signals.agent.evidence")
@@ -300,7 +300,8 @@ class QdrantEvidenceIndex:
                               "score": round(point["score"], 4)})
             items = select_evidence_hits(candidates, top_k)
         result = {"items": items, "candidateCount": count,
-                  "insufficientEvidence": not items or items[0]["score"] < 0.40,
+                  "insufficientEvidence": not items or items[0]["score"] < insufficient_evidence_below(
+                      embedding.model),
                   "candidateLimitReached": count > query_limit,
                   "coverageIncomplete": await self.coverage_incomplete(project_id, since, until,
                                                                         ref_name)}

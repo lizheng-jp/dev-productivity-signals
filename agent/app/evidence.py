@@ -133,6 +133,15 @@ class GeminiEmbeddingProvider:
 
 
 DEFAULT_LOCAL_MODEL = "BAAI/bge-base-en-v1.5"
+# Top-hit score below which a search reports insufficient evidence. Cosine scores are not comparable across
+# models: bge and Qwen3 values come from the prometheus/prometheus retrieval evaluation (eval/README.md),
+# picked on that labelled set, so confirm them on new data before relying on them.
+INSUFFICIENT_EVIDENCE_BELOW = {
+    "gemini-embedding-001": 0.40,
+    "BAAI/bge-base-en-v1.5": 0.73,
+    "Qwen/Qwen3-Embedding-0.6B": 0.59,
+}
+DEFAULT_INSUFFICIENT_EVIDENCE_BELOW = 0.40
 # Models without a query prompt in their sentence-transformers config need the prefix their card asks for.
 QUERY_PREFIXES = {
     "BAAI/bge-base-en-v1.5": "Represent this sentence for searching relevant passages: ",
@@ -175,6 +184,13 @@ class LocalEmbeddingProvider:
         vectors = self._loader(self.model).encode(texts, prompt_name=prompt_name,
                                                   batch_size=16, convert_to_numpy=True)
         return [_unit_vector([float(value) for value in vector]) for vector in vectors]
+
+
+def insufficient_evidence_below(model: str) -> float:
+    override = os.getenv("EVIDENCE_MIN_TOP_SCORE", "").strip()
+    if override:
+        return float(override)
+    return INSUFFICIENT_EVIDENCE_BELOW.get(model, DEFAULT_INSUFFICIENT_EVIDENCE_BELOW)
 
 
 def configured_embedding(client: httpx.AsyncClient) -> EmbeddingProvider | None:
@@ -454,7 +470,8 @@ class EvidenceIndex:
                      for score, row in scored]
             items = select_evidence_hits(candidates, top_k)
             result = {"items": items, "candidateCount": len(rows),
-                      "insufficientEvidence": not items or items[0]["score"] < 0.40,
+                      "insufficientEvidence": not items or items[0]["score"] < insufficient_evidence_below(
+                          embedding.model),
                       "candidateLimitReached": len(rows) == 2000}
         result["coverageIncomplete"] = self.coverage_incomplete(project_id, since, until, ref_name)
         logger.info(json.dumps({"event": "evidence_search", "project_id": project_id,

@@ -716,9 +716,9 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
     outcome = "failure"
     async with httpx.AsyncClient() as client:
         model = GeminiGateway(client, gemini_key,
-                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
                               os.getenv("AGENT_TOOL_POLICY", "open"),
-                              os.getenv("AGENT_STRICT_EVIDENCE", "false").lower() == "true")
+                              os.getenv("AGENT_STRICT_EVIDENCE", "true").lower() == "true")
         tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
                           embedding_provider=configured_embedding(client))
         try:

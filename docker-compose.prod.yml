@@ -70,10 +70,11 @@ services:
     environment:
       Signals_BACKEND_URL: http://backend:8080
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
-      # Production keeps the pre-evaluation behaviour until the open policy and stratified sampling are
-      # checked with the production model; see eval/README.md.
-      AGENT_TOOL_POLICY: ${AGENT_TOOL_POLICY:-metrics_first}
+      # The evaluated configuration (eval/README.md, round 2). metrics_first fails most requests on 3.8.
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      AGENT_TOOL_POLICY: ${AGENT_TOOL_POLICY:-open}
+      AGENT_STRICT_EVIDENCE: ${AGENT_STRICT_EVIDENCE:-true}
+      # Stratified sampling has a retrieval evaluation but no answer evaluation yet.
       INDEX_SAMPLING: ${INDEX_SAMPLING:-recent}
       AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
       QDRANT_URL: http://qdrant:6333

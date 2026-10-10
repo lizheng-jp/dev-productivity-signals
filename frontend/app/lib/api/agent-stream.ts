@@ -35,8 +35,14 @@ export async function askAgentStream(body: AskBody, onEvent: (event: AgentStream
         cache: 'no-store',
         signal,
     });
-    if (response.status === 404) {
+    // A server without the stream endpoint (404/405), or a proxy that still only allows /ask (403 "Read-only
+    // public demo"), gets the JSON endpoint instead.
+    if (response.status === 404 || response.status === 405) {
         return post<AgentResponse>('/api/agent/ask', body);
+    }
+    if (response.status === 403) {
+        const text = await response.clone().text().catch(() => '');
+        if (text.includes('Read-only public demo')) return post<AgentResponse>('/api/agent/ask', body);
     }
     if (!response.ok || !response.body) {
         const text = await response.text().catch(() => '');

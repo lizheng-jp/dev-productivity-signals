@@ -1,5 +1,6 @@
 // components/views/ProjectAnalyticsView.tsx
 "use client";
+import { DimensionCoverage } from '@/components/ui/DimensionCoverage';
 import { TrendBadge } from '@/components/ui/TrendBadge';
 import type { MetricTrend } from '@/lib/api/metric-comparison';
 import React, { useState, useMemo } from 'react';
@@ -15,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useTranslations } from 'next-intl';
 import { spaceGroupsConfig } from '@/lib/space-config';
 import { formatAiEvaluationText } from '@/lib/ai-evaluation-display';
+import { useLoadErrorMessage } from '@/lib/hooks/useLoadErrorMessage';
 
 // Types for transformed project detail data
 export type ProjectMetric = {
@@ -82,11 +84,13 @@ type Props = {
   projects: Project[];
   projectStats: ProjectStat | null;
   isLoading: boolean;
+  error?: string | null;
   isAiCorrecting?: boolean;
   currentDate: DateRange | undefined;
 };
 
-export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCorrecting = false, currentDate }: Props) => {
+export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, error, isAiCorrecting = false, currentDate }: Props) => {
+  const loadErrorMessage = useLoadErrorMessage();
   const t = useTranslations('ProjectAnalytics');
   const tHeader = useTranslations('Header');
   const tSpace = useTranslations('Space');
@@ -134,6 +138,7 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
   }, [data, compareData]);
 
   if (isLoading) return <p className="py-12 text-center text-slate-500">Loading project analytics...</p>;
+  if (error) return <p role="alert" className="mx-auto max-w-xl rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">{loadErrorMessage(error)}</p>;
   if (!projectStats || !data) return <p className="py-12 text-center text-slate-500">No project data available.</p>;
 
   return (
@@ -143,6 +148,7 @@ export const ProjectAnalyticsView = ({ projects, projectStats, isLoading, isAiCo
         <h2 className="text-xl font-bold text-slate-800">{data.name}</h2>
         <div className="flex max-w-2xl flex-wrap items-center justify-end gap-2 bg-surface px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
           <div className="text-xs text-slate-500 font-semibold uppercase">Overall SPACE Score</div>
+          <DimensionCoverage metrics={projectStats.spaceMetrics as Record<string, unknown> | undefined} />
           <div className="flex items-center gap-1 text-2xl font-bold text-blue-600">
             <span>{data.totalScore.toFixed(1)}</span><TrendBadge trend={projectStats.trends?.spaceTotalScore} />
             {projectStats.aiCorrectionReason && (

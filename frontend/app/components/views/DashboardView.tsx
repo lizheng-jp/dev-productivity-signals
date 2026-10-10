@@ -14,6 +14,8 @@ import { useTranslations } from 'next-intl';
 import { CircleHelp, Clock3, GitCommitHorizontal, GitMerge, Loader2, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GROUP_UI_ENABLED } from '@/lib/feature-flags';
+import { useLoadErrorMessage } from '@/lib/hooks/useLoadErrorMessage';
+import { DimensionCoverage } from '@/components/ui/DimensionCoverage';
 
 interface DashboardViewProps {
   comparison?: MetricComparison | null;
@@ -149,7 +151,7 @@ const DashboardMetricCard = ({
   description,
   value,
   isLoading, trend, unit, unavailable,
-  icon: Icon, accent = 'blue', spark, ring,
+  icon: Icon, accent = 'blue', spark, ring, coverage,
 }: {
   unavailable?: boolean;
   trend?: MetricTrend;
@@ -162,6 +164,7 @@ const DashboardMetricCard = ({
   accent?: Accent;
   spark?: number[];
   ring?: boolean;
+  coverage?: Record<string, unknown> | null;
 }) => {
   const showValue = !isLoading && !unavailable;
   return (
@@ -178,7 +181,7 @@ const DashboardMetricCard = ({
           <span className="font-mono text-[32px] font-bold leading-none tracking-tight text-slate-900 tabular">
             {isLoading ? <LoadingValue /> : unavailable ? '—' : unit ? <>{trend?.current === null ? '—' : value.toFixed(1)}<span className="ml-1 text-sm font-medium text-slate-400">{unit}</span></> : Math.round(value)}
           </span>
-          {!isLoading && <div className="h-5"><TrendBadge trend={trend} /></div>}
+          {!isLoading && <div className="flex h-5 items-center gap-1.5"><TrendBadge trend={trend} />{showValue && <DimensionCoverage metrics={coverage} />}</div>}
         </div>
         {showValue && ring && <ScoreRing value={value} />}
         {showValue && !ring && spark && <Sparkline values={spark} accent={accent} />}
@@ -189,7 +192,7 @@ const DashboardMetricCard = ({
 
 export const DashboardView = (props: DashboardViewProps) => {
   const t = useTranslations('Dashboard');
-  const tTrend = useTranslations('ComparisonTrend');
+  const loadErrorMessage = useLoadErrorMessage();
   const tInsights = useTranslations('TrendsPanel');
   const tTable = useTranslations('Table');
   const {
@@ -213,8 +216,10 @@ export const DashboardView = (props: DashboardViewProps) => {
   };
 
 
+  // SPACE advises against ranking individuals, so the table lists developers by name, not by score.
   const sortedDeveloperStats = React.useMemo(() => {
-    return [...developerStats].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+    const nameOf = (stat: DeveloperStat) => stat.member.userName || stat.member.userCode || '';
+    return [...developerStats].sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
   }, [developerStats]);
 
   const isDeveloperSectionLoading = isLoadingProjects || isDevLoading;
@@ -235,7 +240,7 @@ export const DashboardView = (props: DashboardViewProps) => {
         <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">{t('overview')}</h2>
       </div>
 
-      {props.error && <p role="alert" className="rounded border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{tTrend('loadError')}</p>}
+      {props.error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{loadErrorMessage(props.error)}</p>}
       <DeveloperDetailPanel
         isOpen={selectedDeveloper !== null}
         onClose={() => setSelectedUser(null)}
@@ -269,7 +274,7 @@ export const DashboardView = (props: DashboardViewProps) => {
             />
             <DashboardMetricCard unavailable={!projectStats || projectStats.mergedCount === 0} label={tInsights('avgLeadTime')} description={tInsights('avgLeadTimeDetail')} value={projectStats?.mergedLeadTimeHours ?? 0} trend={projectStats?.trends?.mergedLeadTimeHours} unit="h" isLoading={isProjectSectionLoading} icon={Clock3} accent="cyan" spark={leadTimeSpark} />
 
-            <DashboardMetricCard unavailable={projectStats?.spaceMetrics?.spaceTotalScore === undefined} label={tInsights('projectSpaceScore')} description={tInsights('projectSpaceDetail')} value={projectStats?.totalScore ?? 0} trend={projectStats?.trends?.spaceTotalScore} isLoading={isProjectSectionLoading} icon={ShieldCheck} ring />
+            <DashboardMetricCard unavailable={projectStats?.spaceMetrics?.spaceTotalScore === undefined} label={tInsights('projectSpaceScore')} description={tInsights('projectSpaceDetail')} value={projectStats?.totalScore ?? 0} trend={projectStats?.trends?.spaceTotalScore} isLoading={isProjectSectionLoading} icon={ShieldCheck} ring coverage={projectStats?.spaceMetrics as Record<string, unknown> | undefined} />
           </div>
           <DashboardTrendCharts comparison={props.comparison ?? null} isLoading={isProjectSectionLoading} />
 
@@ -278,7 +283,7 @@ export const DashboardView = (props: DashboardViewProps) => {
             <div className="flex items-center gap-3 px-6 py-4">
               <h3 className="text-base font-bold tracking-tight text-slate-900">{t('developerLeaderboard')}</h3>
               <span className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
-              <span className="kicker" aria-hidden="true">Top performers</span>
+              <span className="kicker" aria-hidden="true">Activity overview</span>
             </div>
             <div className="overflow-x-auto"><table className="w-full text-sm text-left">
               <thead className="kicker border-y border-slate-200/70 bg-slate-50/60 [&_th]:font-semibold">
@@ -296,11 +301,10 @@ export const DashboardView = (props: DashboardViewProps) => {
               <tbody className="divide-y divide-slate-200/60">
                 {isDeveloperSectionLoading ? (
                   <LoadingTableRow colSpan={GROUP_UI_ENABLED ? 8 : 7} label={tTable('loading')} />
-                ) : sortedDeveloperStats.map((stat, index) => (
+                ) : sortedDeveloperStats.map((stat) => (
                     <tr key={stat.member.userCode} onClick={() => handleDeveloperSelect(stat)} className="hover:bg-white/80 transition cursor-pointer group">
                       <td className="px-4 py-3.5 pl-6">
                         <div className="flex items-center gap-3">
-                          <span className={`w-6 font-mono text-xs font-bold tabular ${index === 0 ? 'text-aurora' : 'text-slate-400'}`}>{String(index + 1).padStart(2, '0')}</span>
                           <span className="bg-aurora flex h-9 w-9 shrink-0 items-center justify-center rounded-full p-[2px]">
                             <span className="flex h-full w-full items-center justify-center rounded-full bg-white text-xs font-bold text-violet-600">{(stat.member.userName || stat.member.userCode || '?').trim().charAt(0)}</span>
                           </span>

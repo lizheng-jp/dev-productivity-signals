@@ -19,6 +19,9 @@ import static dev.productivity.signals.util.SpaceMetricConstants.*;
 public class SpaceMetricAiCorrectionService {
 
     private static final Set<String> RAW_METRIC_KEYS = Set.of(
+            coreContributorCount,
+            bugDataAvailable,
+            mergedLeadTimeMedianHours,
             mergedCount,
             mergedLeadTimeHours,
             bugCausedCount,

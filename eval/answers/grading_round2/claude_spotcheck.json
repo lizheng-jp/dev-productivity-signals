@@ -1,0 +1,114 @@
+{
+ "g011": [
+  [],
+  false,
+  true
+ ],
+ "g024": [
+  [
+   "covered",
+   "covered",
+   "partial"
+  ],
+  false,
+  false
+ ],
+ "g025": [
+  [],
+  true,
+  false
+ ],
+ "g037": [
+  [
+   "covered",
+   "covered"
+  ],
+  false,
+  false
+ ],
+ "g048": [
+  [],
+  false,
+  true
+ ],
+ "g049": [
+  [
+   "covered",
+   "covered"
+  ],
+  false,
+  false
+ ],
+ "g078": [
+  [
+   "covered",
+   "covered",
+   "partial"
+  ],
+  false,
+  false
+ ],
+ "g102": [
+  [
+   "covered",
+   "covered",
+   "covered"
+  ],
+  false,
+  false
+ ],
+ "g115": [
+  [
+   "covered",
+   "covered"
+  ],
+  true,
+  false
+ ],
+ "g116": [
+  [],
+  false,
+  true
+ ],
+ "g120": [
+  [],
+  false,
+  true
+ ],
+ "g122": [
+  [
+   "covered",
+   "missing"
+  ],
+  false,
+  false
+ ],
+ "g131": [
+  [
+   "covered",
+   "partial"
+  ],
+  false,
+  false
+ ],
+ "g132": [
+  [
+   "partial",
+   "covered",
+   "partial",
+   "missing",
+   "covered"
+  ],
+  false,
+  false
+ ],
+ "g138": [
+  [
+   "covered",
+   "covered",
+   "missing"
+  ],
+  false,
+  false
+ ]
+}

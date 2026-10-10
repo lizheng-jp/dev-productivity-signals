@@ -102,6 +102,43 @@ Gemini spend for both runs was about US$1.3.
 - On unanswerable questions the open policy often adds general knowledge after saying the evidence is missing
   (for example a recommended retention size); one answer contradicted its source on mDNS resolution.
 
+## Round 2: limits as feedback, evidence-only answers
+
+Round 1's open policy still failed 19 questions on tool limits and padded unanswerable ones with general
+knowledge, so two changes were added one at a time and all three runs were graded together under the same
+rules (`answers/round2/`, `answers/grading_round2/`):
+
+- **feedback**: an over-budget, repeated, malformed or unknown tool call gets an error or the earlier result
+  as its tool response instead of failing the request; a tool may run again with different arguments; the
+  last turn asks once more for a text answer when the model still requests a tool.
+- **strict**: feedback plus `AGENT_STRICT_EVIDENCE=true`, an instruction not to fill missing evidence with
+  general knowledge, typical defaults or recommendations.
+
+Grading: Codex graded the 141 answers pooled and shuffled across runs, with GitHub metadata for every PR or
+issue an answer mentions (`build_grading_package.py`), and general-knowledge claims counted as unsupported, so
+round 1 was regraded under these rules. A Claude spot-check of 15 agreed on 27/27 key facts as stated or not,
+15/15 declines and 12/15 on unsupported claims; the 3 differences, and 32 of 143 flagged claims overall, were
+the package still lacking a PR's target branch or a comment's author, and are excluded below.
+
+| Metric | open (round 1) | feedback | strict |
+|---|---|---|---|
+| Answerable questions answered | 21 / 35 | 33 / 35 | 33 / 35 |
+| Key-fact recall over all 35 | 0.49 [0.35, 0.64] | 0.76 [0.66, 0.84] | 0.76 [0.66, 0.85] |
+| Key-fact recall of answers given | 0.82 | 0.80 | 0.80 |
+| Answerable answers with unsupported claims | 10 / 21 | 12 / 33 | 13 / 33 |
+| Answerable questions declined | 0 | 0 | 1 |
+| Unanswerable questions declined (of 20) | 7 | 12 | 18 |
+| Unanswerable answers with unsupported claims | 9 / 15 | 10 / 20 | 2 / 19 |
+
+- Feedback raised key-fact recall by 0.27 (paired 95% CI 0.13 to 0.41) without lowering the quality of the
+  answers given. Two questions still end in errors.
+- Strict did not change recall (paired difference 0.00, CI -0.06 to +0.05) and moved correct declines on
+  unanswerable questions from 12 to 18 of 20, with general-knowledge padding there from 10 to 2. Its cost
+  is one false decline: an answer denied evidence that #19050 plainly gave.
+- Answerable answers still carry unsupported claims in about a third of cases, mostly general knowledge in the
+  interpretation and recommendation sections (for example the Go version that introduced `netip`).
+- Both runs together cost about US$2.5 in Gemini calls.
+
 ## Caveats
 
 - The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries, so the flagging numbers are

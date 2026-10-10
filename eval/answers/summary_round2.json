@@ -1,0 +1,35 @@
+{
+ "open_r1": {
+  "answered (answerable)": "21/35",
+  "answered (unanswerable)": "15/20",
+  "key-fact recall, all 35": "0.49 [0.35,0.64]",
+  "key-fact recall, answered": "0.82",
+  "contradicted facts": 1,
+  "answerable w/ unsupported claims": "10/21",
+  "answerable declined": "0/21",
+  "unanswerable: declined (of 20)": "7/20",
+  "unanswerable w/ unsupported claims": "9/15"
+ },
+ "feedback": {
+  "answered (answerable)": "33/35",
+  "answered (unanswerable)": "20/20",
+  "key-fact recall, all 35": "0.76 [0.66,0.84]",
+  "key-fact recall, answered": "0.80",
+  "contradicted facts": 0,
+  "answerable w/ unsupported claims": "12/33",
+  "answerable declined": "0/33",
+  "unanswerable: declined (of 20)": "12/20",
+  "unanswerable w/ unsupported claims": "10/20"
+ },
+ "strict": {
+  "answered (answerable)": "33/35",
+  "answered (unanswerable)": "19/20",
+  "key-fact recall, all 35": "0.76 [0.66,0.85]",
+  "key-fact recall, answered": "0.80",
+  "contradicted facts": 2,
+  "answerable w/ unsupported claims": "13/33",
+  "answerable declined": "1/33",
+  "unanswerable: declined (of 20)": "18/20",
+  "unanswerable w/ unsupported claims": "2/19"
+ }
+}

@@ -65,4 +65,26 @@ class DemoMockDataServiceTest {
         assertThat(metrics.get("uninterruptedFocusTimeHoursScore")).isEqualTo(86.67);
         assertThat(metrics.get("contextSwitchFrequencyScore")).isEqualTo(83.33);
     }
+
+    @Test
+    void activeWeightsSumToOneWithinEachDimensionAndAcrossDimensions() {
+        var weights = service.getMetricWeights();
+        var dimensions = weights.stream().filter(w -> w.getParentKey() == null).toList();
+
+        assertThat(dimensions.stream().mapToDouble(w -> w.getWeight()).sum()).isCloseTo(1.0, org.assertj.core.data.Offset.offset(1e-9));
+        for (var dimension : dimensions) {
+            double sum = weights.stream()
+                    .filter(w -> dimension.getMetricKey().equals(w.getParentKey()) && w.isActive())
+                    .mapToDouble(w -> w.getWeight())
+                    .sum();
+            assertThat(sum).as(dimension.getMetricKey()).isCloseTo(1.0, org.assertj.core.data.Offset.offset(1e-9));
+        }
+    }
+
+    @Test
+    void doesNotScoreTotalLinesOrBugsFound() {
+        var inactive = service.getMetricWeights().stream().filter(w -> !w.isActive()).map(w -> w.getMetricKey()).toList();
+
+        assertThat(inactive).containsExactlyInAnyOrder("linesTotal", "bugFoundCount");
+    }
 }

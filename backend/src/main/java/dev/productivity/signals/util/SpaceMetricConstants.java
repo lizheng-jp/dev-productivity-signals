@@ -119,6 +119,9 @@ public final class SpaceMetricConstants {
     /** 前期間に活動したコントリビューターのうち、当期間も活動した割合（%）。 */
     public static final String contributorRetentionRate = "contributorRetentionRate";
 
+    /** 定着率から算出した満足度スコア（少人数の揺れを抑えたうえでしきい値で0〜100点に換算）。 */
+    public static final String contributorRetentionScore = "contributorRetentionScore";
+
     /** 前期間・当期間の両方で活動したコントリビューター数。 */
     public static final String retainedContributorCount = "retainedContributorCount";
 

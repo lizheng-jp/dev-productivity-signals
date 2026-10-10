@@ -708,7 +708,9 @@ public class SpaceMetricController {
         results.put(contributorRetentionRate, retention.rate());
         results.put(retainedContributorCount, retention.retained());
         results.put(previousActiveContributorCount, retention.previousActive());
-        scoringService.applyDimensionScoreOverride(results, "satisfaction", retention.rate());
+        double score = scoringService.scoreContributorRetention(retention.retained(), retention.previousActive());
+        results.put(contributorRetentionScore, score);
+        scoringService.applyDimensionScoreOverride(results, "satisfaction", score);
     }
 
     private static <T> Supplier<T> memoize(Supplier<T> supplier) {

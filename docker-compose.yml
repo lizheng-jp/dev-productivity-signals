@@ -51,6 +51,7 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-base-en-v1.5}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
       AGENT_TOOL_POLICY: ${AGENT_TOOL_POLICY:-open}
+      AGENT_STRICT_EVIDENCE: ${AGENT_STRICT_EVIDENCE:-false}
       AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
       QDRANT_URL: http://qdrant:6333
     depends_on:

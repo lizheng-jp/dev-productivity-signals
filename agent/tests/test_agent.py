@@ -144,10 +144,63 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
         await run_agent(REQUEST, model, tools, "r", "e")
         self.assertEqual([call[2]["query"] for call in tools.calls], ["review delay", "approval wait"])
 
-        repeat = FakeModel([search("review delay"), search("review delay")])
+        repeat = FakeModel([search("review delay"), search("review delay"),
+                            {"role": "model", "parts": [{"text": "Measured: none. Evidence: none found."}]}])
         repeat.tool_policy = "open"
-        with self.assertRaisesRegex(ValueError, "Invalid tool call"):
-            await run_agent(REQUEST, repeat, FakeTools(), "r", "e")
+        tools = FakeTools()
+        await run_agent(REQUEST, repeat, tools, "r", "e")
+        self.assertEqual(len(tools.calls), 1)
+
+    async def test_open_policy_turns_limits_into_feedback_and_still_answers(self):
+        class RecordingModel(FakeModel):
+            def __init__(self, responses):
+                super().__init__(responses)
+                self.contents = []
+
+            async def generate(self, contents, mode):
+                self.contents.append(json.loads(json.dumps(contents)))
+                return await super().generate(contents, mode)
+
+        def calls(*items):
+            return {"role": "model", "parts": [{"functionCall": {"name": name, "args": args}}
+                                               for name, args in items]}
+
+        six = [("search_project_evidence", {"query": f"q{i}"}) for i in range(6)]
+        model = RecordingModel([
+            calls(("get_merge_request_details", {"mrIid": 1}), ("get_merge_request_details", {"mrIid": 2}),
+                  ("get_merge_request_details", {"mrIid": "x"}), ("no_such_tool", {})),
+            calls(*six),
+            {"role": "model", "parts": [{"text": "Measured: answer from evidence."}]},
+        ])
+        model.tool_policy = "open"
+        tools = FakeTools()
+        response = await run_agent(REQUEST, model, tools, "r", "e")
+        self.assertEqual(response.answer, "Measured: answer from evidence.")
+        self.assertEqual([call[0] for call in tools.calls],
+                         ["get_merge_request_details"] * 2 + ["search_project_evidence"] * 3)
+        first, second = model.contents[1][-1]["parts"], model.contents[2][-1]["parts"]
+        self.assertIn("Invalid arguments", first[2]["functionResponse"]["response"]["error"])
+        self.assertIn("Unknown tool", first[3]["functionResponse"]["response"]["error"])
+        self.assertEqual([("error" in part["functionResponse"]["response"]) for part in second],
+                         [False, False, False, True, True, True])
+        self.assertEqual(model.modes[-1], "NONE")
+
+    async def test_open_policy_asks_again_when_the_final_turn_requests_a_tool(self):
+        def search(i):
+            return {"role": "model", "parts": [{"functionCall": {
+                "name": "search_project_evidence", "args": {"query": f"q{i}"}}}]}
+        late_call = {"role": "model", "parts": [{"functionCall": {"name": "get_project_metrics", "args": {}}}]}
+        model = FakeModel([*[search(i) for i in range(5)], late_call,
+                           {"role": "model", "parts": [{"text": "Final answer."}]}])
+        model.tool_policy = "open"
+        response = await run_agent(REQUEST, model, FakeTools(), "r", "e")
+        self.assertEqual(response.answer, "Final answer.")
+        self.assertEqual(model.modes[-2:], ["NONE", "NONE"])
+
+        stubborn = FakeModel([*[search(i) for i in range(5)], late_call, late_call])
+        stubborn.tool_policy = "open"
+        with self.assertRaisesRegex(ValueError, "grounded answer"):
+            await run_agent(REQUEST, stubborn, FakeTools(), "r", "e")
 
     async def test_model_tool_model_http_flow(self):
         model_calls = 0
@@ -237,9 +290,25 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
             await GeminiGateway(client, "key", "gemini-test", "open").generate(question, "ANY")
             await GeminiGateway(client, "key", "gemini-test", "metrics_first").generate(question, "ANY")
         self.assertEqual(configs[0], {"mode": "ANY"})
+
         self.assertNotIn("search_project_evidence", configs[1]["allowedFunctionNames"])
         with self.assertRaises(ValueError):
             GeminiGateway(None, "key", "gemini-test", "random")
+
+    async def test_strict_evidence_adds_instruction(self):
+        bodies = []
+
+        def respond(request):
+            bodies.append(json.loads(request.content))
+            return httpx.Response(200, json={"candidates": [{"content": {"role": "model", "parts": [
+                {"text": "No evidence."}]}}]})
+
+        question = [{"role": "user", "parts": [{"text": "q"}]}]
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            await GeminiGateway(client, "key", "m", "open", strict_evidence=True).generate(question, "NONE")
+            await GeminiGateway(client, "key", "m", "open").generate(question, "NONE")
+        self.assertIn("general knowledge", str(bodies[0]["systemInstruction"]))
+        self.assertNotIn("general knowledge", str(bodies[1]["systemInstruction"]))
 
     async def test_merge_lead_question_requires_distribution_after_search(self):
         def respond(request):

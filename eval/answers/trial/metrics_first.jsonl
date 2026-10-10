@@ -1,0 +1,2 @@
+{"query": "The template helper that strips domain names cuts IPv6 addresses whose interface zone contains a dot", "status": 502, "seconds": 6.8, "answer": "", "detail": "Agent could not complete this request", "iterations": null, "sources": []}
+{"query": "Kubernetes endpoint slice discovery leaking memory after many pod restarts", "status": 502, "seconds": 5.3, "answer": "", "detail": "Agent could not complete this request", "iterations": null, "sources": []}

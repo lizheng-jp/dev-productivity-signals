@@ -113,6 +113,15 @@ SYSTEM_INSTRUCTION = (
     "Do not invent sources, code changes, people, or numbers. "
     "Use only the selected project's tool evidence."
 )
+FINAL_ANSWER_REQUEST = ("No more tool calls are available. Write the final answer now, in text, "
+                        "using only the evidence already returned.")
+# AGENT_STRICT_EVIDENCE: evaluation found answers to unanswerable questions adding general knowledge (typical
+# settings, recommendations) after saying the evidence was missing.
+STRICT_EVIDENCE_INSTRUCTION = (
+    "When the tool evidence does not answer the question, say so plainly and stop. Do not fill the gap with "
+    "general knowledge, best practices, typical defaults, or recommendations the evidence does not support. "
+    "Interpretation and recommendations must rest on returned evidence; leave them out when there is none."
+)
 
 
 class AskRequest(BaseModel):
@@ -176,9 +185,11 @@ class GeminiGateway:
     "metrics_first" is the earlier policy: the first turn may not search evidence, and a why-question is then
     forced to search. It is kept so evaluations can compare the two."""
 
-    def __init__(self, client: httpx.AsyncClient, key: str, model: str, tool_policy: str = "metrics_first"):
+    def __init__(self, client: httpx.AsyncClient, key: str, model: str, tool_policy: str = "metrics_first",
+                 strict_evidence: bool = False):
         if tool_policy not in TOOL_POLICIES:
             raise ValueError(f"Unknown tool policy: {tool_policy}")
+        self.strict_evidence = strict_evidence
         self.client = client
         self.key = key
         self.model = model
@@ -187,7 +198,8 @@ class GeminiGateway:
 
     async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
         payload = {
-            "systemInstruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]},
+            "systemInstruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]
+                                  + ([{"text": STRICT_EVIDENCE_INSTRUCTION}] if self.strict_evidence else [])},
             "contents": contents,
         }
         if mode == "NONE":
@@ -423,9 +435,13 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     used: set[str] = set()
     open_policy = getattr(model, "tool_policy", "metrics_first") == "open"
 
+    # Under the open policy a tool may run again with different arguments, and a repeated call returns the
+    # earlier result. Limits there become feedback to the model instead of failing the request.
+    evidence_by_key: dict[str, Any] = {}
+    tool_names = {item["name"] for item in TOOLS[0]["functionDeclarations"]}
+
     def call_key(name: str, args: dict[str, Any]) -> str:
-        # The open policy may search again with a different query; other tools still run once per request.
-        if open_policy and name == "search_project_evidence":
+        if open_policy:
             return name + ":" + json.dumps(args, sort_keys=True)
         return name
     tool_count = 0
@@ -434,8 +450,43 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     supported: set[int] = set()
     owner, repo = request.projectId.split("~")[1:]
     project_url = f"https://github.com/{owner}/{repo}"
-    for _ in range(MAX_TOOL_CALLS + 1):
-        mode = "ANY" if tool_count == 0 else "NONE" if tool_count == MAX_TOOL_CALLS else "AUTO"
+
+    async def run_tool(name: str, args: dict[str, Any]) -> Any:
+        nonlocal tool_count, supported
+        tool_start = time.monotonic()
+        try:
+            evidence, source = await tools.execute(name, request, args)
+        except Exception as error:
+            TOOL_CALLS.labels(name, "failure").inc()
+            TOOL_DURATION.labels(name).observe(time.monotonic() - tool_start)
+            _log("tool_failure", request_id=request_id, execution_id=execution_id,
+                 tool=name, duration_ms=round((time.monotonic() - tool_start) * 1000),
+                 error_type=type(error).__name__)
+            raise
+        TOOL_CALLS.labels(name, "success").inc()
+        TOOL_DURATION.labels(name).observe(time.monotonic() - tool_start)
+        if name == "search_project_evidence":
+            hits = [Source(tool=name, apiPath=source.apiPath, projectUrl=item["url"],
+                           sourceId=item["sourceId"], sourceType=item["sourceType"],
+                           entityId=item["entityId"], eventDate=item["eventDate"],
+                           score=item["score"])
+                    for item in evidence.get("items", []) if item.get("url")]
+            sources.extend(hits or [source])
+        else:
+            sources.append(source)
+        supported |= evidence_references(evidence, project_url)
+        if "mrIid" in args:
+            supported.add(args["mrIid"])
+        called.add(name)
+        tool_count += 1
+        _log("tool", request_id=request_id, execution_id=execution_id, tool=name,
+             duration_ms=round((time.monotonic() - tool_start) * 1000))
+        return evidence
+    nudged = False
+    # The open policy allows one extra turn to ask for the final answer in plain words.
+    for _ in range(MAX_TOOL_CALLS + (2 if open_policy else 1)):
+        mode = ("NONE" if tool_count == MAX_TOOL_CALLS or (open_policy and iterations >= MAX_TOOL_CALLS)
+                else "ANY" if tool_count == 0 else "AUTO")
         model_start = time.monotonic()
         try:
             content = await model.generate(contents, mode)
@@ -469,6 +520,46 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                  tool_count=tool_count, tokens=tokens)
             return AskResponse(requestId=request_id, executionId=execution_id,
                                answer=answer, sources=sources, iterations=iterations)
+        if open_policy and mode == "NONE":
+            # Some models still request tools when none are offered; ask once more for the answer itself.
+            if nudged:
+                raise ValueError("Model did not produce a grounded answer")
+            nudged = True
+            contents.append({"role": "user", "parts": [{"text": FINAL_ANSWER_REQUEST}]})
+            continue
+        if open_policy:
+            responses = []
+            for call in calls:
+                name, args = call.get("name", ""), call.get("args")
+                args = {} if args is None else args
+                call_id = {"id": call["id"]} if call.get("id") else {}
+
+                def feedback(message: str) -> None:
+                    responses.append({"functionResponse": {"name": name, "response": {"error": message},
+                                                           **call_id}})
+                if name not in tool_names or not isinstance(args, dict):
+                    feedback("Unknown tool or malformed arguments.")
+                    continue
+                key = call_key(name, args)
+                if key in evidence_by_key:
+                    responses.append({"functionResponse": {
+                        "name": name, "response": {"evidence": evidence_by_key[key]}, **call_id}})
+                    continue
+                try:
+                    validate_tool_arguments(name, args)
+                except ValueError as error:
+                    feedback(f"Invalid arguments: {error}.")
+                    continue
+                if tool_count >= MAX_TOOL_CALLS:
+                    feedback("Tool budget exhausted; answer from the evidence already returned.")
+                    continue
+                evidence = await run_tool(name, args)
+                evidence_by_key[key] = evidence
+                responses.append({"functionResponse": {"name": name, "response": {"evidence": evidence},
+                                                       **call_id}})
+            contents.append(content)
+            contents.append({"role": "user", "parts": responses})
+            continue
         if len(calls) > MAX_TOOL_CALLS:
             raise ValueError("Model exceeded tool budget")
         planned = []
@@ -505,40 +596,13 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                     **({"id": call["id"]} if call.get("id") else {})
                 }})
                 continue
-            tool_start = time.monotonic()
-            try:
-                evidence, source = await tools.execute(name, request, args)
-                TOOL_CALLS.labels(name, "success").inc()
-                TOOL_DURATION.labels(name).observe(time.monotonic() - tool_start)
-                if name == "search_project_evidence":
-                    hits = [Source(tool=name, apiPath=source.apiPath, projectUrl=item["url"],
-                                   sourceId=item["sourceId"], sourceType=item["sourceType"],
-                                   entityId=item["entityId"], eventDate=item["eventDate"],
-                                   score=item["score"])
-                            for item in evidence.get("items", []) if item.get("url")]
-                    sources.extend(hits or [source])
-                else:
-                    sources.append(source)
-                supported |= evidence_references(evidence, project_url)
-                if "mrIid" in args:
-                    supported.add(args["mrIid"])
-                called.add(name)
-                used.add(key)
-                batch_evidence[key] = evidence
-                tool_count += 1
-                responses.append({"functionResponse": {
-                    "name": name, "response": {"evidence": evidence},
-                    **({"id": call["id"]} if call.get("id") else {})
-                }})
-                _log("tool", request_id=request_id, execution_id=execution_id, tool=name,
-                     duration_ms=round((time.monotonic() - tool_start) * 1000))
-            except Exception as error:
-                TOOL_CALLS.labels(name, "failure").inc()
-                TOOL_DURATION.labels(name).observe(time.monotonic() - tool_start)
-                _log("tool_failure", request_id=request_id, execution_id=execution_id,
-                     tool=name, duration_ms=round((time.monotonic() - tool_start) * 1000),
-                     error_type=type(error).__name__)
-                raise
+            evidence = await run_tool(name, args)
+            used.add(key)
+            batch_evidence[key] = evidence
+            responses.append({"functionResponse": {
+                "name": name, "response": {"evidence": evidence},
+                **({"id": call["id"]} if call.get("id") else {})
+            }})
         contents.append(content)
         contents.append({"role": "user", "parts": responses})
     raise ValueError("Agent exceeded iteration budget")
@@ -652,8 +716,9 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
     outcome = "failure"
     async with httpx.AsyncClient() as client:
         model = GeminiGateway(client, gemini_key,
-                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
-                              os.getenv("AGENT_TOOL_POLICY", "open"))
+                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+                              os.getenv("AGENT_TOOL_POLICY", "open"),
+                              os.getenv("AGENT_STRICT_EVIDENCE", "true").lower() == "true")
         tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
                           embedding_provider=configured_embedding(client))
         try:

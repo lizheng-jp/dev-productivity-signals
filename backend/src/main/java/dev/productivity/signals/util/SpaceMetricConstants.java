@@ -125,6 +125,19 @@ public final class SpaceMetricConstants {
     /** 前期間に活動したコントリビューター数。 */
     public static final String previousActiveContributorCount = "previousActiveContributorCount";
 
+    // --- Scoring context (スコア計算の前提) ---
+    /**
+     * プロジェクト全体の件数系指標を1人あたりに換算するための、期間内のコアコントリビューター数。
+     * 一度きりの貢献者で1人あたりの値が薄まらないよう、2件以上貢献した人だけを数える。
+     */
+    public static final String coreContributorCount = "coreContributorCount";
+
+    /** プロジェクトに期間内のバグラベル付きイシューがあるか（1/0）。0 の場合バグ系指標は採点しない。 */
+    public static final String bugDataAvailable = "bugDataAvailable";
+
+    /** マージリードタイムの中央値（時間）。外れ値に強いため採点にはこちらを使う。 */
+    public static final String mergedLeadTimeMedianHours = "mergedLeadTimeMedianHours";
+
     // --- Scores (スコア) ---
     /** パフォーマンス次元のスコア。 */
     public static final String performanceScore = "performanceScore";

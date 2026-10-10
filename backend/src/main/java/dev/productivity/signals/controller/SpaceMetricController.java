@@ -53,6 +53,10 @@ public class SpaceMetricController {
     private final SpaceMetricAiCorrectionService cachedAiCorrectionService;
     private final DemoMockDataService demoMockDataService;
     private final ContributorRetentionService contributorRetentionService;
+    private final ActiveMemberService activeMemberService;
+
+    /** Contributions in the period for someone to count toward per-contributor normalization. */
+    private static final int CORE_CONTRIBUTIONS = 2;
 
     @Operation(summary = "プロジェクト全体、または特定ユーザーのSPACE指標とスコアを取得します")
     @ApiResponses(value = {
@@ -204,6 +208,7 @@ public class SpaceMetricController {
             Map<String, IssueStatsDTO> issueStatsByUser = PerformanceTimingLog.time("gitlab.prefetchIssues",
                     () -> issueService.getIssueStatsByUser(projectId, since, until, userCodes, refName));
             PerformanceTimingLog.addCount("issues.users", issueStatsByUser.size());
+            boolean projectHasBugData = issueStatsByUser.values().stream().anyMatch(SpaceMetricController::hasBugData);
 
             List<Map<String, Object>> results = PerformanceTimingLog.time("space.membersCalculation", () -> userCodes.parallelStream()
                     .filter(userCode -> userCode != null && !userCode.isEmpty()) // Skip null/empty users
@@ -229,6 +234,7 @@ public class SpaceMetricController {
                                         mergedStatsByUser.get(userCode.toUpperCase()),
                                         reviewStatsByUser.get(userCode.toUpperCase()),
                                         issueStatsByUser.get(userCode.toUpperCase()),
+                                        projectHasBugData,
                                         aiEnabled);
                                 if (result != null) {
                                     result.put("userCode", userCode.toUpperCase());
@@ -494,6 +500,7 @@ public class SpaceMetricController {
             MergeRequestStatsDTO prefetchedMergedStats,
             MergeRequestStatsDTO prefetchedReviewStats,
             IssueStatsDTO prefetchedIssueStats,
+            Boolean projectHasBugData,
             boolean aiEnabled) {
 
         // 1. 各サービスから統計情報を取得
@@ -594,6 +601,25 @@ public class SpaceMetricController {
         metrics.put(reviewWaitTime, sanitize(mergeStats.getAvgHoursToFirstReview()));
         final double scoringWeeks = weeks;
 
+        // Scoring context
+        boolean projectWide = userName == null || userName.isBlank();
+        Double medianLeadTime = DeliveryTrendCalculator.medianLeadTimeHours(allMergedMRs, startRange, endRange, userName);
+        if (medianLeadTime != null) {
+            metrics.put(mergedLeadTimeMedianHours, sanitize(medianLeadTime));
+        }
+        if (projectWide) {
+            int contributors = PerformanceTimingLog.time("gitlab.coreContributors",
+                    () -> activeMemberService.countCoreContributors(projectId, since, until, refName, CORE_CONTRIBUTIONS));
+            metrics.put(coreContributorCount, contributors);
+        }
+        boolean bugData = projectHasBugData != null
+                ? projectHasBugData
+                : projectWide
+                        ? hasBugData(issueStats)
+                        : PerformanceTimingLog.time("gitlab.projectIssues",
+                                () -> hasBugData(issueService.getIssueStats(projectId, since, until, null, refName)));
+        metrics.put(bugDataAvailable, bugData ? 1 : 0);
+
         // スコア計算 (Raw)
         Map<String, Object> results = PerformanceTimingLog.time("space.rawScoring",
                 () -> scoringService.calculateScores(metrics, scoringWeeks));
@@ -672,6 +698,11 @@ public class SpaceMetricController {
         scoringService.applyDimensionScoreOverride(results, "satisfaction", summary.getSatisfactionScore());
     }
 
+    private static boolean hasBugData(IssueStatsDTO stats) {
+        return stats != null
+                && stats.getBugFoundCount() + stats.getBugFixedCount() + stats.getBugCausedCount() > 0;
+    }
+
     private void applyRetentionSatisfactionScore(Map<String, Object> results, ContributorRetentionService.Retention retention) {
         results.put(satisfactionSource, "retention");
         results.put(contributorRetentionRate, retention.rate());
@@ -730,6 +761,7 @@ public class SpaceMetricController {
                 endRange,
                 allAiEvaluations,
                 notesByMrIid,
+                null,
                 null,
                 null,
                 null,

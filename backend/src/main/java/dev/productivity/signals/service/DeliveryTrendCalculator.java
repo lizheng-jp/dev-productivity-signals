@@ -53,6 +53,37 @@ public final class DeliveryTrendCalculator {
         return points;
     }
 
+    /**
+     * Median hours from creation to merge for merge requests merged within [start, end],
+     * limited to one author when {@code authorUsername} is given. Returns null without samples.
+     */
+    public static Double medianLeadTimeHours(
+            List<JSONObject> mergedMergeRequests,
+            ZonedDateTime start,
+            ZonedDateTime end,
+            String authorUsername) {
+        if (mergedMergeRequests == null) {
+            return null;
+        }
+        List<JSONObject> selected = mergedMergeRequests.stream()
+                .filter(mergeRequest -> authorUsername == null || authorUsername.isBlank()
+                        || authorUsername.equalsIgnoreCase(authorOf(mergeRequest)))
+                .toList();
+        List<Double> leadTimes = parseMerges(selected).stream()
+                .filter(merge -> merge.leadTimeHours() != null)
+                .filter(merge -> start == null || !merge.mergedAt().isBefore(start))
+                .filter(merge -> end == null || !merge.mergedAt().isAfter(end))
+                .map(MergeObservation::leadTimeHours)
+                .sorted(Comparator.naturalOrder())
+                .toList();
+        return median(leadTimes);
+    }
+
+    private static String authorOf(JSONObject mergeRequest) {
+        JSONObject author = mergeRequest.optJSONObject("author");
+        return author == null ? "" : author.optString("username", "");
+    }
+
     private static List<MergeObservation> parseMerges(List<JSONObject> mergeRequests) {
         if (mergeRequests == null) {
             return List.of();
@@ -69,7 +100,7 @@ public final class DeliveryTrendCalculator {
                         leadTimeHours = value;
                     }
                 }
-                observations.add(new MergeObservation(mergedAt.toLocalDate(), leadTimeHours));
+                observations.add(new MergeObservation(mergedAt, leadTimeHours));
             } catch (Exception ignored) {
                 // Ignore malformed or incomplete upstream records without hiding the rest of the trend.
             }
@@ -91,6 +122,9 @@ public final class DeliveryTrendCalculator {
                 : values.get(middle);
     }
 
-    private record MergeObservation(LocalDate mergedDate, Double leadTimeHours) {
+    private record MergeObservation(ZonedDateTime mergedAt, Double leadTimeHours) {
+        LocalDate mergedDate() {
+            return mergedAt.toLocalDate();
+        }
     }
 }

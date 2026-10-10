@@ -1,4 +1,4 @@
-# Retrieval evaluation: prometheus/prometheus
+# Retrieval and answer evaluation: prometheus/prometheus
 
 Offline evaluation of the Signals Agent evidence search (`agent/app/retrieval_eval.py`) on one real repository.
 
@@ -68,10 +68,46 @@ Random figures are the expected values of picking 8 of the 123 sources.
 6. **Source-level recall understated retrieval** because the search caps sources per entity;
    `recallCeiling` and `entityRecall@3` separate that design limit from ranking errors.
 
+## Answer evaluation
+
+`agent/app/answer_eval.py` asks the running Agent every question and grades the answers.
+
+- Reference answers (`answers/reference.jsonl`): 2 to 4 key facts per answerable question, 91 in total, each
+  tied to its sources. Codex wrote a version blind to Claude's (`answers/codex_reference.jsonl`); core facts
+  agreed, and its catches (an undecided outcome stated as settled, a missing "not decided" fact) were adopted.
+  Unanswerable questions expect an insufficient-evidence reply.
+- Agent: `gemini-3.8-flash` on the v1 index above. Two tool policies (`AGENT_TOOL_POLICY`):
+  - `metrics_first`, the original: evidence search only after a metrics tool, each tool once per request.
+  - `open`: the model may search first and search again with a different query; budget stays at 5 calls.
+- Grading: Codex graded the answers that came back, blind to policy (`answers/grading/`). Claude graded 15
+  independently: they agreed on 26/26 key facts as stated or not and on 15/15 declines, but on only 4/15 for
+  unsupported claims, because the grading package left out the PR metadata the Agent reads from GitHub tools.
+  Five sampled metadata claims matched GitHub, so metadata is excluded from unsupported-claim counts.
+
+| Metric | metrics_first | open |
+|---|---|---|
+| Answerable questions answered | 3 / 35 | 21 / 35 |
+| Key-fact recall over all 35 (no answer = 0) | 0.02 | 0.50 (95% CI 0.35 to 0.65) |
+| Key-fact recall of answers given | 0.25 | 0.83 |
+| Answers with unsupported claims (answerable) | 2 / 3 | 4 / 21 |
+| Unanswerable questions declined | 1 of 3 answered | 9 of 15 answered |
+| Unanswerable answers adding own-knowledge claims | 2 of 3 | 8 of 15 |
+
+Gemini spend for both runs was about US$1.3.
+
+- With the newer model, the original guards ended 49 of 55 requests in errors ("Search requires structured
+  evidence first", repeated tool calls), so users got no answer at all.
+- The open policy still fails 19 questions: 11 exceed the five-call budget in one turn, 5 repeat a non-search
+  tool. A request should answer from the evidence it has instead of failing.
+- On unanswerable questions the open policy often adds general knowledge after saying the evidence is missing
+  (for example a recommended retention size); one answer contradicted its source on mDNS resolution.
+
 ## Caveats
 
 - The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries, so the flagging numbers are
   optimistic. They need confirming on held-out queries or another repository.
+- The questions are lookups written after reading the sources, not the Agent's main task of explaining
+  metric changes, and graders are language models checked against each other.
 - 123 sources and 55 queries are small; differences of a few hundredths between models are within noise.
 - The backend scans only the first page (100 items) of recently updated PRs and issues, so the corpus is a
   sample of the window, with only 10 issues.

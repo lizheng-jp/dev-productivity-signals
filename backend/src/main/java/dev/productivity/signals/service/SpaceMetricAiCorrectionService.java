@@ -44,7 +44,11 @@ public class SpaceMetricAiCorrectionService {
             satisfactionDeveloperEfficacy,
             satisfactionSustainability,
             satisfactionImprovementPotential,
-            "satisfactionSurvey");
+            "satisfactionSurvey",
+            satisfactionSource,
+            contributorRetentionRate,
+            retainedContributorCount,
+            previousActiveContributorCount);
 
     private final AiCorrectionService aiCorrectionService;
     private final SpaceMetricScoringService scoringService;
@@ -107,7 +111,11 @@ public class SpaceMetricAiCorrectionService {
                 correctedResults.put(key, rawResults.get(key));
             }
         });
+        // Satisfaction is not AI-corrected; keep the raw score, whether it came from the survey or retention.
         Object satisfactionValue = rawResults.get(satisfactionSurveyScore);
+        if (!(satisfactionValue instanceof Number) && "retention".equals(rawResults.get(satisfactionSource))) {
+            satisfactionValue = rawResults.get(contributorRetentionRate);
+        }
         if (satisfactionValue instanceof Number score) {
             scoringService.applyDimensionScoreOverride(correctedResults, "satisfaction", score.doubleValue());
         }

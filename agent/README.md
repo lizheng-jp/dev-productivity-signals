@@ -42,6 +42,8 @@ The summary also reports how often unanswerable queries were not flagged `insuff
 
 ## Logs and metrics
 
+`POST /ask/stream` takes the same request as `/ask` and returns server-sent events: `step` (a tool call running, done, failed or skipped), `thought` (Gemini thought-summary text), `answer` (answer text as it is generated), `answer_reset` (discard streamed text that turned out to precede a tool call), then one `done` event carrying the same response as `/ask`, or an `error` event with the status `/ask` would return. Thought summaries are requested only on this endpoint; Gemini bills thinking tokens either way. The public demo reaches it through Spring at `/api/agent/ask/stream`, which applies the same limits.
+
 Each answer logs a `citation_check` event: how many retrieved hits the answer cited, and PR or issue numbers it named that no tool returned (`unsupported`). Retrieved hits in the response carry `cited`. Model calls log Gemini token counts, and `/metrics` exports them as `signals_agent_model_tokens_total`.
 
 To run the Agent tests:

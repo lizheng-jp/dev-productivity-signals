@@ -2,19 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { addDays, format } from 'date-fns';
-import { ArrowUp, Bot, ExternalLink, RotateCcw, X } from 'lucide-react';
+import { ArrowUp, Bot, Check, ExternalLink, Loader2, Minus, RotateCcw, X } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useMainLayout } from '@/contexts/MainLayoutContext';
-import { post } from '@/lib/api/client';
 import { type AgentModel } from '@/lib/agent-models';
+import {
+    askAgentStream, type AgentSource, type AgentStepStatus, type AgentStreamEvent,
+} from '@/lib/api/agent-stream';
 
-type AgentSource = {
-    tool: string; apiPath: string; projectUrl: string;
-    sourceId?: string; sourceType?: string; entityId?: number; eventDate?: string; score?: number;
-};
-type AgentResponse = { requestId: string; executionId: string; answer: string; sources: AgentSource[] };
+type AgentStep = { tool: string; detail?: string | null; status: AgentStepStatus; count?: number };
 type ChatMessage = {
     id: string;
     role: 'user' | 'assistant';
@@ -22,7 +20,76 @@ type ChatMessage = {
     context?: string;
     sources?: AgentSource[];
     isError?: boolean;
+    steps?: AgentStep[];
+    thought?: string;
+    streaming?: boolean;
 };
+
+const TOOL_LABELS: Record<'en' | 'ja', Record<string, string>> = {
+    ja: {
+        get_project_metrics: 'プロジェクト指標',
+        get_project_comparison: '期間比較',
+        get_member_metrics: '開発者指標',
+        get_merge_requests: 'Pull Request 一覧',
+        get_merge_request_details: 'Pull Request 詳細',
+        get_merge_lead_distribution: 'マージ所要時間の分布',
+        search_project_evidence: '関連する議論',
+    },
+    en: {
+        get_project_metrics: 'Project metrics',
+        get_project_comparison: 'Period comparison',
+        get_member_metrics: 'Developer metrics',
+        get_merge_requests: 'Pull requests',
+        get_merge_request_details: 'Pull request details',
+        get_merge_lead_distribution: 'Merge lead-time distribution',
+        search_project_evidence: 'Related discussions',
+    },
+};
+
+function toolLabel(tool: string, isJapanese: boolean) {
+    return TOOL_LABELS[isJapanese ? 'ja' : 'en'][tool] || tool;
+}
+
+/** Applies one stream event to the assistant message being written. */
+function applyEvent(message: ChatMessage, event: AgentStreamEvent): ChatMessage {
+    if (event.type === 'thought') return { ...message, thought: (message.thought || '') + event.text };
+    if (event.type === 'answer') return { ...message, text: message.text + event.text };
+    if (event.type === 'answer_reset') return { ...message, text: '' };
+    if (event.type !== 'step') return message;
+    const steps = [...(message.steps || [])];
+    const index = event.status === 'running' ? -1 : steps.findIndex(step =>
+        step.status === 'running' && step.tool === event.tool && (step.detail ?? null) === (event.detail ?? null));
+    const step = { tool: event.tool, detail: event.detail, status: event.status, count: event.count };
+    if (index >= 0) steps[index] = step; else steps.push(step);
+    return { ...message, steps };
+}
+
+function AgentSteps({ steps, isJapanese }: { steps: AgentStep[]; isJapanese: boolean }) {
+    return <ol className="mb-2 space-y-1 text-xs text-slate-600" aria-label={isJapanese ? '処理の進行状況' : 'Progress'}>
+        {steps.map((step, index) => <li key={index} className="flex min-w-0 items-center gap-1.5">
+            {step.status === 'running' ? <Loader2 className="h-3 w-3 shrink-0 animate-spin text-blue-600" aria-hidden="true" />
+                : step.status === 'done' ? <Check className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden="true" />
+                    : step.status === 'failed' ? <X className="h-3 w-3 shrink-0 text-red-600" aria-hidden="true" />
+                        : <Minus className="h-3 w-3 shrink-0 text-slate-400" aria-hidden="true" />}
+            <span className="truncate">
+                {toolLabel(step.tool, isJapanese)}
+                {step.detail ? <span className="text-slate-400"> · {step.detail}</span> : null}
+                {step.count != null ? <span className="text-slate-400"> · {isJapanese ? `${step.count} 件` : `${step.count} found`}</span> : null}
+            </span>
+        </li>)}
+    </ol>;
+}
+
+function AgentThought({ thought, active, isJapanese }: { thought: string; active: boolean; isJapanese: boolean }) {
+    return <details className="mb-2 text-xs text-slate-500">
+        <summary className="cursor-pointer select-none font-medium">
+            {active ? (isJapanese ? '考えています…' : 'Thinking…') : (isJapanese ? '思考の要約' : 'Thought summary')}
+        </summary>
+        <div className="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap break-words border-l-2 border-slate-200 pl-2 leading-5">
+            {thought}
+        </div>
+    </details>;
+}
 
 function githubUrl(value?: string) {
     if (!value) return undefined;
@@ -64,22 +131,6 @@ function AgentSources({ sources, isJapanese }: { sources: AgentSource[]; isJapan
     const uniqueSources = sources.filter((source, index) => sources.findIndex(item =>
         item.tool === source.tool && item.sourceId === source.sourceId
         && item.apiPath === source.apiPath && item.projectUrl === source.projectUrl) === index);
-    const toolLabels: Record<string, string> = isJapanese ? {
-        get_project_metrics: 'プロジェクト指標',
-        get_project_comparison: '期間比較',
-        get_member_metrics: '開発者指標',
-        get_merge_requests: 'Pull Request 一覧',
-        get_merge_request_details: 'Pull Request 詳細',
-        search_project_evidence: '関連する議論',
-    } : {
-        get_project_metrics: 'Project metrics',
-        get_project_comparison: 'Period comparison',
-        get_member_metrics: 'Developer metrics',
-        get_merge_requests: 'Pull requests',
-        get_merge_request_details: 'Pull request details',
-        search_project_evidence: 'Related discussions',
-    };
-
     return <details className="mt-3 border-t border-slate-300 pt-2 text-xs">
         <summary className="cursor-pointer font-medium text-slate-600">
             {isJapanese ? '参照データ' : 'Sources'} ({uniqueSources.length})
@@ -88,7 +139,7 @@ function AgentSources({ sources, isJapanese }: { sources: AgentSource[]; isJapan
             {uniqueSources.map((source, index) => <li key={`${source.tool}-${source.sourceId || index}`} className="break-words">
                 <span>{source.sourceId && source.entityId != null
                     ? `${source.sourceType === 'issue' || source.sourceType === 'issue_comment' ? 'Issue' : 'PR'} #${source.entityId}${source.eventDate ? ` · ${source.eventDate}` : ''}`
-                    : toolLabels[source.tool] || source.tool}</span>
+                    : toolLabel(source.tool, isJapanese)}</span>
                 {githubUrl(source.projectUrl) && <a href={source.projectUrl} target="_blank" rel="noopener noreferrer"
                     className="ml-2 inline-flex items-center gap-1 text-blue-700 underline underline-offset-2">
                     GitHub <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -131,7 +182,8 @@ export function AgentView({ onOpenSettings, model }: {
     }, [isOpen]);
 
     useEffect(() => {
-        if (isOpen) transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        // Streaming updates arrive many times a second; smooth scrolling on each one would stutter.
+        if (isOpen) transcriptEndRef.current?.scrollIntoView({ behavior: loading ? 'auto' : 'smooth', block: 'end' });
     }, [isOpen, messages, loading]);
 
     useEffect(() => {
@@ -160,27 +212,29 @@ export function AgentView({ onOpenSettings, model }: {
         }]);
         setQuestion('');
         setLoading(true);
+        const assistantId = `${messageId}-assistant`;
+        const update = (change: (message: ChatMessage) => ChatMessage) => setMessages(current =>
+            current.map(message => message.id === assistantId ? change(message) : message));
+        setMessages(current => [...current, { id: assistantId, role: 'assistant', text: '', steps: [], streaming: true }]);
         try {
-            const answer = await post<AgentResponse>('/api/agent/ask', {
+            const answer = await askAgentStream({
                 question: currentQuestion, projectId: project.id, since, until,
                 refName: refName || undefined, model,
-            });
+            }, event => update(message => applyEvent(message, event)));
             if (!answer || typeof answer.answer !== 'string' || !answer.answer.trim()
                 || !Array.isArray(answer.sources)) {
                 throw new Error('Invalid Agent response format');
             }
             console.info('[Agent] Answer received', { requestId: answer.requestId, executionId: answer.executionId });
-            setMessages(current => [...current, {
-                id: `${messageId}-assistant`, role: 'assistant', text: answer.answer, sources: answer.sources,
-            }]);
+            update(message => ({ ...message, text: answer.answer, sources: answer.sources, streaming: false }));
         } catch (failure) {
             console.error('[Agent] Request or response failed', failure);
             const status = (failure as { status?: number }).status;
             const details = failure instanceof Error ? failure.message : '';
             setQuestion(current => current || currentQuestion);
-            setMessages(current => [...current, {
-                id: `${messageId}-error`, role: 'assistant', text: errorMessage(status, details, isJapanese), isError: true,
-            }]);
+            update(message => ({
+                ...message, text: errorMessage(status, details, isJapanese), isError: true, streaming: false,
+            }));
         } finally {
             setLoading(false);
         }
@@ -257,6 +311,11 @@ export function AgentView({ onOpenSettings, model }: {
                         ? 'bg-aurora text-white shadow-md'
                         : message.isError ? 'border border-red-200 bg-red-50 text-red-800' : 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'}`}>
                         {message.context && <p className="mb-1 break-words text-[10px] opacity-75">{message.context}</p>}
+                        {message.steps && message.steps.length > 0 && <AgentSteps steps={message.steps} isJapanese={isJapanese} />}
+                        {message.thought && <AgentThought thought={message.thought}
+                            active={Boolean(message.streaming && !message.text)} isJapanese={isJapanese} />}
+                        {message.streaming && !message.text && !message.thought && (!message.steps || message.steps.length === 0)
+                            && <p className="text-xs text-slate-500">{isJapanese ? '準備しています…' : 'Getting started…'}</p>}
                         {message.role === 'assistant' && !message.isError
                             ? <div className="min-w-0 break-words text-sm leading-6">
                                 <Markdown remarkPlugins={[remarkGfm]} skipHtml disallowedElements={['img']}
@@ -267,7 +326,6 @@ export function AgentView({ onOpenSettings, model }: {
                             && <AgentSources sources={message.sources} isJapanese={isJapanese} />}
                     </div>
                 </article>)}
-                {loading && <p className="text-sm text-slate-500" role="status">{isJapanese ? '分析中…' : 'Analyzing…'}</p>}
                 <div ref={transcriptEndRef} />
             </div>
 

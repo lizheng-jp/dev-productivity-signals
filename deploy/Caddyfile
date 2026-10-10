@@ -1,5 +1,7 @@
 {$DEMO_DOMAIN} {
-  encode zstd gzip
+  # Compression can hold back server-sent events, so the streamed Agent answer is sent uncompressed.
+  @compressible not path /api/agent/ask/stream
+  encode @compressible zstd gzip
   header {
     X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
   }
@@ -7,7 +9,7 @@
   @blockedWrites {
     method POST PUT PATCH DELETE
     path /api/*
-    not path /api/github/projects/resolve /api/agent/ask
+    not path /api/github/projects/resolve /api/agent/ask /api/agent/ask/stream
   }
 
   route {

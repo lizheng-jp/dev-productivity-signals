@@ -73,7 +73,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-          sparse-checkout: docker-compose.prod.yml
+          sparse-checkout: |
+            docker-compose.prod.yml
+            deploy/Caddyfile
           sparse-checkout-cone-mode: false
 
       - name: Configure SSH
@@ -114,6 +116,8 @@ jobs:
           # and keep the previous one as a backup.
           scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \
             docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.prod.yml.new"
+          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \
+            deploy/Caddyfile "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/deploy/Caddyfile.new"
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "set -eu
              cd '$DEPLOY_PATH'
@@ -122,4 +126,16 @@ jobs:
              export IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG'
              docker compose -f docker-compose.prod.yml pull --quiet
              docker compose -f docker-compose.prod.yml up -d --no-build --remove-orphans
+             # Caddy reads a bind-mounted single file, so write it in place (a renamed file keeps the old inode)
+             # and reload only after the new config validates inside the running container.
+             if ! cmp -s deploy/Caddyfile.new deploy/Caddyfile; then
+               docker compose -f docker-compose.prod.yml cp deploy/Caddyfile.new caddy:/tmp/Caddyfile.new
+               docker compose -f docker-compose.prod.yml exec -T caddy \
+                 caddy validate --config /tmp/Caddyfile.new --adapter caddyfile
+               cp deploy/Caddyfile deploy/Caddyfile.bak
+               cat deploy/Caddyfile.new > deploy/Caddyfile
+               docker compose -f docker-compose.prod.yml exec -T caddy \
+                 caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+             fi
+             rm -f deploy/Caddyfile.new
              docker image prune -f"

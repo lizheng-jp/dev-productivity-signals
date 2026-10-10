@@ -352,6 +352,14 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("sampleScale=4", seen["url"])
         self.assertIn("sampling=stratified", seen["url"])
         self.assertEqual(seen["max_chunks"], 1000)
+        with patch.dict(os.environ, {
+                "AGENT_INTERNAL_KEY": "internal-key", "GEMINI_API_KEY": "test-key",
+                "Signals_BACKEND_URL": "http://spring.test", "INDEX_SAMPLING": "recent"}), \
+                patch("app.main.httpx.AsyncClient",
+                      side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
+                patch("app.main.configured_index", return_value=FakeIndex()):
+            await index_project(PROJECT, IndexRequest(until=until), "internal-key")
+        self.assertNotIn("sampling=", seen["url"])
         with self.assertRaises(ValueError):
             IndexRequest(sampleScale=6)
         with self.assertRaises(ValueError):

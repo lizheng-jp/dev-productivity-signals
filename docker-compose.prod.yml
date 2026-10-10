@@ -71,6 +71,10 @@ services:
       Signals_BACKEND_URL: http://backend:8080
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      # Production keeps the pre-evaluation behaviour until the open policy and stratified sampling are
+      # checked with the production model; see eval/README.md.
+      AGENT_TOOL_POLICY: ${AGENT_TOOL_POLICY:-metrics_first}
+      INDEX_SAMPLING: ${INDEX_SAMPLING:-recent}
       AGENT_INTERNAL_KEY: ${AGENT_INTERNAL_KEY:-}
       QDRANT_URL: http://qdrant:6333
     mem_limit: 192m

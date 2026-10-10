@@ -160,7 +160,8 @@ class IndexRequest(BaseModel):
     # Retrieval evaluation only: multiplies the Spring sample and chunk limits.
     sampleScale: int = Field(default=1, ge=1, le=5)
     # "stratified" samples the whole window by creation month; "recent" reads only recently updated items.
-    sampling: Literal["recent", "stratified"] = "stratified"
+    # Unset uses INDEX_SAMPLING (default stratified).
+    sampling: Literal["recent", "stratified"] | None = None
 
 
 class ModelGateway(Protocol):
@@ -585,6 +586,9 @@ async def index_project(project_id: str, request: IndexRequest,
         raise HTTPException(status_code=503, detail="Embedding model is not configured")
     until = request.until or date.today()
     since = request.since or until - timedelta(days=89)
+    sampling = request.sampling or os.getenv("INDEX_SAMPLING", "stratified")
+    if sampling not in ("recent", "stratified"):
+        raise HTTPException(status_code=503, detail="Index sampling is misconfigured")
     if until < since or until > date.today() or (until - since).days > 92:
         raise HTTPException(status_code=400, detail="Index window must be within the last 93 days")
     project = quote(project_id, safe="")
@@ -602,8 +606,7 @@ async def index_project(project_id: str, request: IndexRequest,
                                                     **({"updatedAfter": updated_after} if updated_after else {}),
                                                     **({"sampleScale": request.sampleScale}
                                                        if request.sampleScale > 1 else {}),
-                                                    **({"sampling": request.sampling}
-                                                       if request.sampling != "recent" else {}),
+                                                    **({"sampling": sampling} if sampling != "recent" else {}),
                                                     **({"refName": request.refName} if request.refName else {})},
                                         headers={"X-Agent-Internal-Key": expected_key}, timeout=180)
             response.raise_for_status()

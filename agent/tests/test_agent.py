@@ -121,6 +121,34 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "structured evidence first"):
             await run_agent(REQUEST, model, FakeTools(), "r", "e")
 
+    async def test_open_policy_allows_search_before_structured_tool(self):
+        model = FakeModel([
+            {"role": "model", "parts": [{"functionCall": {
+                "name": "search_project_evidence", "args": {"query": "review delay"}}}]},
+            {"role": "model", "parts": [{"text": "Measured: none. Evidence: none found."}]},
+        ])
+        model.tool_policy = "open"
+        tools = FakeTools()
+        await run_agent(REQUEST, model, tools, "r", "e")
+        self.assertEqual(tools.calls[0][0], "search_project_evidence")
+
+    async def test_open_policy_allows_a_different_second_search_but_not_a_repeat(self):
+        def search(query):
+            return {"role": "model", "parts": [{"functionCall": {
+                "name": "search_project_evidence", "args": {"query": query}}}]}
+
+        model = FakeModel([search("review delay"), search("approval wait"),
+                           {"role": "model", "parts": [{"text": "Measured: none. Evidence: none found."}]}])
+        model.tool_policy = "open"
+        tools = FakeTools()
+        await run_agent(REQUEST, model, tools, "r", "e")
+        self.assertEqual([call[2]["query"] for call in tools.calls], ["review delay", "approval wait"])
+
+        repeat = FakeModel([search("review delay"), search("review delay")])
+        repeat.tool_policy = "open"
+        with self.assertRaisesRegex(ValueError, "Invalid tool call"):
+            await run_agent(REQUEST, repeat, FakeTools(), "r", "e")
+
     async def test_model_tool_model_http_flow(self):
         model_calls = 0
 

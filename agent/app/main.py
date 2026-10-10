@@ -419,6 +419,14 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     contents: list[dict[str, Any]] = [{"role": "user", "parts": [{"text": request.question}]}]
     sources: list[Source] = []
     called: set[str] = set()
+    used: set[str] = set()
+    open_policy = getattr(model, "tool_policy", "metrics_first") == "open"
+
+    def call_key(name: str, args: dict[str, Any]) -> str:
+        # The open policy may search again with a different query; other tools still run once per request.
+        if open_policy and name == "search_project_evidence":
+            return name + ":" + json.dumps(args, sort_keys=True)
+        return name
     tool_count = 0
     iterations = 0
     tokens: dict[str, int] = {}
@@ -464,7 +472,9 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             raise ValueError("Model exceeded tool budget")
         planned = []
         batch_arguments: dict[str, dict[str, Any]] = {}
-        has_structured = bool(called & {
+        # Under metrics_first, evidence may only follow structured metrics; the open policy lets the model
+        # search first and leaves metrics-first ordering for metric questions to the system instruction.
+        has_structured = open_policy or bool(called & {
             "get_project_metrics", "get_project_comparison", "get_member_metrics"})
         for call in calls:
             name = call.get("name", "")
@@ -473,20 +483,22 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             args = call.get("args")
             if args is None:
                 args = {}
-            if (name in called or not isinstance(args, dict)
-                    or (name in batch_arguments and batch_arguments[name] != args)):
+            if not isinstance(args, dict):
+                raise ValueError("Invalid tool call")
+            key = call_key(name, args)
+            if key in used or (key in batch_arguments and batch_arguments[key] != args):
                 raise ValueError("Invalid tool call")
             validate_tool_arguments(name, args)
-            batch_arguments[name] = args
+            batch_arguments[key] = args
             has_structured |= name in {"get_project_metrics", "get_project_comparison", "get_member_metrics"}
-            planned.append((call, name, args))
+            planned.append((call, name, args, key))
         if tool_count + len(batch_arguments) > MAX_TOOL_CALLS:
             raise ValueError("Model exceeded tool budget")
         responses = []
         batch_evidence: dict[str, Any] = {}
-        for call, name, args in planned:
-            if name in batch_evidence:
-                evidence = batch_evidence[name]
+        for call, name, args, key in planned:
+            if key in batch_evidence:
+                evidence = batch_evidence[key]
                 responses.append({"functionResponse": {
                     "name": name, "response": {"evidence": evidence},
                     **({"id": call["id"]} if call.get("id") else {})
@@ -510,7 +522,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                 if "mrIid" in args:
                     supported.add(args["mrIid"])
                 called.add(name)
-                batch_evidence[name] = evidence
+                used.add(key)
+                batch_evidence[key] = evidence
                 tool_count += 1
                 responses.append({"functionResponse": {
                     "name": name, "response": {"evidence": evidence},

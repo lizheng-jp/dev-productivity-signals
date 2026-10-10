@@ -35,6 +35,11 @@ from app.qdrant_evidence import COLLECTION, configured_index
 AGENT_URL = os.getenv("AGENT_URL", "http://127.0.0.1:8000")
 FACT_CREDIT = {"covered": 1.0, "partial": 0.5, "missing": 0.0, "contradicted": 0.0}
 RATE_LIMIT_WAIT_SECONDS = 65
+# Quota, auth and availability errors repeat and say nothing about the Agent: stop on the first few.
+# An Agent failure (502/504) is a result to record, but a long run of them points at a broken setup.
+EXTERNAL_FAILURES = frozenset({401, 403, 429, 503})
+MAX_CONSECUTIVE_EXTERNAL_FAILURES = 3
+MAX_CONSECUTIVE_FAILURES = 10
 MAX_SOURCE_CHARS = 6000
 
 JUDGE_INSTRUCTION = """You grade answers from a question-answering agent about GitHub pull requests and issues.
@@ -138,6 +143,7 @@ async def generate(args: argparse.Namespace) -> None:
     if not key:
         raise SystemExit("AGENT_INTERNAL_KEY is required")
     done = {row["query"] for row in load_jsonl(args.out) if row.get("status") == 200}
+    failures = external = 0
     async with httpx.AsyncClient(timeout=300) as client:
         for reference in load_jsonl(args.reference):
             if reference["query"] in done:
@@ -160,6 +166,11 @@ async def generate(args: argparse.Namespace) -> None:
             append_jsonl(args.out, row)
             print(json.dumps({"query": reference["query"][:60], "status": response.status_code,
                               "seconds": row["seconds"]}), flush=True)
+            failures = 0 if response.status_code == 200 else failures + 1
+            external = external + 1 if response.status_code in EXTERNAL_FAILURES else 0
+            if external >= MAX_CONSECUTIVE_EXTERNAL_FAILURES or failures >= MAX_CONSECUTIVE_FAILURES:
+                raise SystemExit(f"Stopped after {failures} failed answers in a row; last: "
+                                 f"{response.status_code} {payload.get('detail')}")
             await asyncio.sleep(args.pause)
 
 

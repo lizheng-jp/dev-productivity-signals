@@ -347,11 +347,15 @@ class GeminiEmbeddingTests(unittest.IsolatedAsyncioTestCase):
                 patch("app.main.httpx.AsyncClient",
                       side_effect=lambda *args, **kwargs: original_client(transport=transport)), \
                 patch("app.main.configured_index", return_value=FakeIndex()):
-            await index_project(PROJECT, IndexRequest(until=until, sampleScale=4), "internal-key")
+            await index_project(PROJECT, IndexRequest(until=until, sampleScale=4, sampling="stratified"),
+                                "internal-key")
         self.assertIn("sampleScale=4", seen["url"])
+        self.assertIn("sampling=stratified", seen["url"])
         self.assertEqual(seen["max_chunks"], 1000)
         with self.assertRaises(ValueError):
             IndexRequest(sampleScale=6)
+        with self.assertRaises(ValueError):
+            IndexRequest(sampling="random")
 
     async def test_index_endpoint_reuses_spring_feed_and_skips_unchanged_embedding(self):
         until = date.today()

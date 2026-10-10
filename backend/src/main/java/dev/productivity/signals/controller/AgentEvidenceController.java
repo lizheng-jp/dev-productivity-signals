@@ -3,6 +3,7 @@ package dev.productivity.signals.controller;
 import dev.productivity.signals.entity.AiMrEvaluation;
 import dev.productivity.signals.repository.AiMrEvaluationRepository;
 import dev.productivity.signals.service.GitHubRepositoryService;
+import dev.productivity.signals.service.StratifiedSample;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,6 +79,7 @@ public class AgentEvidenceController {
             @RequestParam(required = false) String refName,
             @RequestParam(required = false) OffsetDateTime updatedAfter,
             @RequestParam(defaultValue = "1") int sampleScale,
+            @RequestParam(defaultValue = "recent") String sampling,
             @RequestHeader(value = "X-Agent-Internal-Key", required = false) String key) {
         authorize(projectId, key);
         validatePeriod(since, until);
@@ -87,21 +89,35 @@ public class AgentEvidenceController {
         if (sampleScale < 1 || sampleScale > MAX_SAMPLE_SCALE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sampleScale must be between 1 and 5");
         }
+        if (!"recent".equals(sampling) && !"stratified".equals(sampling)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sampling must be recent or stratified");
+        }
+        boolean stratified = "stratified".equals(sampling);
         int prLimit = PR_LIMIT * sampleScale;
         int issueLimit = ISSUE_LIMIT * sampleScale;
         int issuesWithComments = ISSUES_WITH_COMMENTS * sampleScale;
-        var pulls = github.getRecentPullRequestsPage(projectId, since.toString(), until.toString(), refName);
-        var issues = github.getRecentIssuesPage(projectId, since.toString(), until.toString());
+        // recent: the first page of recently updated items. stratified: every item created in the window,
+        // sampled evenly by creation month, for evaluations that need the whole window represented.
+        var pulls = stratified
+                ? github.getPullRequestsCreatedIn(projectId, since.toString(), until.toString(), refName)
+                : github.getRecentPullRequestsPage(projectId, since.toString(), until.toString(), refName);
+        var issues = stratified
+                ? github.getIssuesCreatedIn(projectId, since.toString(), until.toString())
+                : github.getRecentIssuesPage(projectId, since.toString(), until.toString());
         List<JSONObject> changedPulls = pulls.items().stream()
                 .filter(item -> changedAfter(item, updatedAfter)).toList();
         List<JSONObject> changedIssues = issues.items().stream()
                 .filter(item -> changedAfter(item, updatedAfter)).toList();
+        List<JSONObject> selectedPulls = stratified ? StratifiedSample.select(changedPulls, prLimit)
+                : selectPullRequests(changedPulls, since, until, prLimit);
+        List<JSONObject> selectedIssues = stratified ? StratifiedSample.select(changedIssues, issueLimit)
+                : changedIssues.stream().limit(issueLimit).toList();
         List<Map<String, Object>> documents = new ArrayList<>();
         boolean truncated = pulls.hasMoreInPeriod() || issues.hasMoreInPeriod()
                 || changedPulls.size() > prLimit || changedIssues.size() > issueLimit
                 || changedIssues.size() > issuesWithComments;
 
-        for (JSONObject mr : selectPullRequests(changedPulls, since, until, prLimit)) {
+        for (JSONObject mr : selectedPulls) {
             int number = mr.getInt("iid");
             String url = mr.optString("web_url", "");
             String mrEventAt = mr.optString("merged_at", "");
@@ -127,7 +143,7 @@ public class AgentEvidenceController {
         }
 
         int issueIndex = 0;
-        for (JSONObject issue : changedIssues.stream().limit(issueLimit).toList()) {
+        for (JSONObject issue : selectedIssues) {
             int number = issue.getInt("iid");
             String url = issue.optString("web_url", "");
             List<String> labels = new ArrayList<>();
@@ -153,8 +169,11 @@ public class AgentEvidenceController {
                         note.optString("web_url", "").isBlank() ? url : note.optString("web_url"), labels);
             }
         }
-        return Map.of("documents", documents, "truncated", truncated,
-                "selection", "recent and long-lead-time PRs; recent issues; human comments from bounded first pages");
+        String selection = stratified
+                ? "stratified by creation month: " + selectedPulls.size() + " of " + changedPulls.size() + " PRs, "
+                        + selectedIssues.size() + " of " + changedIssues.size() + " issues; human comments from bounded first pages"
+                : "recent and long-lead-time PRs; recent issues; human comments from bounded first pages";
+        return Map.of("documents", documents, "truncated", truncated, "selection", selection);
     }
 
     private boolean changedAfter(JSONObject item, OffsetDateTime updatedAfter) {

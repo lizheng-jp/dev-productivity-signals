@@ -7,7 +7,7 @@ import re
 import secrets
 import time
 from datetime import date, timedelta
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -159,6 +159,8 @@ class IndexRequest(BaseModel):
     fullRefresh: bool = False
     # Retrieval evaluation only: multiplies the Spring sample and chunk limits.
     sampleScale: int = Field(default=1, ge=1, le=5)
+    # Retrieval evaluation only: "stratified" samples the whole window by creation month instead of recent items.
+    sampling: Literal["recent", "stratified"] = "recent"
 
 
 class ModelGateway(Protocol):
@@ -574,6 +576,8 @@ async def index_project(project_id: str, request: IndexRequest,
                                                     **({"updatedAfter": updated_after} if updated_after else {}),
                                                     **({"sampleScale": request.sampleScale}
                                                        if request.sampleScale > 1 else {}),
+                                                    **({"sampling": request.sampling}
+                                                       if request.sampling != "recent" else {}),
                                                     **({"refName": request.refName} if request.refName else {})},
                                         headers={"X-Agent-Internal-Key": expected_key}, timeout=180)
             response.raise_for_status()

@@ -298,6 +298,54 @@ public class GitHubRepositoryService {
         return new PullRequestPage(matches, moreInPeriod);
     }
 
+    /** Every PR created in the window, newest first, read page by page up to the configured page limit. */
+    public PullRequestPage getPullRequestsCreatedIn(String projectId, String since, String until, String refName) {
+        RepositoryCoordinates repository = fromProjectId(projectId);
+        ZonedDateTime start = parseDate(since, false);
+        ZonedDateTime end = parseDate(until, true);
+        List<JSONObject> matches = new ArrayList<>();
+        for (int page = 1; page <= maxPages; page++) {
+            JSONArray pulls = getArray(repository.path()
+                    + "/pulls?state=all&sort=created&direction=desc&per_page=100&page=" + page);
+            for (int index = 0; index < pulls.length(); index++) {
+                JSONObject source = pulls.getJSONObject(index);
+                JSONObject pull = normalizePullRequest(source);
+                if (matchesPullRequest(pull, start, end, null, refName, "created", "all")) {
+                    pull.put("body", source.optString("body", ""));
+                    matches.add(pull);
+                }
+            }
+            if (pulls.length() < 100 || ZonedDateTime.parse(pulls.getJSONObject(pulls.length() - 1)
+                    .getString("created_at")).isBefore(start)) {
+                return new PullRequestPage(matches, false);
+            }
+        }
+        return new PullRequestPage(matches, true);
+    }
+
+    /** Every issue (not PR) created in the window, read page by page up to the configured page limit. */
+    public IssuePage getIssuesCreatedIn(String projectId, String since, String until) {
+        RepositoryCoordinates repository = fromProjectId(projectId);
+        ZonedDateTime start = parseDate(since, false);
+        ZonedDateTime end = parseDate(until, true);
+        List<JSONObject> matches = new ArrayList<>();
+        for (int page = 1; page <= maxPages; page++) {
+            JSONArray items = getArray(repository.path()
+                    + "/issues?state=all&sort=created&direction=desc&per_page=100&page=" + page);
+            for (int index = 0; index < items.length(); index++) {
+                JSONObject source = items.getJSONObject(index);
+                ZonedDateTime created = ZonedDateTime.parse(source.getString("created_at"));
+                if (source.has("pull_request") || created.isBefore(start) || created.isAfter(end)) continue;
+                matches.add(issueWithDiscussionFields(source));
+            }
+            if (items.length() < 100 || ZonedDateTime.parse(items.getJSONObject(items.length() - 1)
+                    .getString("created_at")).isBefore(start)) {
+                return new IssuePage(matches, false);
+            }
+        }
+        return new IssuePage(matches, true);
+    }
+
     public JSONObject getPullRequestDetail(String projectId, int pullNumber) {
         RepositoryCoordinates repository = fromProjectId(projectId);
         JSONObject source = getObject(repository.path() + "/pulls/" + pullNumber);
@@ -322,12 +370,7 @@ public class GitHubRepositoryService {
             if (source.has("pull_request")) continue;
             ZonedDateTime updated = ZonedDateTime.parse(source.getString("updated_at"));
             if (updated.isBefore(start) || updated.isAfter(end)) continue;
-            JSONObject issue = normalizeIssue(source);
-            issue.put("title", source.optString("title", ""));
-            issue.put("body", source.optString("body", ""));
-            issue.put("comments", source.optInt("comments", 0));
-            issue.put("web_url", source.optString("html_url", ""));
-            matches.add(issue);
+            matches.add(issueWithDiscussionFields(source));
         }
         boolean moreInPeriod = page.length() == 100 &&
                 !ZonedDateTime.parse(page.getJSONObject(99).getString("updated_at")).isBefore(start);
@@ -335,6 +378,15 @@ public class GitHubRepositoryService {
     }
 
     public record IssuePage(List<JSONObject> items, boolean hasMoreInPeriod) {
+    }
+
+    private JSONObject issueWithDiscussionFields(JSONObject source) {
+        JSONObject issue = normalizeIssue(source);
+        issue.put("title", source.optString("title", ""));
+        issue.put("body", source.optString("body", ""));
+        issue.put("comments", source.optInt("comments", 0));
+        issue.put("web_url", source.optString("html_url", ""));
+        return issue;
     }
 
     public JSONArray getRecentPullRequestNotes(String projectId, int pullNumber) {

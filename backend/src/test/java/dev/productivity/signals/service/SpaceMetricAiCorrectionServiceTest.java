@@ -23,6 +23,7 @@ class SpaceMetricAiCorrectionServiceTest {
                 "mergedCount", 4,
                 "satisfactionSource", "retention",
                 "contributorRetentionRate", 62.5,
+                "contributorRetentionScore", 71.0,
                 "retainedContributorCount", 5,
                 "previousActiveContributorCount", 8));
 
@@ -33,6 +34,6 @@ class SpaceMetricAiCorrectionServiceTest {
         Map<String, Object> corrected = (Map<String, Object>) result.get("aiCorrected");
         assertThat(corrected).containsEntry("satisfactionSource", "retention")
                 .containsEntry("contributorRetentionRate", 62.5);
-        verify(scoring).applyDimensionScoreOverride(corrected, "satisfaction", 62.5);
+        verify(scoring).applyDimensionScoreOverride(corrected, "satisfaction", 71.0);
     }
 }

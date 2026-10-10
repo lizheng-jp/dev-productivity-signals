@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ContributorRetentionService {
 
     /** Below this many previously active contributors one person swings the rate too far to score. */
-    public static final int MIN_PREVIOUS_CONTRIBUTORS = 3;
+    public static final int MIN_PREVIOUS_CONTRIBUTORS = 5;
 
     private final ActiveMemberService activeMemberService;
     private final GitHubRepositoryService gitHubRepositoryService;

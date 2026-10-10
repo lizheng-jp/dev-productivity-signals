@@ -26,7 +26,8 @@ class SpaceMetricScoringServiceTest {
             metric("bugCausedCount", "performance", 0, 2, false),
             metric("commitCount", "activity", 2, 12, true),
             metric("bugFoundCount", "activity", 0, 5, true),
-            metric("mergedLeadTimeHours", "efficiency", 8, 48, false));
+            metric("mergedLeadTimeHours", "efficiency", 8, 48, false),
+            metric("reviewWaitTime", "efficiency", 2, 36, false));
 
     @Test
     void scoresProjectTotalsPerActiveContributor() {
@@ -70,6 +71,29 @@ class SpaceMetricScoringServiceTest {
                 "mergedCount", 2, "commitCount", 5, "bugCausedCount", 0, "bugDataAvailable", 1)), 1.0, configs);
 
         assertThat(result.get("bugCausedCountScore")).isEqualTo(100.0);
+    }
+
+    @Test
+    void leavesZeroReviewWaitUnscored() {
+        Map<String, Object> result = service.calculateScores(metrics(Map.of(
+                "mergedCount", 2, "reviewWaitTime", 0.0)), 1.0, configs);
+
+        assertThat(result).doesNotContainKey("reviewWaitTimeScore");
+    }
+
+    @Test
+    void scoresRetentionAgainstThresholdsAfterSmoothing() {
+        var repository = mock(MetricWeightManagementRepository.class);
+        org.mockito.Mockito.when(repository.findByIsActive(true))
+                .thenReturn(List.of(metric("contributorRetentionRate", "satisfaction", 20, 70, true)));
+        var scoring = new SpaceMetricScoringService(repository);
+
+        // 7 of 11 kept (63.6%) is pulled toward the 45% midpoint by 5 imaginary people: 57.8% -> 75.6 points.
+        assertThat(scoring.scoreContributorRetention(7, 11)).isEqualTo(75.63);
+        // Large samples barely move: 60 of 100 stays near 60% -> about 79 points.
+        assertThat(scoring.scoreContributorRetention(60, 100)).isBetween(78.0, 80.0);
+        // Everyone leaving in a small project is not an automatic 0.
+        assertThat(scoring.scoreContributorRetention(0, 5)).isGreaterThan(0.0);
     }
 
     @Test

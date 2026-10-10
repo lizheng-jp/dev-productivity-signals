@@ -98,6 +98,10 @@ public class SpaceMetricScoringService {
             if (!scoreBugMetrics && BUG_METRICS.contains(key)) {
                 return;
             }
+            // A review wait of exactly 0 means no pull request got a review, not an instant one.
+            if (reviewWaitTime.equals(key) && value != null && value.doubleValue() == 0.0) {
+                return;
+            }
             if (metricConfigMap.containsKey(key) && value != null && !NON_SCORING_METRICS.contains(key)) {
                 // 依存関係のチェック
                 String dependencyKey = METRIC_DEPENDENCIES.get(key);
@@ -221,10 +225,6 @@ public class SpaceMetricScoringService {
      * @return 0.0から100.0の範囲のスコア
      */
     private double calculateSingleScore(MetricWeightManagement config, double value) {
-        // 特別ルール：レビュー待ち時間が0の場合、レビュー活動がなかったと見なしスコアを0にする
-        if (reviewWaitTime.equals(config.getMetricKey()) && value == 0.0) {
-            return 0.0;
-        }
         if (reviewCommentCount.equals(config.getMetricKey()) && value == 0.0) {
             return 0.0;
         }
@@ -250,6 +250,34 @@ public class SpaceMetricScoringService {
         }
 
         return Math.max(0.0, Math.min(100.0, score));
+    }
+
+    /**
+     * Satisfaction score from contributor retention. The rate is shrunk toward the midpoint of the
+     * configured thresholds by {@code RETENTION_PRIOR_CONTRIBUTORS} imaginary contributors, so a few
+     * people joining or leaving a small project cannot swing the score to either end; it is then
+     * scored against the contributorRetentionRate thresholds.
+     */
+    public double scoreContributorRetention(int retained, int previousActive) {
+        MetricWeightManagement config = metricWeightRepository.findByIsActive(true).stream()
+                .filter(item -> contributorRetentionRate.equals(item.getMetricKey()))
+                .findFirst()
+                .orElseGet(SpaceMetricScoringService::defaultRetentionConfig);
+        double prior = (config.getMinThreshold() + config.getMaxThreshold()) / 2.0;
+        double smoothedRate = (retained * 100.0 + RETENTION_PRIOR_CONTRIBUTORS * prior)
+                / (previousActive + RETENTION_PRIOR_CONTRIBUTORS);
+        return round(calculateSingleScore(config, smoothedRate));
+    }
+
+    static final int RETENTION_PRIOR_CONTRIBUTORS = 5;
+
+    private static MetricWeightManagement defaultRetentionConfig() {
+        MetricWeightManagement config = new MetricWeightManagement();
+        config.setMetricKey(contributorRetentionRate);
+        config.setMinThreshold(20);
+        config.setMaxThreshold(70);
+        config.setPositiveMetric(true);
+        return config;
     }
 
     private double round(double value) {

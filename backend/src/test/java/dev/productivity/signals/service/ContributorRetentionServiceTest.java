@@ -22,18 +22,18 @@ class ContributorRetentionServiceTest {
     @Test
     void retentionIsTheShareOfPreviousContributorsStillActive() {
         var retention = ContributorRetentionService.calculate(
-                Set.of("A", "B", "C", "D"), Set.of("B", "D", "E"));
+                Set.of("A", "B", "C", "D", "F", "G"), Set.of("B", "D", "E", "G"));
 
         assertThat(retention).hasValueSatisfying(value -> {
-            assertThat(value.previousActive()).isEqualTo(4);
-            assertThat(value.retained()).isEqualTo(2);
+            assertThat(value.previousActive()).isEqualTo(6);
+            assertThat(value.retained()).isEqualTo(3);
             assertThat(value.rate()).isEqualTo(50.0);
         });
     }
 
     @Test
     void skipsScoringWhenTooFewContributorsWereActiveBefore() {
-        assertThat(ContributorRetentionService.calculate(Set.of("A", "B"), Set.of("A", "B"))).isEmpty();
+        assertThat(ContributorRetentionService.calculate(Set.of("A", "B", "C", "D"), Set.of("A", "B"))).isEmpty();
     }
 
     @Test
@@ -45,12 +45,12 @@ class ContributorRetentionServiceTest {
         when(activeMembers.getActiveProjectMembers(project, "2026-09-08", "2026-09-14", "main"))
                 .thenReturn(members("A", "B", "X"));
         when(activeMembers.getActiveProjectMembers(project, "2026-09-01", "2026-09-07", "main"))
-                .thenReturn(members("A", "B", "C"));
+                .thenReturn(members("A", "B", "C", "D", "E", "F"));
 
         var retention = new ContributorRetentionService(activeMembers, github)
                 .calculate(project, "2026-09-08", "2026-09-14", "main");
 
-        assertThat(retention).hasValueSatisfying(value -> assertThat(value.rate()).isEqualTo(66.7));
+        assertThat(retention).hasValueSatisfying(value -> assertThat(value.rate()).isEqualTo(33.3));
     }
 
     @Test

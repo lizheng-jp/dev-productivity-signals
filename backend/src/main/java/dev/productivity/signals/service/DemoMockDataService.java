@@ -307,13 +307,16 @@ public class DemoMockDataService {
                 metricWeight(101, mergedCount, "performance", 0.40, 0, 4, true, "週あたりのマージ完了数"),
                 metricWeight(102, bugCausedCount, "performance", 0.25, 0, 2, false, "週あたりの起因バグ件数"),
                 metricWeight(103, bugFixLeadTimeHours, "performance", 0.35, 8, 48, false, "バグ修正完了までの平均時間"),
-                metricWeight(201, commitCount, "activity", 0.18, 2, 12, true, "週あたりのコミット数"),
-                metricWeight(202, issueCreatedCount, "activity", 0.12, 0, 6, true, "週あたりの起票件数"),
-                metricWeight(203, bugFoundCount, "activity", 0.10, 0, 5, true, "週あたりのバグ検知件数"),
-                metricWeight(204, bugFixedCount, "activity", 0.14, 0, 4, true, "週あたりのバグ修正件数"),
-                metricWeight(205, linesAdded, "activity", 0.16, 80, 420, true, "週あたりの追加行数"),
-                metricWeight(206, linesDeleted, "activity", 0.10, 20, 220, true, "週あたりの削除行数"),
-                metricWeight(207, linesTotal, "activity", 0.20, 120, 600, true, "週あたりの変更総行数"),
+                // Lines changed are capped at 15% of Activity: a weak signal that is easy to inflate.
+                metricWeight(201, commitCount, "activity", 0.40, 2, 12, true, "週あたりのコミット数"),
+                metricWeight(202, issueCreatedCount, "activity", 0.20, 0, 6, true, "週あたりの起票件数"),
+                // Rewarding bugs found would conflict with Performance, which treats bugs as negative.
+                inactive(metricWeight(203, bugFoundCount, "activity", 0.0, 0, 5, true, "週あたりのバグ検知件数（採点対象外）")),
+                metricWeight(204, bugFixedCount, "activity", 0.25, 0, 4, true, "週あたりのバグ修正件数"),
+                metricWeight(205, linesAdded, "activity", 0.10, 80, 420, true, "週あたりの追加行数"),
+                metricWeight(206, linesDeleted, "activity", 0.05, 20, 220, true, "週あたりの削除行数"),
+                // Added plus deleted lines; scoring it as well would count the same change twice.
+                inactive(metricWeight(207, linesTotal, "activity", 0.0, 120, 600, true, "週あたりの変更総行数（採点対象外）")),
                 metricWeight(301, reviewedCount, "communication", 0.40, 0, 5, true, "週あたりのレビュー実施件数"),
                 metricWeight(302, commentCount, "communication", 0.35, 0, 8, true, "週あたりのコメント件数"),
                 metricWeight(303, reviewCommentCount, "communication", 0.25, 0, 4, true, "レビューあたりの平均コメント件数"),
@@ -324,7 +327,10 @@ public class DemoMockDataService {
                 metricWeight(501, satisfactionJobMeaning, "satisfaction", 0.28, 50, 90, true, "仕事の意義実感"),
                 metricWeight(502, satisfactionDeveloperEfficacy, "satisfaction", 0.26, 50, 90, true, "開発効力感"),
                 metricWeight(503, satisfactionSustainability, "satisfaction", 0.24, 45, 85, true, "持続可能な働き方"),
-                metricWeight(504, satisfactionImprovementPotential, "satisfaction", 0.22, 50, 90, true, "改善期待と前向きさ"));
+                metricWeight(504, satisfactionImprovementPotential, "satisfaction", 0.22, 50, 90, true, "改善期待と前向きさ"),
+                // Thresholds only: used as the Satisfaction score when there are no survey responses.
+                metricWeight(505, contributorRetentionRate, "satisfaction", 0.0, 20, 70, true,
+                        "コントリビューター定着率（%）。満足度調査の回答がない場合の満足度に使用（重みは使わない）"));
     }
 
     public List<MetricWeightManagement> getMetricWeightEntities() {
@@ -529,6 +535,11 @@ public class DemoMockDataService {
         dto.setMaxThreshold(maxThreshold);
         dto.setPositiveMetric(positiveMetric);
         dto.setDescription(description);
+        return dto;
+    }
+
+    private MetricWeightDTO inactive(MetricWeightDTO dto) {
+        dto.setActive(false);
         return dto;
     }
 

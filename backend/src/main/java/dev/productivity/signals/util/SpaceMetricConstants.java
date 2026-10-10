@@ -113,6 +113,18 @@ public final class SpaceMetricConstants {
 
     public static final String satisfactionImprovementPotential = "satisfactionImprovementPotential";
 
+    /** 満足度スコアの算出元: "survey"（満足度調査）または "retention"（コントリビューター定着率）。 */
+    public static final String satisfactionSource = "satisfactionSource";
+
+    /** 前期間に活動したコントリビューターのうち、当期間も活動した割合（%）。 */
+    public static final String contributorRetentionRate = "contributorRetentionRate";
+
+    /** 前期間・当期間の両方で活動したコントリビューター数。 */
+    public static final String retainedContributorCount = "retainedContributorCount";
+
+    /** 前期間に活動したコントリビューター数。 */
+    public static final String previousActiveContributorCount = "previousActiveContributorCount";
+
     // --- Scores (スコア) ---
     /** パフォーマンス次元のスコア。 */
     public static final String performanceScore = "performanceScore";

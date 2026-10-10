@@ -60,6 +60,14 @@ export const SPACE_METRICS = {
   satisfactionSustainability: 'satisfactionSustainability',
   /** 改善可能性 */
   satisfactionImprovementPotential: 'satisfactionImprovementPotential',
+  /** 満足度スコアの算出元（survey: 満足度調査 / retention: コントリビューター定着率） */
+  satisfactionSource: 'satisfactionSource',
+  /** コントリビューター定着率（%）。満足度調査がない GitHub プロジェクトの満足度スコアに使う */
+  contributorRetentionRate: 'contributorRetentionRate',
+  /** 前期間・当期間の両方で活動したコントリビューター数 */
+  retainedContributorCount: 'retainedContributorCount',
+  /** 前期間に活動したコントリビューター数 */
+  previousActiveContributorCount: 'previousActiveContributorCount',
 
   // --- Scores (スコア) ---
   /** パフォーマンススコア */

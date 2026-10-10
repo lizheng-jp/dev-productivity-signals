@@ -26,8 +26,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static dev.productivity.signals.util.SpaceMetricConstants.*;
@@ -50,6 +52,7 @@ public class SpaceMetricController {
     private final SpaceMetricSnapshotService snapshotService;
     private final SpaceMetricAiCorrectionService cachedAiCorrectionService;
     private final DemoMockDataService demoMockDataService;
+    private final ContributorRetentionService contributorRetentionService;
 
     @Operation(summary = "プロジェクト全体、または特定ユーザーのSPACE指標とスコアを取得します")
     @ApiResponses(value = {
@@ -594,7 +597,10 @@ public class SpaceMetricController {
         // スコア計算 (Raw)
         Map<String, Object> results = PerformanceTimingLog.time("space.rawScoring",
                 () -> scoringService.calculateScores(metrics, scoringWeeks));
-        PerformanceTimingLog.time("db.satisfaction", () -> applyProjectSatisfactionScore(projectId, since, until, userName, results));
+        Supplier<Optional<ContributorRetentionService.Retention>> retention = memoize(
+                () -> PerformanceTimingLog.time("github.contributorRetention",
+                        () -> contributorRetentionService.calculate(projectId, since, until, refName)));
+        PerformanceTimingLog.time("db.satisfaction", () -> applyProjectSatisfactionScore(projectId, since, until, userName, results, retention));
         if (userName == null || userName.isBlank()) {
             results.put("deliveryTrend", DeliveryTrendCalculator.calculate(commitMetrics, allMergedMRs));
         }
@@ -613,7 +619,7 @@ public class SpaceMetricController {
                     () -> aiCorrectionService.getCorrectedMetrics(userEvaluations, metrics));
             Map<String, Object> aiResults = PerformanceTimingLog.time("space.aiCorrectedScoring",
                     () -> scoringService.calculateScores(correctedMetrics, scoringWeeks));
-            PerformanceTimingLog.time("db.satisfactionAiCorrected", () -> applyProjectSatisfactionScore(projectId, since, until, userName, aiResults));
+            PerformanceTimingLog.time("db.satisfactionAiCorrected", () -> applyProjectSatisfactionScore(projectId, since, until, userName, aiResults, retention));
 
             log.info("AI Score Correction for target [{}]: Raw Score = {}, AI Corrected Score = {}",
                     userName != null ? userName : "Project" + projectId,
@@ -639,7 +645,8 @@ public class SpaceMetricController {
             String since,
             String until,
             String userName,
-            Map<String, Object> results) {
+            Map<String, Object> results,
+            Supplier<Optional<ContributorRetentionService.Retention>> retention) {
         if (results == null) {
             return;
         }
@@ -647,9 +654,14 @@ public class SpaceMetricController {
         ProjectSatisfactionSummaryDTO summary = satisfactionSurveyService.getSummary(projectId, since, until,
                 userName);
         if (summary.getResponseCount() <= 0 || summary.getSatisfactionScore() == null) {
+            // Without survey responses, a GitHub project falls back to contributor retention.
+            if ((userName == null || userName.isBlank()) && contributorRetentionService.supports(projectId)) {
+                retention.get().ifPresent(value -> applyRetentionSatisfactionScore(results, value));
+            }
             return;
         }
 
+        results.put(satisfactionSource, "survey");
         results.put(satisfactionSurveyScore, summary.getSatisfactionScore());
         results.put(satisfactionResponseCount, summary.getResponseCount());
         results.put(satisfactionJobMeaning, summary.getS1JobSatisfaction());
@@ -658,6 +670,30 @@ public class SpaceMetricController {
         results.put(satisfactionImprovementPotential, summary.getS4ImprovementPotential());
         results.put("satisfactionSurvey", summary);
         scoringService.applyDimensionScoreOverride(results, "satisfaction", summary.getSatisfactionScore());
+    }
+
+    private void applyRetentionSatisfactionScore(Map<String, Object> results, ContributorRetentionService.Retention retention) {
+        results.put(satisfactionSource, "retention");
+        results.put(contributorRetentionRate, retention.rate());
+        results.put(retainedContributorCount, retention.retained());
+        results.put(previousActiveContributorCount, retention.previousActive());
+        scoringService.applyDimensionScoreOverride(results, "satisfaction", retention.rate());
+    }
+
+    private static <T> Supplier<T> memoize(Supplier<T> supplier) {
+        return new Supplier<>() {
+            private boolean loaded;
+            private T value;
+
+            @Override
+            public synchronized T get() {
+                if (!loaded) {
+                    value = supplier.get();
+                    loaded = true;
+                }
+                return value;
+            }
+        };
     }
 
     private Map<String, Object> calculateForUser(String projectId, String since, String until, String userName,

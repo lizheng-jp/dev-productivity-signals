@@ -1,6 +1,6 @@
 import {
     LayoutDashboard,
-    BarChart2, User, ClipboardCheck, Settings, MessageSquareText, BookOpen
+    BarChart2, User, ClipboardCheck, Settings, MessageSquareText, BookOpen, FolderGit2
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { usePathname, Link } from '../../../i18n/routing';
@@ -12,6 +12,8 @@ import { cn } from '../ui/Common';
 export const MENU_ITEMS = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, href: '/', section: 'workspace' },
     { id: 'comparison', name: 'Comparison', icon: BarChart2, href: '/comparison', section: 'workspace' },
+    // Matching on /project also highlights the single-project detail page opened from a card.
+    { id: 'project', name: 'Project Analytics', icon: FolderGit2, href: '/projects', match: '/project', section: 'workspace' },
     { id: 'developer', name: 'Developer Analytics', icon: User, href: '/developer', section: 'workspace' },
     { id: 'satisfaction', name: 'Satisfaction Survey', icon: ClipboardCheck, href: '/satisfaction', section: 'workspace' },
     { id: 'manual', name: 'Manual', icon: BookOpen, href: '/manual', section: 'resources' },
@@ -43,8 +45,9 @@ export const Sidebar = ({ onSettingsClick }: SidebarProps) => {
         let bestMatch = 'dashboard';
         let longestMatch = 0;
         for (const item of MENU_ITEMS) {
-            if (currentPath.startsWith(item.href) && item.href.length > longestMatch) {
-                longestMatch = item.href.length;
+            const prefix = ('match' in item && item.match) || item.href;
+            if (currentPath.startsWith(prefix) && prefix.length > longestMatch) {
+                longestMatch = prefix.length;
                 bestMatch = item.id;
             }
         }

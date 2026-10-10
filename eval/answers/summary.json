@@ -1,0 +1,22 @@
+{
+ "metrics_first": {
+  "answered (answerable)": "3/35",
+  "answered (unanswerable)": "3/20",
+  "fact recall, all 35 (failures=0)": "0.02 [0.00, 0.06]",
+  "fact recall, answered only": "0.25",
+  "contradicted facts": 2,
+  "answerable answers with unsupported claims": "2/3",
+  "unanswerable: declined": "1/3",
+  "unanswerable: added own-knowledge claims": "2/3"
+ },
+ "open": {
+  "answered (answerable)": "21/35",
+  "answered (unanswerable)": "15/20",
+  "fact recall, all 35 (failures=0)": "0.50 [0.35, 0.65]",
+  "fact recall, answered only": "0.83",
+  "contradicted facts": 1,
+  "answerable answers with unsupported claims": "4/21",
+  "unanswerable: declined": "9/15",
+  "unanswerable: added own-knowledge claims": "8/15"
+ }
+}

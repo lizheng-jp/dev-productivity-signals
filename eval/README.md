@@ -16,38 +16,57 @@ Offline evaluation of the Signals Agent evidence search (`agent/app/retrieval_ev
   identical corpus.
 - Search returns the top 8 sources, at most 2 per PR or issue.
 
+## Labelling and agreement
+
+Labels were made twice, independently: a first pass by Claude, then a blind pass by OpenAI Codex given only
+the shuffled queries, the corpus and the written rules (`annotation/`: instructions, shuffled queries, Codex labels, id key and `agreement.json`).
+
+| Agreement | Value |
+|---|---|
+| Cohen's kappa over 55 x 123 query-source pairs | 0.87 |
+| Answerable vs unanswerable | 55 / 55 (kappa 1.0) |
+| Identical relevant sets | 40 / 55 |
+
+All 15 disagreements were resolved for Codex under the written rule. In 10, the first pass had kept comments
+that only ask, ping or acknowledge ("Can you also fix AppenderV2?", "Looks like known breaking changes");
+in 5, Codex found answers deep inside long sources that the first pass had read only partly.
+
 ## Results
 
 | Metric | Random | bge-base | Qwen3-0.6B |
 |---|---|---|---|
-| recall@1 | 0.008 | 0.50 | **0.56** |
-| recall@3 | 0.024 | 0.76 | **0.78** |
-| MRR | 0.04 | 0.87 | **0.91** |
-| MRR, lexical / paraphrase | | 0.90 / 0.85 | **0.97** / 0.86 |
+| recall@1 | 0.008 | 0.59 | **0.65** |
+| recall@3 | 0.024 | **0.84** | 0.83 |
+| recall@8 | 0.065 | 0.85 | **0.87** |
+| MRR | 0.04 | 0.89 | **0.91** |
+| MRR, lexical / paraphrase | | 0.93 / 0.85 | **0.97 / 0.86** |
 | entityRecall@3 | | 0.97 | 0.97 |
-| recall ceiling (2 per entity) | | 0.94 | 0.94 |
+| recall ceiling (2 per entity) | | 0.95 | 0.95 |
 | Unanswerable flagged as insufficient | | **14 / 20** | 12 / 20 |
 | Answerable wrongly flagged | | 4 / 35 | **2 / 35** |
-| Mean score, relevant / other | | 0.78 / 0.66 | 0.70 / 0.48 |
+| Mean score, relevant / other | | 0.78 / 0.66 | 0.70 / 0.49 |
 | Embedding 187 chunks | | ~1 min | ~44 min |
 
 Random figures are the expected values of picking 8 of the 123 sources.
 
 ## Findings
 
-1. **Finding the right PR or issue is solved; picking the right comment in it is not.** entityRecall@3 is
-   0.97 for both models, while recall@3 is 0.76 to 0.78 against a ceiling of 0.94. Short comments such as
-   "could you elaborate?" or "I'd like to take this issue" often outrank the substantive one.
-2. **The insufficient-evidence threshold did not transfer between models.** The original 0.40 cut-off,
-   set for Gemini embeddings, flagged 0 of 20 unanswerable queries with bge, whose unrelated text already
-   scores about 0.6. Thresholds are now per model (`INSUFFICIENT_EVIDENCE_BELOW` in `agent/app/evidence.py`,
+1. **Label noise changed the conclusion.** With the first-pass labels, recall@3 was 0.76 and the gap to the
+   0.94 ceiling looked like a ranking problem: short comments appeared to crowd out substantive ones. After
+   adjudication recall@3 is 0.84; much of that gap was the retriever correctly ignoring comments the labels
+   should not have counted. A second, independent annotator was worth more than any model change here.
+2. **Finding the right PR or issue is solved.** entityRecall@3 is 0.97 for both models; the remaining source
+   recall gap is small and mostly paraphrase queries.
+3. **The insufficient-evidence threshold did not transfer between models.** The original 0.40 cut-off, set
+   for Gemini embeddings, flagged 0 of 20 unanswerable queries with bge, whose unrelated text already scores
+   about 0.6. Thresholds are now per model (`INSUFFICIENT_EVIDENCE_BELOW` in `agent/app/evidence.py`,
    overridable with `EVIDENCE_MIN_TOP_SCORE`).
-3. **Qwen3 separates relevant from irrelevant text better** (score gap 0.22 against 0.12) and ranks lexical
-   queries better, but paraphrase queries are no better, and it is about 40 times slower on CPU.
-4. **Labelling from previews was wrong once.** One query's answer sat in item 6 of a long tracking issue
-   that the 200-character preview cut off; labels were rechecked against full text.
-5. **Source-level recall understated retrieval** because the search caps sources per entity;
-   `recallCeiling` and `entityRecall@3` were added to separate that design limit from ranking errors.
+4. **Qwen3 separates relevant from irrelevant text better** (score gap 0.22 against 0.12) and ranks the first
+   hit better, but recall@3 is no better and it is about 40 times slower on CPU. bge-base stays the default.
+5. **Long sources need full reading.** Both annotation errors that missed answers came from long tracking
+   issues and proposals, where the answer sat in a numbered item far from the start.
+6. **Source-level recall understated retrieval** because the search caps sources per entity;
+   `recallCeiling` and `entityRecall@3` separate that design limit from ranking errors.
 
 ## Caveats
 

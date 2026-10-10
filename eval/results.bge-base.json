@@ -3,17 +3,17 @@
     "queries": 55,
     "answerable": 35,
     "unanswerable": 20,
-    "recall@1": 0.4976,
-    "recall@3": 0.7571,
-    "recall@5": 0.7929,
-    "recall@8": 0.7929,
-    "mrr": 0.8714,
-    "recallCeiling": 0.9405,
+    "recall@1": 0.5881,
+    "recall@3": 0.8415,
+    "recall@5": 0.8486,
+    "recall@8": 0.8486,
+    "mrr": 0.8857,
+    "recallCeiling": 0.948,
     "entityRecall@3": 0.9714,
     "flaggedInsufficientWhenAnswerable": 4,
     "confidentWhenUnanswerable": 6,
-    "meanScoreRelevant": 0.7754,
-    "meanScoreOther": 0.6587
+    "meanScoreRelevant": 0.7823,
+    "meanScoreOther": 0.6584
   },
   "queries": [
     {
@@ -81,6 +81,7 @@
       "relevant": [
         "mr:19165:comment:5904285019",
         "mr:19165:comment:5911963730",
+        "mr:19165:comment:5932073039",
         "mr:19165:comment:5985633761",
         "mr:19165:comment:6034920307",
         "mr:19165:description",
@@ -131,11 +132,11 @@
         }
       ],
       "recall@1": 0.0,
-      "recall@3": 0.3333333333333333,
-      "recall@5": 0.3333333333333333,
-      "recall@8": 0.3333333333333333,
+      "recall@3": 0.2857142857142857,
+      "recall@5": 0.2857142857142857,
+      "recall@8": 0.2857142857142857,
       "rr": 0.5,
-      "recallCeiling": 0.5,
+      "recallCeiling": 0.42857142857142855,
       "entityRecall@3": 1.0
     },
     {
@@ -314,6 +315,7 @@
     {
       "query": "How were the OpenMetrics 2.0 parser follow-up items split across pull requests to keep reviews small?",
       "relevant": [
+        "issue:19745:note:5736573241",
         "issue:19745:note:5737372368",
         "issue:19745:note:5762980833"
       ],
@@ -361,12 +363,12 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
-      "recall@3": 1.0,
-      "recall@5": 1.0,
-      "recall@8": 1.0,
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
       "rr": 1.0,
-      "recallCeiling": 1.0,
+      "recallCeiling": 0.6666666666666666,
       "entityRecall@3": 1.0
     },
     {
@@ -489,6 +491,7 @@
     {
       "query": "What are the drawbacks of fixing metadata by relabeling __type__ and __unit__?",
       "relevant": [
+        "issue:19832:description",
         "issue:19832:note:5831061653",
         "issue:19832:note:5915874816"
       ],
@@ -498,7 +501,7 @@
         {
           "sourceId": "issue:19832:description",
           "score": 0.7857,
-          "relevant": false
+          "relevant": true
         },
         {
           "sourceId": "issue:19832:note:5831061653",
@@ -536,12 +539,12 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.0,
-      "recall@3": 0.5,
-      "recall@5": 0.5,
-      "recall@8": 0.5,
-      "rr": 0.5,
-      "recallCeiling": 1.0,
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 0.6666666666666666,
       "entityRecall@3": 1.0
     },
     {
@@ -604,7 +607,6 @@
     {
       "query": "Docker Swarm discovery never fills container labels; is an extra API call per task acceptable?",
       "relevant": [
-        "mr:19284:comment:5224713573",
         "mr:19284:description"
       ],
       "insufficientEvidence": false,
@@ -618,7 +620,7 @@
         {
           "sourceId": "mr:19284:comment:5224713573",
           "score": 0.7771,
-          "relevant": true
+          "relevant": false
         },
         {
           "sourceId": "issue:19887:note:6059195968",
@@ -651,7 +653,7 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
+      "recall@1": 1.0,
       "recall@3": 1.0,
       "recall@5": 1.0,
       "recall@8": 1.0,
@@ -778,7 +780,6 @@
     {
       "query": "OTel histograms with an explicit infinite bucket boundary write the +Inf bucket twice",
       "relevant": [
-        "mr:19425:comment:5315824177",
         "mr:19425:description"
       ],
       "insufficientEvidence": false,
@@ -802,7 +803,7 @@
         {
           "sourceId": "mr:19425:comment:5315824177",
           "score": 0.7051,
-          "relevant": true
+          "relevant": false
         },
         {
           "sourceId": "mr:19429:description",
@@ -825,8 +826,8 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
-      "recall@3": 0.5,
+      "recall@1": 1.0,
+      "recall@3": 1.0,
       "recall@5": 1.0,
       "recall@8": 1.0,
       "rr": 1.0,
@@ -836,7 +837,8 @@
     {
       "query": "Should the OTLP translator reject an explicit +Inf bound like the NHCB path does, or just warn?",
       "relevant": [
-        "mr:19425:comment:5315824177"
+        "mr:19425:comment:5315824177",
+        "mr:19425:description"
       ],
       "insufficientEvidence": false,
       "coverageIncomplete": true,
@@ -849,7 +851,7 @@
         {
           "sourceId": "mr:19425:description",
           "score": 0.7554,
-          "relevant": false
+          "relevant": true
         },
         {
           "sourceId": "mr:19429:comment:5302664198",
@@ -882,7 +884,7 @@
           "relevant": false
         }
       ],
-      "recall@1": 1.0,
+      "recall@1": 0.5,
       "recall@3": 1.0,
       "recall@5": 1.0,
       "recall@8": 1.0,
@@ -893,6 +895,7 @@
     {
       "query": "A test fixture whose histogram count does not match the sum of its bucket counts",
       "relevant": [
+        "mr:19429:comment:5302664198",
         "mr:19429:description"
       ],
       "insufficientEvidence": false,
@@ -939,10 +942,10 @@
           "relevant": false
         }
       ],
-      "recall@1": 1.0,
-      "recall@3": 1.0,
-      "recall@5": 1.0,
-      "recall@8": 1.0,
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
       "rr": 1.0,
       "recallCeiling": 1.0,
       "entityRecall@3": 1.0
@@ -950,7 +953,6 @@
     {
       "query": "Were the TestTemporality exponential histogram fixtures with no buckets intentional?",
       "relevant": [
-        "mr:19429:comment:5302664198",
         "mr:19429:comment:5727686755",
         "mr:19429:comment:5727946567"
       ],
@@ -998,19 +1000,18 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.3333333333333333,
-      "recall@3": 0.3333333333333333,
-      "recall@5": 0.3333333333333333,
-      "recall@8": 0.3333333333333333,
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
       "rr": 1.0,
-      "recallCeiling": 0.6666666666666666,
+      "recallCeiling": 1.0,
       "entityRecall@3": 1.0
     },
     {
       "query": "Should the promtool lint about scrape interval and lookback delta also include the scrape timeout?",
       "relevant": [
         "mr:19911:comment:6032882601",
-        "mr:19911:comment:6034610485",
         "mr:19911:description"
       ],
       "insufficientEvidence": false,
@@ -1057,12 +1058,12 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.3333333333333333,
-      "recall@3": 0.6666666666666666,
-      "recall@5": 0.6666666666666666,
-      "recall@8": 0.6666666666666666,
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
       "rr": 1.0,
-      "recallCeiling": 0.6666666666666666,
+      "recallCeiling": 1.0,
       "entityRecall@3": 1.0
     },
     {
@@ -1125,7 +1126,6 @@
     {
       "query": "promtool series and label queries cannot be used with tenant headers",
       "relevant": [
-        "mr:19335:comment:5212410242",
         "mr:19335:description"
       ],
       "insufficientEvidence": false,
@@ -1172,10 +1172,10 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
-      "recall@3": 0.5,
-      "recall@5": 0.5,
-      "recall@8": 0.5,
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
       "rr": 1.0,
       "recallCeiling": 1.0,
       "entityRecall@3": 1.0
@@ -1183,8 +1183,6 @@
     {
       "query": "Exemplars disappear after compaction followed by a restart",
       "relevant": [
-        "mr:19940:comment:6019143220",
-        "mr:19940:comment:6019443293",
         "mr:19940:description"
       ],
       "insufficientEvidence": false,
@@ -1231,12 +1229,12 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.3333333333333333,
-      "recall@3": 0.3333333333333333,
-      "recall@5": 0.3333333333333333,
-      "recall@8": 0.3333333333333333,
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
       "rr": 1.0,
-      "recallCeiling": 0.6666666666666666,
+      "recallCeiling": 1.0,
       "entityRecall@3": 1.0
     },
     {
@@ -1299,7 +1297,6 @@
     {
       "query": "What breaking effects came with upgrading the Go client library to 1.25?",
       "relevant": [
-        "mr:19913:comment:5999080222",
         "mr:19913:description"
       ],
       "insufficientEvidence": false,
@@ -1346,10 +1343,10 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
-      "recall@3": 0.5,
-      "recall@5": 0.5,
-      "recall@8": 0.5,
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
       "rr": 1.0,
       "recallCeiling": 1.0,
       "entityRecall@3": 1.0
@@ -1357,7 +1354,6 @@
     {
       "query": "Discovering Amazon managed RabbitMQ brokers as scrape targets",
       "relevant": [
-        "mr:19750:comment:5741945420",
         "mr:19750:description"
       ],
       "insufficientEvidence": true,
@@ -1386,7 +1382,7 @@
         {
           "sourceId": "mr:19750:comment:5741945420",
           "score": 0.6115,
-          "relevant": true
+          "relevant": false
         },
         {
           "sourceId": "mr:19942:description",
@@ -1405,7 +1401,7 @@
         }
       ],
       "recall@1": 0.0,
-      "recall@3": 0.5,
+      "recall@3": 1.0,
       "recall@5": 1.0,
       "recall@8": 1.0,
       "rr": 0.5,
@@ -1586,8 +1582,7 @@
     {
       "query": "Moving the remote write receiver to the new appender interface",
       "relevant": [
-        "mr:19812:description",
-        "mr:19812:review:5435163462"
+        "mr:19812:description"
       ],
       "insufficientEvidence": false,
       "coverageIncomplete": true,
@@ -1633,10 +1628,10 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
-      "recall@3": 0.5,
-      "recall@5": 0.5,
-      "recall@8": 0.5,
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
       "rr": 1.0,
       "recallCeiling": 1.0,
       "entityRecall@3": 1.0
@@ -1644,7 +1639,6 @@
     {
       "query": "Does DNS service discovery resolve .local multicast names?",
       "relevant": [
-        "issue:2537:note:5409844598",
         "issue:2537:note:6065515151"
       ],
       "insufficientEvidence": false,
@@ -1658,7 +1652,7 @@
         {
           "sourceId": "issue:2537:note:5409844598",
           "score": 0.6763,
-          "relevant": true
+          "relevant": false
         },
         {
           "sourceId": "mr:19878:review:5399204007",
@@ -1691,7 +1685,7 @@
           "relevant": false
         }
       ],
-      "recall@1": 0.5,
+      "recall@1": 1.0,
       "recall@3": 1.0,
       "recall@5": 1.0,
       "recall@8": 1.0,

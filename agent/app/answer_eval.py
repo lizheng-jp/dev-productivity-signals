@@ -39,7 +39,7 @@ RATE_LIMIT_WAIT_SECONDS = 65
 # An Agent failure (502/504) is a result to record, but a long run of them points at a broken setup.
 EXTERNAL_FAILURES = frozenset({401, 403, 429, 503})
 MAX_CONSECUTIVE_EXTERNAL_FAILURES = 3
-MAX_CONSECUTIVE_FAILURES = 10
+DEFAULT_MAX_CONSECUTIVE_FAILURES = 10
 MAX_SOURCE_CHARS = 6000
 
 JUDGE_INSTRUCTION = """You grade answers from a question-answering agent about GitHub pull requests and issues.
@@ -142,7 +142,8 @@ async def generate(args: argparse.Namespace) -> None:
     key = os.environ.get("AGENT_INTERNAL_KEY", "")
     if not key:
         raise SystemExit("AGENT_INTERNAL_KEY is required")
-    done = {row["query"] for row in load_jsonl(args.out) if row.get("status") == 200}
+    # Agent failures are results; only quota, auth and availability errors are asked again.
+    done = {row["query"] for row in load_jsonl(args.out) if row.get("status") not in EXTERNAL_FAILURES}
     failures = external = 0
     async with httpx.AsyncClient(timeout=300) as client:
         for reference in load_jsonl(args.reference):
@@ -168,7 +169,7 @@ async def generate(args: argparse.Namespace) -> None:
                               "seconds": row["seconds"]}), flush=True)
             failures = 0 if response.status_code == 200 else failures + 1
             external = external + 1 if response.status_code in EXTERNAL_FAILURES else 0
-            if external >= MAX_CONSECUTIVE_EXTERNAL_FAILURES or failures >= MAX_CONSECUTIVE_FAILURES:
+            if external >= MAX_CONSECUTIVE_EXTERNAL_FAILURES or 0 < args.max_failures <= failures:
                 raise SystemExit(f"Stopped after {failures} failed answers in a row; last: "
                                  f"{response.status_code} {payload.get('detail')}")
             await asyncio.sleep(args.pause)
@@ -242,6 +243,8 @@ def main() -> None:
     asking = commands.add_parser("generate", help="Ask the Agent every reference query")
     asking.add_argument("--out", required=True)
     asking.add_argument("--model", help="Agent model; defaults to the Agent's GEMINI_MODEL")
+    asking.add_argument("--max-failures", type=int, default=DEFAULT_MAX_CONSECUTIVE_FAILURES,
+                        help="Stop after this many Agent failures in a row; 0 never stops on them")
     grading = commands.add_parser("judge", help="Grade answers against the reference facts")
     grading.add_argument("--answers", required=True)
     grading.add_argument("--out", required=True)

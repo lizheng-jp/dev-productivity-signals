@@ -2,6 +2,8 @@ package dev.productivity.signals.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
+import dev.productivity.signals.service.AgentRateLimiter;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.http.HttpStatus;
@@ -98,8 +100,61 @@ class AgentControllerTest {
     @Test
     void startsWithoutAnObjectMapperBean() {
         new ApplicationContextRunner()
+                .withBean(AgentRateLimiter.class)
                 .withBean(AgentController.class)
                 .run(context -> assertThat(context).hasSingleBean(AgentController.class));
+    }
+
+    @Test
+    void rateLimitRejectsWithRetryAfterBeforeCallingAgent() {
+        var controller = new AgentController(new AgentRateLimiter(1, 0, java.time.Clock.systemUTC()));
+        ReflectionTestUtils.setField(controller, "enabled", true);
+        ReflectionTestUtils.setField(controller, "internalKey", "test-internal-key");
+        ReflectionTestUtils.setField(controller, "serviceUrl", "http://127.0.0.1:9");
+        var http = new MockHttpServletRequest();
+        http.addHeader("X-Forwarded-For", "203.0.113.9, 198.51.100.7");
+        assertThatThrownBy(() -> controller.ask(validRequest(), http))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY));
+        assertThatThrownBy(() -> controller.ask(validRequest(), http))
+                .isInstanceOfSatisfying(ResponseStatusException.class, error -> {
+                    assertThat(error.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                    assertThat(error.getReason()).isEqualTo("Hourly question limit reached");
+                    assertThat(error.getHeaders().getFirst("Retry-After")).isNotNull();
+                });
+        var other = new MockHttpServletRequest();
+        other.addHeader("X-Forwarded-For", "203.0.113.9, 198.51.100.8");
+        assertThatThrownBy(() -> controller.ask(validRequest(), other))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY));
+    }
+
+    @Test
+    void errorsReachTheClientAsJsonWithTheirReason() throws Exception {
+        var controller = new AgentController(new AgentRateLimiter(1, 0, java.time.Clock.systemUTC()));
+        ReflectionTestUtils.setField(controller, "enabled", true);
+        ReflectionTestUtils.setField(controller, "internalKey", "test-internal-key");
+        ReflectionTestUtils.setField(controller, "serviceUrl", "http://127.0.0.1:9");
+        var mvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new AgentErrorHandler()).build();
+        var body = new ObjectMapper().writeValueAsString(validRequest());
+        mvc.perform(post("/api/agent/ask").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.detail").value("Agent unavailable"));
+        mvc.perform(post("/api/agent/ask").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.detail").value("Hourly question limit reached"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .exists("Retry-After"));
+    }
+
+    @Test
+    void clientAddressUsesTheLastForwardedHop() {
+        var http = new MockHttpServletRequest();
+        http.setRemoteAddr("172.18.0.5");
+        assertThat(AgentController.clientAddress(http)).isEqualTo("172.18.0.5");
+        http.addHeader("X-Forwarded-For", "1.2.3.4, 198.51.100.7");
+        assertThat(AgentController.clientAddress(http)).isEqualTo("198.51.100.7");
+        assertThat(AgentController.clientAddress(null)).isEqualTo("unknown");
     }
 
     @Test

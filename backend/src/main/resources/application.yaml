@@ -85,6 +85,10 @@ agent:
   enabled: ${AGENT_ENABLED:false}
   service-url: ${AGENT_SERVICE_URL:http://localhost:8000}
   internal-key: ${AGENT_INTERNAL_KEY:}
+  # Public questions each cost model calls; 0 disables a limit.
+  rate-limit:
+    per-client-per-hour: ${AGENT_RATE_LIMIT_PER_CLIENT_PER_HOUR:10}
+    per-day: ${AGENT_RATE_LIMIT_PER_DAY:200}
 
 management:
   endpoints:

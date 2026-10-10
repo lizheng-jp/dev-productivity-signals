@@ -2,8 +2,11 @@ package dev.productivity.signals.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.productivity.signals.service.AgentRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +21,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -34,6 +38,7 @@ public class AgentController {
     private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Semaphore requestPermit = new Semaphore(1);
+    private final AgentRateLimiter rateLimiter;
 
     @Value("${agent.enabled:false}")
     private boolean enabled;
@@ -44,6 +49,16 @@ public class AgentController {
     @Value("${agent.internal-key:}")
     private String internalKey;
 
+    /** Without a rate limiter, for tests that exercise the proxy alone. */
+    public AgentController() {
+        this(new AgentRateLimiter(0, 0, Clock.systemUTC()));
+    }
+
+    @Autowired
+    public AgentController(AgentRateLimiter rateLimiter) {
+        this.rateLimiter = rateLimiter;
+    }
+
     public record AskRequest(
             String question,
             String projectId,
@@ -53,8 +68,12 @@ public class AgentController {
             String model) {
     }
 
+    public ResponseEntity<String> ask(AskRequest request) {
+        return ask(request, null);
+    }
+
     @PostMapping("/ask")
-    public ResponseEntity<String> ask(@RequestBody AskRequest request) {
+    public ResponseEntity<String> ask(@RequestBody AskRequest request, HttpServletRequest httpRequest) {
         if (!enabled || internalKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Agent is not configured");
         }
@@ -76,6 +95,21 @@ public class AgentController {
         }
         String requestId = UUID.randomUUID().toString();
         try {
+            // Checked after the busy permit so a rejected concurrent request does not use up a client's quota.
+            var rejection = rateLimiter.tryAcquire(clientAddress(httpRequest));
+            if (rejection.isPresent()) {
+                log.info("AGENT_RATE_LIMITED requestId={} reason={}", requestId, rejection.get().reason());
+                String retryAfter = String.valueOf(rejection.get().retryAfterSeconds());
+                // AgentErrorHandler copies these headers into the 429 response.
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, rejection.get().reason()) {
+                    @Override
+                    public org.springframework.http.HttpHeaders getHeaders() {
+                        var headers = new org.springframework.http.HttpHeaders();
+                        headers.set("Retry-After", retryAfter);
+                        return headers;
+                    }
+                };
+            }
             LocalDate since = LocalDate.parse(request.since());
             LocalDate until = LocalDate.parse(request.until());
             if (until.isBefore(since) || until.isAfter(LocalDate.now().plusDays(1))
@@ -120,5 +154,21 @@ public class AgentController {
         } finally {
             requestPermit.release();
         }
+    }
+
+    /** The last X-Forwarded-For entry is the one Caddy added, so a client cannot choose its own key. */
+    static String clientAddress(HttpServletRequest request) {
+        if (request == null) {
+            return "unknown";
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            String[] hops = forwarded.split(",");
+            String last = hops[hops.length - 1].trim();
+            if (!last.isEmpty()) {
+                return last;
+            }
+        }
+        return request.getRemoteAddr() == null ? "unknown" : request.getRemoteAddr();
     }
 }

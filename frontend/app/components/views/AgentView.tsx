@@ -297,6 +297,14 @@ export function AgentView({ onOpenSettings, model }: {
 
 function errorMessage(status: number | undefined, details: string, isJapanese: boolean) {
     if (status === 429) {
+        if (details.includes('Hourly question limit')) {
+            return isJapanese ? '1 時間あたりの質問数の上限に達しました。しばらくしてから再試行してください。'
+                : 'You have reached the hourly question limit. Please try again later.';
+        }
+        if (details.includes('Daily question limit')) {
+            return isJapanese ? '本日の公開デモの質問数が上限に達しました。明日（UTC）以降に再試行してください。'
+                : "Today's question limit for the public demo has been reached. Please try again tomorrow (UTC).";
+        }
         if (details.includes('Agent is busy')) {
             return isJapanese ? '別の質問を処理中です。完了してから再試行してください。'
                 : 'Another question is already running. Please retry when it finishes.';

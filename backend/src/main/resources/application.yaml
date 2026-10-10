@@ -1,6 +1,10 @@
 spring:
   application:
     name: dev_productivity_signals
+  mvc:
+    async:
+      # Streamed Agent answers (/api/agent/ask/stream) run up to the Agent's 240 s limit.
+      request-timeout: 300s
   servlet:
     context-path: /
 

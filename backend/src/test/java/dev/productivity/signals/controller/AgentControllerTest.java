@@ -148,6 +148,65 @@ class AgentControllerTest {
     }
 
     @Test
+    void streamRelaysAgentEventsAndReleasesThePermit() throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        var events = "data: {\"type\":\"step\",\"tool\":\"get_project_metrics\"}\n\n"
+                + "data: {\"type\":\"done\",\"response\":{\"answer\":\"A\"}}\n\n";
+        server.createContext("/ask/stream", exchange -> {
+            var bytes = events.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "text/event-stream");
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (var output = exchange.getResponseBody()) {
+                output.write(bytes);
+            }
+        });
+        server.start();
+        try {
+            var controller = configuredController(server);
+            var mvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new AgentErrorHandler()).build();
+            var body = new ObjectMapper().writeValueAsString(validRequest());
+            for (int attempt = 0; attempt < 2; attempt++) {
+                var started = mvc.perform(post("/api/agent/ask/stream").contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.request()
+                                .asyncStarted())
+                        .andReturn();
+                mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .asyncDispatch(started))
+                        .andExpect(status().isOk())
+                        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                                .string(events));
+            }
+            var permit = (Semaphore) ReflectionTestUtils.getField(controller, "requestPermit");
+            assertThat(permit.availablePermits()).isEqualTo(1);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void streamChecksLimitsBeforeStreaming() throws Exception {
+        var controller = new AgentController(new AgentRateLimiter(1, 0, java.time.Clock.systemUTC()));
+        ReflectionTestUtils.setField(controller, "enabled", true);
+        ReflectionTestUtils.setField(controller, "internalKey", "test-internal-key");
+        ReflectionTestUtils.setField(controller, "serviceUrl", "http://127.0.0.1:9");
+        var permit = (Semaphore) ReflectionTestUtils.getField(controller, "requestPermit");
+        permit.acquire();
+        var mvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new AgentErrorHandler()).build();
+        var body = new ObjectMapper().writeValueAsString(validRequest());
+        mvc.perform(post("/api/agent/ask/stream").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.detail").value("Agent is busy"));
+        permit.release();
+        var bad = new AgentController.AskRequest("q", "github~a~b", "bad", "bad", null, null);
+        mvc.perform(post("/api/agent/ask/stream").contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(bad)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Invalid date format"));
+        assertThat(permit.availablePermits()).isEqualTo(1);
+    }
+
+    @Test
     void clientAddressUsesTheLastForwardedHop() {
         var http = new MockHttpServletRequest();
         http.setRemoteAddr("172.18.0.5");

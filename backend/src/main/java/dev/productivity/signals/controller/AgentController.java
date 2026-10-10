@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -72,8 +75,8 @@ public class AgentController {
         return ask(request, null);
     }
 
-    @PostMapping("/ask")
-    public ResponseEntity<String> ask(@RequestBody AskRequest request, HttpServletRequest httpRequest) {
+    /** Validation shared by both endpoints; runs before any quota is used. */
+    private void validate(AskRequest request) {
         if (!enabled || internalKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Agent is not configured");
         }
@@ -90,39 +93,120 @@ public class AgentController {
         if (request.model() != null && !ALLOWED_MODELS.contains(request.model())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported Agent model");
         }
-        if (!requestPermit.tryAcquire()) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Agent is busy");
-        }
-        String requestId = UUID.randomUUID().toString();
         try {
-            // Checked after the busy permit so a rejected concurrent request does not use up a client's quota.
-            var rejection = rateLimiter.tryAcquire(clientAddress(httpRequest));
-            if (rejection.isPresent()) {
-                log.info("AGENT_RATE_LIMITED requestId={} reason={}", requestId, rejection.get().reason());
-                String retryAfter = String.valueOf(rejection.get().retryAfterSeconds());
-                // AgentErrorHandler copies these headers into the 429 response.
-                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, rejection.get().reason()) {
-                    @Override
-                    public org.springframework.http.HttpHeaders getHeaders() {
-                        var headers = new org.springframework.http.HttpHeaders();
-                        headers.set("Retry-After", retryAfter);
-                        return headers;
-                    }
-                };
-            }
             LocalDate since = LocalDate.parse(request.since());
             LocalDate until = LocalDate.parse(request.until());
             if (until.isBefore(since) || until.isAfter(LocalDate.now().plusDays(1))
                     || since.isBefore(until.minusDays(365))) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date range");
             }
-            HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(serviceUrl + "/ask"))
-                    .timeout(Duration.ofSeconds(270))
-                    .header("Content-Type", "application/json")
-                    .header("X-Agent-Internal-Key", internalKey)
-                    .header("X-Request-Id", requestId)
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)));
-            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (java.time.format.DateTimeParseException error) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format", error);
+        }
+    }
+
+    /**
+     * Takes the single busy permit, then a rate-limit slot, so a busy rejection does not use a client's quota.
+     * The caller releases the permit.
+     */
+    private void acquire(HttpServletRequest httpRequest, String requestId) {
+        if (!requestPermit.tryAcquire()) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Agent is busy");
+        }
+        var rejection = rateLimiter.tryAcquire(clientAddress(httpRequest));
+        if (rejection.isPresent()) {
+            requestPermit.release();
+            log.info("AGENT_RATE_LIMITED requestId={} reason={}", requestId, rejection.get().reason());
+            String retryAfter = String.valueOf(rejection.get().retryAfterSeconds());
+            // AgentErrorHandler copies these headers into the 429 response.
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, rejection.get().reason()) {
+                @Override
+                public org.springframework.http.HttpHeaders getHeaders() {
+                    var headers = new org.springframework.http.HttpHeaders();
+                    headers.set("Retry-After", retryAfter);
+                    return headers;
+                }
+            };
+        }
+    }
+
+    private HttpRequest upstream(String path, AskRequest request, String requestId) throws IOException {
+        return HttpRequest.newBuilder(URI.create(serviceUrl + path))
+                .timeout(Duration.ofSeconds(270))
+                .header("Content-Type", "application/json")
+                .header("X-Agent-Internal-Key", internalKey)
+                .header("X-Request-Id", requestId)
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
+                .build();
+    }
+
+    /**
+     * Server-sent events from the Agent, relayed as they arrive: step, thought and answer progress, then a
+     * "done" event with the full answer or an "error" event with the status the JSON endpoint would return.
+     */
+    @PostMapping("/ask/stream")
+    public ResponseEntity<StreamingResponseBody> askStream(@RequestBody AskRequest request,
+            HttpServletRequest httpRequest) {
+        validate(request);
+        String requestId = UUID.randomUUID().toString();
+        acquire(httpRequest, requestId);
+        StreamingResponseBody body = output -> {
+            try {
+                HttpResponse<InputStream> response = httpClient.send(upstream("/ask/stream", request, requestId),
+                        HttpResponse.BodyHandlers.ofInputStream());
+                log.info("AGENT_PROXY_STREAM requestId={} upstreamStatus={}", requestId, response.statusCode());
+                try (InputStream input = response.body()) {
+                    if (response.statusCode() != 200) {
+                        output.write(errorEvent(response.statusCode() == 503 ? 503 : 502,
+                                response.statusCode() == 503 ? "Gemini service temporarily unavailable"
+                                        : "Agent request failed"));
+                        output.flush();
+                        return;
+                    }
+                    byte[] buffer = new byte[4096];
+                    int read;
+                    while ((read = input.read(buffer)) != -1) {
+                        output.write(buffer, 0, read);
+                        output.flush();
+                    }
+                }
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                log.warn("AGENT_PROXY_STREAM_FAILURE requestId={} errorType=InterruptedException", requestId);
+            } catch (IOException error) {
+                // Also reached when the browser goes away; closing the upstream stream stops the Agent.
+                log.warn("AGENT_PROXY_STREAM_FAILURE requestId={} errorType={}", requestId,
+                        error.getClass().getSimpleName());
+                try {
+                    output.write(errorEvent(502, "Agent unavailable"));
+                    output.flush();
+                } catch (IOException ignored) {
+                    // The client is gone.
+                }
+            } finally {
+                requestPermit.release();
+            }
+        };
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .header("Cache-Control", "no-cache")
+                .header("X-Accel-Buffering", "no")
+                .body(body);
+    }
+
+    private byte[] errorEvent(int status, String detail) throws IOException {
+        String json = objectMapper.writeValueAsString(java.util.Map.of("type", "error", "status", status,
+                "detail", detail));
+        return ("data: " + json + "\n\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    @PostMapping("/ask")
+    public ResponseEntity<String> ask(@RequestBody AskRequest request, HttpServletRequest httpRequest) {
+        validate(request);
+        String requestId = UUID.randomUUID().toString();
+        acquire(httpRequest, requestId);
+        try {
+            HttpResponse<String> response = httpClient.send(upstream("/ask", request, requestId), HttpResponse.BodyHandlers.ofString());
             log.info("AGENT_PROXY requestId={} upstreamStatus={}", requestId, response.statusCode());
             if (response.statusCode() == 429) {
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "GitHub API rate limit reached");
@@ -145,8 +229,6 @@ public class AgentController {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response.body());
         } catch (ResponseStatusException error) {
             throw error;
-        } catch (java.time.format.DateTimeParseException error) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date format", error);
         } catch (Exception error) {
             log.warn("AGENT_PROXY_FAILURE requestId={} errorType={}", requestId,
                     error.getClass().getSimpleName());

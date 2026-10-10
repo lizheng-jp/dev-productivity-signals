@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, model_validator
 
@@ -196,8 +196,8 @@ class GeminiGateway:
         self.tool_policy = tool_policy
         self.last_usage: dict[str, int] = {}
 
-    async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
-        payload = {
+    def _payload(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
+        payload: dict[str, Any] = {
             "systemInstruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]
                                   + ([{"text": STRICT_EVIDENCE_INSTRUCTION}] if self.strict_evidence else [])},
             "contents": contents,
@@ -239,6 +239,10 @@ class GeminiGateway:
                     function_config = {"mode": "ANY", "allowedFunctionNames": ["get_merge_lead_distribution"]}
             payload["tools"] = TOOLS
             payload["toolConfig"] = {"functionCallingConfig": function_config}
+        return payload
+
+    async def generate(self, contents: list[dict[str, Any]], mode: str) -> dict[str, Any]:
+        payload = self._payload(contents, mode)
         url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
                f"{quote(self.model, safe='')}:generateContent")
         for attempt in range(3):
@@ -271,6 +275,77 @@ class GeminiGateway:
         if not candidates or not candidates[0].get("content"):
             raise ValueError("Model returned no content")
         return candidates[0]["content"]
+
+    async def generate_stream(self, contents: list[dict[str, Any]], mode: str, on_delta) -> dict[str, Any]:
+        """Streams one turn with thought summaries. on_delta(kind, text) receives "thought" and "text" pieces.
+
+        Returns the turn's content for the conversation history: text pieces merged into one part, function
+        calls as received, thought-summary parts left out, and every thoughtSignature kept, because the model
+        rejects later turns whose history lost one.
+        """
+        payload = self._payload(contents, mode)
+        payload["generationConfig"] = {"thinkingConfig": {"includeThoughts": True}}
+        url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+               f"{quote(self.model, safe='')}:streamGenerateContent?alt=sse")
+        for attempt in range(3):
+            parts: list[dict[str, Any]] = []
+            text_part: dict[str, Any] | None = None
+            pending_signature: str | None = None
+            usage: Any = None
+            try:
+                async with self.client.stream("POST", url, headers={"x-goog-api-key": self.key},
+                                              json=payload, timeout=90) as response:
+                    if response.status_code >= 400:
+                        await response.aread()
+                        response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        chunk = json.loads(line[5:])
+                        usage = chunk.get("usageMetadata", usage)
+                        for part in ((chunk.get("candidates") or [{}])[0].get("content") or {}).get("parts", []):
+                            signature = part.get("thoughtSignature")
+                            if part.get("thought"):
+                                if part.get("text"):
+                                    await on_delta("thought", part["text"])
+                                pending_signature = signature or pending_signature
+                            elif "text" in part:
+                                if part["text"]:
+                                    await on_delta("text", part["text"])
+                                if text_part is None and (part["text"] or signature or pending_signature):
+                                    text_part = {"text": ""}
+                                    parts.append(text_part)
+                                if text_part is not None:
+                                    text_part["text"] += part["text"]
+                                    if signature or pending_signature:
+                                        text_part["thoughtSignature"] = signature or pending_signature
+                                        pending_signature = None
+                            else:
+                                if pending_signature and "thoughtSignature" not in part:
+                                    part = {**part, "thoughtSignature": pending_signature}
+                                    pending_signature = None
+                                parts.append(part)
+                                text_part = None
+                break
+            except httpx.HTTPStatusError as error:
+                status = error.response.status_code
+                if status not in {500, 502, 503, 504} or attempt == 2 or parts:
+                    raise
+                delay = 2 ** attempt + random.uniform(0, 0.25)
+                _log("model_retry", status_code=status, attempt=attempt + 1, delay_ms=round(delay * 1000))
+                await asyncio.sleep(delay)
+            except (httpx.TimeoutException, httpx.NetworkError):
+                if attempt == 2 or parts:
+                    raise
+                delay = 2 ** attempt + random.uniform(0, 0.25)
+                _log("model_retry", error_type="network", attempt=attempt + 1, delay_ms=round(delay * 1000))
+                await asyncio.sleep(delay)
+        self.last_usage = _usage(usage)
+        for kind, count in self.last_usage.items():
+            MODEL_TOKENS.labels(kind).inc(count)
+        if not parts:
+            raise ValueError("Model returned no content")
+        return {"role": "model", "parts": parts}
 
 
 USAGE_FIELDS = {"promptTokenCount": "input", "candidatesTokenCount": "output",
@@ -426,8 +501,21 @@ def _log(event: str, **fields: Any) -> None:
     logger.info(json.dumps({"event": event, **fields}, separators=(",", ":")))
 
 
+def _step_detail(name: str, args: dict[str, Any]) -> str | None:
+    if name == "search_project_evidence":
+        return args.get("query")
+    if name == "get_merge_request_details":
+        return f"#{args.get('mrIid')}"
+    if name == "get_member_metrics":
+        return args.get("userName")
+    return None
+
+
 async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTools,
-                    request_id: str, execution_id: str) -> AskResponse:
+                    request_id: str, execution_id: str, emit=None) -> AskResponse:
+    """emit, when given, is an async callable receiving progress events for streaming clients: tool steps,
+    thought-summary and answer text pieces, and answer_reset when streamed text turned out to precede a tool
+    call. The returned AskResponse is the same either way."""
     start = time.monotonic()
     contents: list[dict[str, Any]] = [{"role": "user", "parts": [{"text": request.question}]}]
     sources: list[Source] = []
@@ -451,12 +539,18 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
     owner, repo = request.projectId.split("~")[1:]
     project_url = f"https://github.com/{owner}/{repo}"
 
+    async def notify(event: dict[str, Any]) -> None:
+        if emit is not None:
+            await emit(event)
+
     async def run_tool(name: str, args: dict[str, Any]) -> Any:
         nonlocal tool_count, supported
         tool_start = time.monotonic()
+        await notify({"type": "step", "status": "running", "tool": name, "detail": _step_detail(name, args)})
         try:
             evidence, source = await tools.execute(name, request, args)
         except Exception as error:
+            await notify({"type": "step", "status": "failed", "tool": name, "detail": _step_detail(name, args)})
             TOOL_CALLS.labels(name, "failure").inc()
             TOOL_DURATION.labels(name).observe(time.monotonic() - tool_start)
             _log("tool_failure", request_id=request_id, execution_id=execution_id,
@@ -481,6 +575,9 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         tool_count += 1
         _log("tool", request_id=request_id, execution_id=execution_id, tool=name,
              duration_ms=round((time.monotonic() - tool_start) * 1000))
+        items = evidence.get("items") if isinstance(evidence, dict) else None
+        await notify({"type": "step", "status": "done", "tool": name, "detail": _step_detail(name, args),
+                      **({"count": len(items)} if isinstance(items, list) else {})})
         return evidence
     nudged = False
     # The open policy allows one extra turn to ask for the final answer in plain words.
@@ -488,8 +585,18 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         mode = ("NONE" if tool_count == MAX_TOOL_CALLS or (open_policy and iterations >= MAX_TOOL_CALLS)
                 else "ANY" if tool_count == 0 else "AUTO")
         model_start = time.monotonic()
+        streamed_text = False
+
+        async def on_delta(kind: str, text: str) -> None:
+            nonlocal streamed_text
+            if kind == "text":
+                streamed_text = True
+            await notify({"type": "thought" if kind == "thought" else "answer", "text": text})
         try:
-            content = await model.generate(contents, mode)
+            if emit is not None and hasattr(model, "generate_stream"):
+                content = await model.generate_stream(contents, mode, on_delta)
+            else:
+                content = await model.generate(contents, mode)
             MODEL_CALLS.labels("success").inc()
             MODEL_DURATION.observe(time.monotonic() - model_start)
             usage = getattr(model, "last_usage", None) or {}
@@ -510,6 +617,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
              mode=mode, part_types=[next(iter(part), "empty") for part in parts],
              text_chars=sum(len(part.get("text", "")) for part in parts))
         calls = [part["functionCall"] for part in parts if "functionCall" in part]
+        if calls and streamed_text:
+            await notify({"type": "answer_reset"})
         if not calls:
             answer = "\n".join(part.get("text", "") for part in parts).strip()
             if not sources or not answer:
@@ -529,6 +638,7 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
             continue
         if open_policy:
             responses = []
+            feedback_steps: list[dict[str, Any]] = []
             for call in calls:
                 name, args = call.get("name", ""), call.get("args")
                 args = {} if args is None else args
@@ -537,6 +647,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                 def feedback(message: str) -> None:
                     responses.append({"functionResponse": {"name": name, "response": {"error": message},
                                                            **call_id}})
+                    feedback_steps.append({"type": "step", "status": "skipped", "tool": name,
+                                           "detail": message})
                 if name not in tool_names or not isinstance(args, dict):
                     feedback("Unknown tool or malformed arguments.")
                     continue
@@ -557,6 +669,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                 evidence_by_key[key] = evidence
                 responses.append({"functionResponse": {"name": name, "response": {"evidence": evidence},
                                                        **call_id}})
+            for step in feedback_steps:
+                await notify(step)
             contents.append(content)
             contents.append({"role": "user", "parts": responses})
             continue
@@ -700,9 +814,34 @@ async def index_project(project_id: str, request: IndexRequest,
         INDEX_DURATION.observe(time.monotonic() - index_start)
 
 
-@app.post("/ask", response_model=AskResponse)
-async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(default=None),
-              x_request_id: str | None = Header(default=None)) -> AskResponse:
+KNOWN_FAILURES = frozenset({
+    "Model returned no content", "Model did not produce a grounded answer",
+    "Model exceeded tool budget", "Search requires structured evidence first",
+    "Invalid tool call", "Agent exceeded iteration budget",
+})
+
+
+def _failure(error: Exception, request_id: str, execution_id: str) -> tuple[int, str]:
+    """Maps an Agent failure to the HTTP status and detail both /ask endpoints report."""
+    if isinstance(error, GitHubRateLimitError):
+        return 429, "GitHub API rate limit reached"
+    if isinstance(error, QdrantRequestError):
+        _log("evidence_store_failure", request_id=request_id, execution_id=execution_id,
+             status_code=error.status_code)
+        return 503, "Evidence store unavailable"
+    if isinstance(error, httpx.HTTPStatusError):
+        if error.response.status_code == 429:
+            return 429, "Gemini API rate limit reached; retry later"
+        if error.response.status_code == 503:
+            return 503, "Gemini service temporarily unavailable"
+        return 502, "Agent could not complete this request"
+    _log("agent_failure", request_id=request_id, execution_id=execution_id,
+         error_type=type(error).__name__,
+         reason=str(error) if isinstance(error, ValueError) and str(error) in KNOWN_FAILURES else None)
+    return 502, "Agent could not complete this request"
+
+
+def _authorized_model_key(x_agent_internal_key: str | None) -> tuple[str, str]:
     expected_key = os.getenv("AGENT_INTERNAL_KEY", "")
     if not expected_key or not x_agent_internal_key or not secrets.compare_digest(
             expected_key, x_agent_internal_key):
@@ -710,46 +849,83 @@ async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(def
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     if not gemini_key:
         raise HTTPException(status_code=503, detail="Model is not configured")
+    return expected_key, gemini_key
+
+
+def _agent(client: httpx.AsyncClient, request: AskRequest, internal_key: str,
+           gemini_key: str) -> tuple[GeminiGateway, SignalsTools]:
+    model = GeminiGateway(client, gemini_key,
+                          request.model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+                          os.getenv("AGENT_TOOL_POLICY", "open"),
+                          os.getenv("AGENT_STRICT_EVIDENCE", "true").lower() == "true")
+    tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), internal_key,
+                         embedding_provider=configured_embedding(client))
+    return model, tools
+
+
+@app.post("/ask", response_model=AskResponse)
+async def ask(request: AskRequest, x_agent_internal_key: str | None = Header(default=None),
+              x_request_id: str | None = Header(default=None)) -> AskResponse:
+    internal_key, gemini_key = _authorized_model_key(x_agent_internal_key)
     request_id = x_request_id if x_request_id and len(x_request_id) <= 80 else str(uuid4())
     execution_id = str(uuid4())
     start = time.monotonic()
     outcome = "failure"
     async with httpx.AsyncClient() as client:
-        model = GeminiGateway(client, gemini_key,
-                              request.model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-                              os.getenv("AGENT_TOOL_POLICY", "open"),
-                              os.getenv("AGENT_STRICT_EVIDENCE", "true").lower() == "true")
-        tools = SignalsTools(client, os.getenv("Signals_BACKEND_URL", "http://tomcat:8080"), expected_key,
-                          embedding_provider=configured_embedding(client))
+        model, tools = _agent(client, request, internal_key, gemini_key)
         try:
             async with asyncio.timeout(240):
                 result = await run_agent(request, model, tools, request_id, execution_id)
                 outcome = "success"
                 return result
-        except GitHubRateLimitError:
-            raise HTTPException(status_code=429, detail="GitHub API rate limit reached") from None
-        except QdrantRequestError as error:
-            _log("evidence_store_failure", request_id=request_id, execution_id=execution_id,
-                 status_code=error.status_code)
-            raise HTTPException(status_code=503, detail="Evidence store unavailable") from None
-        except httpx.HTTPStatusError as error:
-            if error.response.status_code == 429:
-                raise HTTPException(status_code=429, detail="Gemini API rate limit reached; retry later") from None
-            if error.response.status_code == 503:
-                raise HTTPException(status_code=503, detail="Gemini service temporarily unavailable") from None
-            raise HTTPException(status_code=502, detail="Agent could not complete this request") from None
         except Exception as error:
-            known_reasons = {
-                "Model returned no content", "Model did not produce a grounded answer",
-                "Model exceeded tool budget", "Search requires structured evidence first",
-                "Invalid tool call", "Agent exceeded iteration budget",
-            }
-            _log("agent_failure", request_id=request_id, execution_id=execution_id,
-                 error_type=type(error).__name__,
-                 reason=str(error) if isinstance(error, ValueError) and str(error) in known_reasons else None)
-            raise HTTPException(status_code=502, detail="Agent could not complete this request") from None
+            status, detail = _failure(error, request_id, execution_id)
+            raise HTTPException(status_code=status, detail=detail) from None
         finally:
             EXECUTIONS.labels(outcome).inc()
             EXECUTION_DURATION.observe(time.monotonic() - start)
             _log("request_finished", request_id=request_id, execution_id=execution_id,
                  total_ms=round((time.monotonic() - start) * 1000))
+
+
+@app.post("/ask/stream")
+async def ask_stream(request: AskRequest, x_agent_internal_key: str | None = Header(default=None),
+                     x_request_id: str | None = Header(default=None)) -> StreamingResponse:
+    """Server-sent events: step, thought and answer progress, then one final "done" event carrying the same
+    AskResponse as /ask, or an "error" event with the status and detail /ask would have returned."""
+    internal_key, gemini_key = _authorized_model_key(x_agent_internal_key)
+    request_id = x_request_id if x_request_id and len(x_request_id) <= 80 else str(uuid4())
+    execution_id = str(uuid4())
+    events: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+
+    async def produce() -> None:
+        start = time.monotonic()
+        outcome = "failure"
+        try:
+            async with httpx.AsyncClient() as client:
+                model, tools = _agent(client, request, internal_key, gemini_key)
+                async with asyncio.timeout(240):
+                    result = await run_agent(request, model, tools, request_id, execution_id, emit=events.put)
+                outcome = "success"
+                await events.put({"type": "done", "response": result.model_dump(mode="json")})
+        except Exception as error:
+            status, detail = _failure(error, request_id, execution_id)
+            await events.put({"type": "error", "status": status, "detail": detail})
+        finally:
+            EXECUTIONS.labels(outcome).inc()
+            EXECUTION_DURATION.observe(time.monotonic() - start)
+            _log("request_finished", request_id=request_id, execution_id=execution_id,
+                 total_ms=round((time.monotonic() - start) * 1000), streamed=True)
+            await events.put(None)
+
+    async def stream():
+        task = asyncio.create_task(produce())
+        try:
+            while (event := await events.get()) is not None:
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        finally:
+            if not task.done():
+                task.cancel()
+
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

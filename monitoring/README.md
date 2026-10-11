@@ -1,6 +1,6 @@
 # Monitoring: Prometheus on the server, Grafana on your machine
 
-Production runs **Prometheus** (7 days or 512 MB of samples, 256 MiB memory limit) and **node-exporter**
+Production runs **Prometheus** (30 days or 1 GB of samples, whichever comes first; 256 MiB memory limit) and **node-exporter**
 next to Signals. Prometheus scrapes the backend (`/actuator/prometheus`), the Signals Agent (`/metrics`)
 and the host every 15 seconds. Its port 9090 is bound to the server's loopback interface only: do not open
 it in the firewall. You view it from **Grafana on your own machine** through an SSH tunnel.

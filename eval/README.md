@@ -139,12 +139,52 @@ the package still lacking a PR's target branch or a comment's author, and are ex
   interpretation and recommendation sections (for example the Go version that introduced `netip`).
 - Both runs together cost about US$2.5 in Gemini calls.
 
+## Main task: "why did metric X change?"
+
+The lookups above test retrieval, not the question the Agent exists for. `main_task/questions.jsonl` has 18
+such questions over four periods with the production setup (gemini-3.8-flash, feedback, strict): 10 plain
+changes, 5 with a false premise (for example "why did commits drop?" when they rose), 2 on an implausible
+metric (a bug-fix lead time of 1.7 to 3 years) and 1 on a flat metric. There is no reference answer, so each
+answer is checked for properties against the tool evidence it received, recorded with `includeTrace` (an
+Agent request field the public API does not pass through).
+
+Program checks (`main_task/check.py`): every number an answer states must appear in its evidence or follow
+from one metric's two period values (difference, percent, ratio, hours in days or weeks); every cited PR or
+issue must appear in the evidence; a metric tool must run before any search.
+
+Language checks (`main_task/build_rubric_package.py`): Codex graded direction, premise handling, causes stated
+without evidence, stated limitations and anomaly handling; Claude graded 10 of the 18 independently first.
+They agreed on 8 of 10. Codex's 4 flagged causes were all checked against the full trace and overturned: two
+cited figures cut from the 1500-character evidence the package gave Codex (the limit is now raised), one
+followed arithmetically from a mean, one was a strongly worded but supported reading of P50 and P90
+(`main_task/grades.jsonl` keeps both verdicts).
+
+| Check | Result |
+|---|---|
+| Answered | 18 / 18, median 21.7 s |
+| Numbers stated that match the evidence | 404 / 404 |
+| Cited PRs or issues present in the evidence | all |
+| Metric tool before search | 18 / 18 |
+| Direction of change stated correctly | 18 / 18 |
+| False premise corrected | 5 / 5 |
+| Causes stated without evidence | 0 / 18 |
+| Limits of the evidence stated | 17 / 18 |
+| Implausible metric questioned | 0 / 2 |
+
+- The Agent reports measured changes faithfully and does not invent causes; with search coverage incomplete
+  in every run, the honest answer is usually "the change is measured, its cause is not established".
+- It never questions an implausible value. Both anomaly answers explain a multi-year mean bug-fix lead time as
+  a few long-lived fixes; the earlier Claude reading counted a mention of small-sample skew as questioning, and
+  Codex's stricter reading was kept. The fix is a plausibility check in the tool output, not a prompt change.
+- 18 questions on one repository are a smoke test: 0 of 18 has a 95% upper bound of about 17%.
+- The run cost about US$0.4 in Gemini calls.
+
 ## Caveats
 
 - The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries, so the flagging numbers are
   optimistic. They need confirming on held-out queries or another repository.
-- The questions are lookups written after reading the sources, not the Agent's main task of explaining
-  metric changes, and graders are language models checked against each other.
+- Apart from the 18 main-task questions, the questions are lookups written after reading the sources, and
+  graders are language models checked against each other.
 - 123 sources and 55 queries are small; differences of a few hundredths between models are within noise.
 - The backend scans only the first page (100 items) of recently updated PRs and issues, so the corpus is a
   sample of the window, with only 10 issues.
@@ -157,6 +197,18 @@ docker compose --profile agent exec agent python -m app.evaluate --project-id gi
 docker compose --profile agent cp eval/labels.jsonl agent:/tmp/labels.jsonl
 docker compose --profile agent exec agent python -m app.retrieval_eval run \
     --project-id github~prometheus~prometheus --ref-name main --labels /tmp/labels.jsonl
+```
+
+Main task (questions carry their own `since` and `until`):
+
+```sh
+docker compose --profile agent cp eval/main_task/questions.jsonl agent:/tmp/main.jsonl
+docker compose --profile agent exec agent python -m app.answer_eval generate \
+    --project-id github~prometheus~prometheus --ref-name main --reference /tmp/main.jsonl \
+    --out /tmp/main_answers.jsonl --include-trace
+python3 eval/main_task/check.py eval/main_task/questions.jsonl eval/main_task/answers.jsonl > checks.jsonl
+python3 eval/main_task/build_rubric_package.py eval/main_task/questions.jsonl eval/main_task/answers.jsonl \
+    checks.jsonl ~/codex-main-task
 ```
 
 Re-indexing later fetches a different GitHub sample, so label source IDs may no longer exist.

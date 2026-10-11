@@ -131,6 +131,9 @@ class AskRequest(BaseModel):
     until: date
     refName: str | None = Field(default=None, max_length=255)
     model: str | None = None
+    # Evaluation only: return every tool call's arguments and evidence in AskResponse.trace. The public Spring
+    # proxy does not forward this field.
+    includeTrace: bool = False
 
     @model_validator(mode="after")
     def valid_range(self) -> "AskRequest":
@@ -159,6 +162,7 @@ class AskResponse(BaseModel):
     answer: str
     sources: list[Source]
     iterations: int
+    trace: list[dict[str, Any]] | None = None
 
 
 class IndexRequest(BaseModel):
@@ -543,6 +547,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         if emit is not None:
             await emit(event)
 
+    trace: list[dict[str, Any]] | None = [] if request.includeTrace else None
+
     async def run_tool(name: str, args: dict[str, Any]) -> Any:
         nonlocal tool_count, supported
         tool_start = time.monotonic()
@@ -575,6 +581,8 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
         tool_count += 1
         _log("tool", request_id=request_id, execution_id=execution_id, tool=name,
              duration_ms=round((time.monotonic() - tool_start) * 1000))
+        if trace is not None:
+            trace.append({"tool": name, "args": args, "evidence": evidence})
         items = evidence.get("items") if isinstance(evidence, dict) else None
         await notify({"type": "step", "status": "done", "tool": name, "detail": _step_detail(name, args),
                       **({"count": len(items)} if isinstance(items, list) else {})})
@@ -628,7 +636,7 @@ async def run_agent(request: AskRequest, model: ModelGateway, tools: SignalsTool
                  total_ms=round((time.monotonic() - start) * 1000), iterations=iterations,
                  tool_count=tool_count, tokens=tokens)
             return AskResponse(requestId=request_id, executionId=execution_id,
-                               answer=answer, sources=sources, iterations=iterations)
+                               answer=answer, sources=sources, iterations=iterations, trace=trace)
         if open_policy and mode == "NONE":
             # Some models still request tools when none are offered; ask once more for the answer itself.
             if nudged:

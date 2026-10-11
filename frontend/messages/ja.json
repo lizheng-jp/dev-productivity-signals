@@ -12,9 +12,7 @@
         "groups": "グループ",
         "settings": "設定",
         "metricWeights": "指標の重み",
-        "aiInsights": "AIインサイト",
-        "moreProjects": "その他のプロジェクト",
-        "anomalyLab": "Anomaly Lab"
+        "aiInsights": "AIインサイト"
     },
     "Dashboard": {
         "overview": "概要",

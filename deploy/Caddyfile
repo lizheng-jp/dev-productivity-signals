@@ -22,3 +22,7 @@
     }
   }
 }
+
+# Other sites on this host (for example the Vision demo) live in deploy/sites/*.caddy on the server.
+# CI never ships or overwrites that directory, so a Signals deploy cannot drop them. No match is fine.
+import /etc/caddy/sites/*.caddy

@@ -106,6 +106,10 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+    distribution:
+      # Histogram buckets let Prometheus compute P95 latency per endpoint.
+      percentiles-histogram:
+        http.server.requests: true
 
 logging:
     level:

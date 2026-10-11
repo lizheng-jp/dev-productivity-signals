@@ -111,7 +111,10 @@ SYSTEM_INSTRUCTION = (
     "If retrieval is empty, low-confidence, coverageIncomplete, or candidateLimitReached, "
     "say that the cause is not established. "
     "Do not invent sources, code changes, people, or numbers. "
-    "Use only the selected project's tool evidence."
+    "Use only the selected project's tool evidence. "
+    "When metric evidence carries dataWarnings, state each warning about a metric the question asks about, "
+    "and do not explain a flagged value as a real change in speed or productivity. Leave out warnings about "
+    "other metrics. A warning's example explanation is a possibility, not what happened."
 )
 FINAL_ANSWER_REQUEST = ("No more tool calls are available. Write the final answer now, in text, "
                         "using only the evidence already returned.")
@@ -432,9 +435,11 @@ class SignalsTools:
             raise GitHubRateLimitError()
         response.raise_for_status()
         data = response.json()
+        warnings: list[str] = []
         if name == "get_project_metrics":
             evidence = {"period": {"since": params["since"], "until": params["until"]},
                         "metrics": _metrics(data)}
+            warnings = plausibility_warnings(evidence["metrics"])
         elif name == "get_project_comparison":
             evidence = {
                 "periods": data.get("periods", {}),
@@ -443,6 +448,8 @@ class SignalsTools:
                 "trends": {key: value for key, value in data.get("projectTrends", {}).items()
                            if key in METRICS},
             }
+            warnings = (plausibility_warnings(evidence["current"], "Current")
+                        + plausibility_warnings(evidence["previous"], "Previous"))
         elif name == "get_member_metrics":
             if "userName" in args:
                 evidence = {"userName": args["userName"], "metrics": _metrics(data)}
@@ -457,12 +464,48 @@ class SignalsTools:
                         "selection": data.get("selection", "")}
         else:
             evidence = data
+        if name in {"get_project_metrics", "get_project_comparison"} and warnings:
+            evidence["dataWarnings"] = warnings
         owner, repo = request.projectId.split("~")[1:]
         source = Source(tool=name, apiPath=str(response.request.url).removeprefix(self.base_url),
                         projectUrl=(f"https://github.com/{owner}/{repo}/pull/{args['mrIid']}"
                                     if name == "get_merge_request_details" else
                                     f"https://github.com/{owner}/{repo}"))
         return evidence, source
+
+
+# Mean durations and the counts they average over. The main-task evaluation found answers explaining a
+# multi-year mean bug-fix lead time from 3 to 5 issues as a real slowdown instead of questioning it.
+MEAN_SAMPLE_COUNTS = {"bugFixLeadTimeHours": "bugFixedCount", "mergedLeadTimeHours": "mergedCount",
+                      "reviewWaitTime": "mergedCount"}
+MEASURED_FROM = {"bugFixLeadTimeHours": "bug issue creation to closing",
+                 "mergedLeadTimeHours": "pull request creation to merge",
+                 "reviewWaitTime": "pull request creation to first review"}
+IMPLAUSIBLE_MEAN_HOURS = 90 * 24
+SMALL_SAMPLE = 5
+
+
+def plausibility_warnings(metrics: dict[str, Any], label: str = "") -> list[str]:
+    """Plain-language warnings for mean durations that are unmeasured, rest on few items or look implausible."""
+    warnings = []
+    prefix = f"{label} " if label else ""
+    for metric, count_metric in MEAN_SAMPLE_COUNTS.items():
+        value, count = metrics.get(metric), metrics.get(count_metric)
+        if not isinstance(value, (int, float)) or not isinstance(count, (int, float)):
+            continue
+        if count == 0:
+            warnings.append(f"{prefix}{metric} has no samples ({count_metric} is 0); its value means "
+                            "'not measured', not zero, so a change from or to it is not a measured change.")
+            continue
+        if value > IMPLAUSIBLE_MEAN_HOURS:
+            warnings.append(f"{prefix}{metric} is a mean of {value:.0f} hours (about {value / 24:.0f} days), "
+                            f"measured from {MEASURED_FROM[metric]}. A mean over 90 days usually comes from a few "
+                            "items left open for months or years, for example old issues closed in a clean-up, "
+                            "not from slower work; check the individual items before explaining it.")
+        if count < SMALL_SAMPLE:
+            warnings.append(f"{prefix}{metric} is a mean over only {count:g} item(s) ({count_metric}); a "
+                            "single item can decide it.")
+    return warnings
 
 
 def _metrics(data: dict[str, Any]) -> dict[str, int | float | None]:

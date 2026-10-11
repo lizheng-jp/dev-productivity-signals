@@ -253,6 +253,26 @@ class AgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(evidence["current"], {"spaceTotalScore": 60})
         self.assertEqual(source.projectUrl, "https://github.com/openai/openai-java")
         self.assertNotIn("test-secret", source.apiPath)
+        self.assertNotIn("dataWarnings", evidence)
+
+    async def test_comparison_flags_unmeasured_small_and_implausible_means(self):
+        def respond(request):
+            return httpx.Response(200, json={
+                "current": {"bugFixLeadTimeHours": 27415.04, "bugFixedCount": 3,
+                            "mergedLeadTimeHours": 327, "mergedCount": 121, "reviewWaitTime": 65},
+                "previous": {"bugFixLeadTimeHours": 0, "bugFixedCount": 0,
+                             "mergedLeadTimeHours": 353, "mergedCount": 189, "reviewWaitTime": 77},
+                "projectTrends": {}, "periods": {},
+            })
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            evidence, _ = await SignalsTools(client, "http://spring.test").execute("get_project_comparison",
+                                                                                   REQUEST)
+        warnings = evidence["dataWarnings"]
+        self.assertEqual(len(warnings), 3)
+        self.assertTrue(warnings[0].startswith("Current bugFixLeadTimeHours is a mean of 27415 hours"))
+        self.assertIn("only 3 item(s)", warnings[1])
+        self.assertTrue(warnings[2].startswith("Previous bugFixLeadTimeHours has no samples"))
 
     async def test_tool_reports_github_rate_limit(self):
         async with httpx.AsyncClient(transport=httpx.MockTransport(

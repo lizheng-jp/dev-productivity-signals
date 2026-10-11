@@ -179,6 +179,33 @@ followed arithmetically from a mean, one was a strongly worded but supported rea
 - 18 questions on one repository are a smoke test: 0 of 18 has a 95% upper bound of about 17%.
 - The run cost about US$0.4 in Gemini calls.
 
+### Plausibility warnings
+
+The project metric tools now add `dataWarnings` for mean durations (bug-fix lead time, merge lead time, review
+wait) that have no samples, rest on fewer than 5 items, or exceed 90 days, saying what the mean is measured
+from and that a few long-open items, not slower work, usually explain it. The 18 questions were run again
+(`answers_plausibility.jsonl`) and Codex graded both runs pooled, shuffled and blind to the run, with two
+rubric changes: stating a warning's example explanation as fact counts as an unsupported cause, and saying a
+value does not measure what the question assumes counts as questioning it (`grades_plausibility_round.jsonl`).
+
+| Check | Before | With warnings |
+|---|---|---|
+| Direction correct / false premise corrected | 18 / 18, 5 / 5 | 18 / 18, 5 / 5 |
+| Limits stated | 17 / 18 | 17 / 18 |
+| Causes stated without evidence | 0 / 18 | 1 / 18 |
+| Implausible metric questioned | 2 / 2 | 2 / 2 |
+| Stated numbers matching the evidence | 404 / 404 | 341 / 341 (one ratio checked by hand) |
+
+- The anomaly label could not separate the runs: under the wider rule Codex also passed the earlier answers,
+  which the first rubric failed. Read side by side, the bug-fix answers changed from "a small sample can skew
+  the mean" to "this mean over 3 issues, counted from issue creation, is not slower bug fixing", and the
+  zero-sample previous period is now called unmeasured. Two anomaly questions cannot show this as a rate.
+- Every period here has an implausible bug-fix mean, so all 18 answers received a warning, and 8 that ask about
+  other metrics mentioned it anyway. One of them (m10) stated the warning's example, old issues closed in a
+  clean-up, as fact.
+- The instruction was then narrowed to mention only warnings about the metrics asked about and to treat a
+  warning's example as a possibility. That change has not been re-run.
+
 ## Caveats
 
 - The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries, so the flagging numbers are

@@ -6,8 +6,14 @@ answer. The grader judges what a program cannot: direction, premise handling, ca
 anomaly handling.
 
     python eval/main_task/build_rubric_package.py questions.jsonl answers.jsonl checks.jsonl OUT_DIR
+
+To compare runs blind, pass several answers/checks pairs as ANSWERS:CHECKS; items are then shuffled under
+opaque ids and the id-to-run key is written next to OUT_DIR, not inside it:
+
+    python eval/main_task/build_rubric_package.py questions.jsonl a.jsonl:a_checks.jsonl b.jsonl:b_checks.jsonl OUT_DIR
 """
 import json
+import random
 import sys
 from pathlib import Path
 
@@ -31,19 +37,21 @@ received from its tools) and `answer`.
   the data, "accepted" if it explains the claimed change as if it happened. Otherwise "n/a".
 - `unsupportedCauses`: causes the answer presents as established that the evidence does not show, including
   correlations stated as causation ("X caused Y", "because of X") and causes taken from general knowledge.
-  Hedged possibilities that the answer marks as unproven are not listed. Quote or paraphrase each briefly.
+  Hedged possibilities that the answer marks as unproven are not listed. A `dataWarnings` entry in the evidence
+  names a possible explanation ("usually", "for example"); an answer that states that explanation as what
+  happened in this period lists it here. Quote or paraphrase each briefly.
 - `limitationsStated`: true if the answer says the cause is not established, or that data or coverage is
   incomplete or limited.
 - `anomaly`: only when `kind` is "anomaly" (the metric's values are implausible, for example a lead time of
-  several years): "questioned" if the answer points out that the values look implausible or are driven by a few
-  outliers, "taken_at_face_value" otherwise. Otherwise "n/a".
+  several years): "questioned" if the answer points out that the values look implausible, are driven by a few
+  outliers, or do not measure what the question assumes, "taken_at_face_value" otherwise. Otherwise "n/a".
 
 ## Output
 
 Write `codex_grades.jsonl` in this folder, one line per item, in `id` order:
 
 ```json
-{"id": "m01", "direction": "correct", "premise": "n/a", "unsupportedCauses": [], "limitationsStated": true, "anomaly": "n/a", "reason": "one or two sentences"}
+{"id": "<item id>", "direction": "correct", "premise": "n/a", "unsupportedCauses": [], "limitationsStated": true, "anomaly": "n/a", "reason": "one or two sentences"}
 ```
 """
 
@@ -65,19 +73,34 @@ def evidence_summary(trace: list[dict]) -> list[dict]:
 
 def main() -> None:
     questions = {row["query"]: row for row in load(sys.argv[1])}
-    checks = {row["id"]: row for row in load(sys.argv[3])}
-    out = Path(sys.argv[4]).expanduser()
+    runs = sys.argv[2:-1]
+    if len(runs) == 2 and ":" not in runs[0]:
+        runs = [f"{runs[0]}:{runs[1]}"]
+    out = Path(sys.argv[-1]).expanduser()
     out.mkdir(parents=True, exist_ok=True)
-    rows = []
-    for answer in load(sys.argv[2]):
-        if answer.get("status") != 200:
-            continue
-        question = questions[answer["query"]]
-        rows.append({"id": question["id"], "question": question["query"], "premise": question["premise"],
-                     "kind": question["kind"], "metric": question["metric"],
-                     "actual": checks[question["id"]]["actual"],
-                     "evidence": evidence_summary(answer.get("trace") or []), "answer": answer["answer"]})
-    rows.sort(key=lambda row: row["id"])
+    rows, key = [], {}
+    for run in runs:
+        answers_path, checks_path = run.split(":")
+        checks = {row["id"]: row for row in load(checks_path)}
+        for answer in load(answers_path):
+            if answer.get("status") != 200:
+                continue
+            question = questions[answer["query"]]
+            rows.append({"id": question["id"], "run": answers_path, "question": question["query"],
+                         "premise": question["premise"], "kind": question["kind"], "metric": question["metric"],
+                         "actual": checks[question["id"]]["actual"],
+                         "evidence": evidence_summary(answer.get("trace") or []), "answer": answer["answer"]})
+    if len(runs) == 1:
+        rows.sort(key=lambda row: row["id"])
+    else:
+        random.Random(13).shuffle(rows)
+        for number, row in enumerate(rows, 1):
+            blind = f"g{number:02d}"
+            key[blind] = {"id": row["id"], "run": row["run"]}
+            row["id"] = blind
+        (out.parent / f"{out.name}_key.json").write_text(json.dumps(key, indent=1))
+    for row in rows:
+        del row["run"]
     (out / "answers.jsonl").write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows))
     (out / "INSTRUCTIONS.md").write_text(INSTRUCTIONS)
     print(f"{len(rows)} answers")

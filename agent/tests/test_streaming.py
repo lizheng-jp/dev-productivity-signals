@@ -42,6 +42,9 @@ class StreamingModel:
     def __init__(self, turns):
         self.turns = iter(turns)
 
+    async def generate(self, contents, mode):
+        return {"role": "model", "parts": next(self.turns)["parts"]}
+
     async def generate_stream(self, contents, mode, on_delta):
         turn = next(self.turns)
         for kind, text in turn.get("deltas", []):
@@ -114,6 +117,17 @@ class RunAgentEventTests(unittest.IsolatedAsyncioTestCase):
             {"type": "answer", "text": "Facts: "},
             {"type": "answer", "text": "PR #1."},
         ])
+
+    async def test_trace_records_tool_evidence_only_when_requested(self):
+        def turns():
+            return [{"parts": [{"functionCall": {"name": "get_project_metrics", "args": {}}}]},
+                    {"parts": [{"text": "Facts."}]}]
+        plain = await run_agent(REQUEST, StreamingModel(turns()), Tools(), "r", "e")
+        self.assertIsNone(plain.trace)
+        traced = await run_agent(REQUEST.model_copy(update={"includeTrace": True}), StreamingModel(turns()),
+                                 Tools(), "r", "e")
+        self.assertEqual(traced.trace, [{"tool": "get_project_metrics", "args": {},
+                                         "evidence": {"current": {"mergedCount": 4}}}])
 
     async def test_resets_text_that_preceded_a_tool_call(self):
         model = StreamingModel([

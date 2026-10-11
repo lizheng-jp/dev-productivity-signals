@@ -1,0 +1,18 @@
+{"id": "m01", "query": "Why did the number of merged pull requests drop over this period?", "since": "2026-09-09", "until": "2026-10-08", "metric": "mergedCount", "premise": "true", "kind": "change"}
+{"id": "m02", "query": "Why were more issues opened in this period than in the previous one?", "since": "2026-09-09", "until": "2026-10-08", "metric": "issueCreatedCount", "premise": "true", "kind": "change"}
+{"id": "m03", "query": "How did merge lead time change in this period, and what explains it?", "since": "2026-09-09", "until": "2026-10-08", "metric": "mergedLeadTimeHours", "premise": "none", "kind": "change"}
+{"id": "m04", "query": "Why did bug fix lead time almost double in this period?", "since": "2026-09-09", "until": "2026-10-08", "metric": "bugFixLeadTimeHours", "premise": "true", "kind": "anomaly"}
+{"id": "m05", "query": "Did review wait time change in this period?", "since": "2026-09-09", "until": "2026-10-08", "metric": "reviewWaitTime", "premise": "none", "kind": "flat"}
+{"id": "m06", "query": "Why did review wait time drop sharply in this period?", "since": "2026-09-09", "until": "2026-10-08", "metric": "reviewWaitTime", "premise": "false", "kind": "false_premise"}
+{"id": "m07", "query": "Why did commit activity increase in this period?", "since": "2026-09-09", "until": "2026-10-08", "metric": "commitCount", "premise": "false", "kind": "false_premise"}
+{"id": "m08", "query": "Why did merged pull requests more than double in this period?", "since": "2026-08-10", "until": "2026-09-08", "metric": "mergedCount", "premise": "true", "kind": "change"}
+{"id": "m09", "query": "Why did merge lead time fall in this period?", "since": "2026-08-10", "until": "2026-09-08", "metric": "mergedLeadTimeHours", "premise": "true", "kind": "change"}
+{"id": "m10", "query": "Why did fewer pull requests get merged in this period?", "since": "2026-08-10", "until": "2026-09-08", "metric": "mergedCount", "premise": "false", "kind": "false_premise"}
+{"id": "m11", "query": "What explains the jump in bug fix lead time in this period?", "since": "2026-08-10", "until": "2026-09-08", "metric": "bugFixLeadTimeHours", "premise": "true", "kind": "anomaly"}
+{"id": "m12", "query": "Why did review wait time improve over these two weeks?", "since": "2026-09-24", "until": "2026-10-08", "metric": "reviewWaitTime", "premise": "true", "kind": "change"}
+{"id": "m13", "query": "Why did merge lead time get shorter over these two weeks?", "since": "2026-09-24", "until": "2026-10-08", "metric": "mergedLeadTimeHours", "premise": "true", "kind": "change"}
+{"id": "m14", "query": "Why did review wait time get worse over these two weeks?", "since": "2026-09-24", "until": "2026-10-08", "metric": "reviewWaitTime", "premise": "false", "kind": "false_premise"}
+{"id": "m15", "query": "Why did commits slow down over these two weeks?", "since": "2026-09-24", "until": "2026-10-08", "metric": "commitCount", "premise": "true", "kind": "change"}
+{"id": "m16", "query": "Why did merged pull requests increase in August?", "since": "2026-08-01", "until": "2026-08-31", "metric": "mergedCount", "premise": "true", "kind": "change"}
+{"id": "m17", "query": "Why did commit activity decline in August?", "since": "2026-08-01", "until": "2026-08-31", "metric": "commitCount", "premise": "false", "kind": "false_premise"}
+{"id": "m18", "query": "Why did review wait time go down in August?", "since": "2026-08-01", "until": "2026-08-31", "metric": "reviewWaitTime", "premise": "true", "kind": "change"}

@@ -1,0 +1,72 @@
+{
+ "m01": {
+  "direction": "correct",
+  "premise": "n/a",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m04": {
+  "direction": "correct",
+  "premise": "n/a",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "questioned"
+ },
+ "m05": {
+  "direction": "correct",
+  "premise": "n/a",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m06": {
+  "direction": "correct",
+  "premise": "corrected",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m07": {
+  "direction": "correct",
+  "premise": "corrected",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m10": {
+  "direction": "correct",
+  "premise": "corrected",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": false,
+  "anomaly": "n/a"
+ },
+ "m11": {
+  "direction": "correct",
+  "premise": "n/a",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "questioned"
+ },
+ "m12": {
+  "direction": "correct",
+  "premise": "n/a",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m14": {
+  "direction": "correct",
+  "premise": "corrected",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ },
+ "m17": {
+  "direction": "correct",
+  "premise": "corrected",
+  "hasUnsupportedCauses": false,
+  "limitationsStated": true,
+  "anomaly": "n/a"
+ }
+}

@@ -154,7 +154,8 @@ async def generate(args: argparse.Namespace) -> None:
                 response = await client.post(f"{AGENT_URL}/ask", headers={"X-Agent-Internal-Key": key}, json={
                     "question": reference["query"], "projectId": args.project_id,
                     "since": reference["since"], "until": reference["until"], "refName": args.ref_name,
-                    **({"model": args.model} if args.model else {})})
+                    **({"model": args.model} if args.model else {}),
+                    **({"includeTrace": True} if args.include_trace else {})})
                 if response.status_code != 429 or attempt == 2:
                     break
                 print(json.dumps({"event": "rate_limited", "query": reference["query"][:60]}), flush=True)
@@ -163,7 +164,8 @@ async def generate(args: argparse.Namespace) -> None:
             row = {"query": reference["query"], "status": response.status_code,
                    "seconds": round(time.monotonic() - start, 1), "answer": payload.get("answer", ""),
                    "detail": payload.get("detail"), "iterations": payload.get("iterations"),
-                   "sources": payload.get("sources", [])}
+                   "sources": payload.get("sources", []),
+                   **({"trace": payload.get("trace")} if args.include_trace else {})}
             append_jsonl(args.out, row)
             print(json.dumps({"query": reference["query"][:60], "status": response.status_code,
                               "seconds": row["seconds"]}), flush=True)
@@ -243,6 +245,8 @@ def main() -> None:
     asking = commands.add_parser("generate", help="Ask the Agent every reference query")
     asking.add_argument("--out", required=True)
     asking.add_argument("--model", help="Agent model; defaults to the Agent's GEMINI_MODEL")
+    asking.add_argument("--include-trace", action="store_true",
+                        help="Store each tool call's arguments and evidence with the answer")
     asking.add_argument("--max-failures", type=int, default=DEFAULT_MAX_CONSECUTIVE_FAILURES,
                         help="Stop after this many Agent failures in a row; 0 never stops on them")
     grading = commands.add_parser("judge", help="Grade answers against the reference facts")

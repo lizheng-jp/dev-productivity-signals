@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 // import { Noto_Sans_JP, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "@/globals.css";
@@ -18,6 +19,10 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   src: '../../public/fonts/GeistMono-Regular.woff2',
 });
+
+// Cloudflare Web Analytics (cookieless). Only loaded when a site token is set at build time,
+// so self-hosted deployments send nothing to Cloudflare.
+const cfAnalyticsToken = process.env.NEXT_PUBLIC_CF_ANALYTICS_TOKEN;
 
 export const metadata: Metadata = {
   title: "Dev Productivity Signals",
@@ -57,6 +62,13 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
+        {cfAnalyticsToken && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: cfAnalyticsToken })}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

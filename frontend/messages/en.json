@@ -12,9 +12,7 @@
         "groups": "Groups",
         "settings": "Settings",
         "metricWeights": "Metric Weights",
-        "aiInsights": "AI Insights",
-        "moreProjects": "More projects",
-        "anomalyLab": "Anomaly Lab"
+        "aiInsights": "AI Insights"
     },
     "Dashboard": {
         "overview": "Overview",

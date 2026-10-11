@@ -1,8 +1,8 @@
 import {
     LayoutDashboard,
-    BarChart2, User, ClipboardCheck, Settings, MessageSquareText, BookOpen, FolderGit2
+    BarChart2, User, ClipboardCheck, Settings, MessageSquareText, BookOpen, FolderGit2, ScanSearch, ArrowUpRight
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, Link } from '../../../i18n/routing';
 
 
@@ -19,6 +19,9 @@ export const MENU_ITEMS = [
     { id: 'manual', name: 'Manual', icon: BookOpen, href: '/manual', section: 'resources' },
     { id: 'feedback', name: 'Feedback', icon: MessageSquareText, href: '/feedback', section: 'resources' },
 ];
+
+// Companion demo on its own subdomain, linked from both sidebars so the two read as one portfolio.
+const ANOMALY_LAB_URL = process.env.NEXT_PUBLIC_ANOMALY_LAB_URL || 'https://vision.lizheng.cc/';
 
 const SECTIONS = [
     { id: 'workspace', label: 'Workspace' },
@@ -39,6 +42,8 @@ type SidebarProps = {
 export const Sidebar = ({ onSettingsClick }: SidebarProps) => {
     const t = useTranslations('Sidebar');
     const pathname = usePathname();
+    const locale = useLocale();
+    const labHref = `${ANOMALY_LAB_URL}?lang=${locale}`;
 
     const getActiveId = (currentPath: string) => {
         // Find the best match. A longer href that matches is better.
@@ -87,6 +92,14 @@ export const Sidebar = ({ onSettingsClick }: SidebarProps) => {
                     </div>
                 </div>
             ))}
+            <div>
+                <div className="kicker px-3 pb-2">{t('moreProjects')}</div>
+                <a href={labHref} className={navItemClass(false)}>
+                    <ScanSearch className="h-[18px] w-[18px] text-slate-400" />
+                    {t('anomalyLab')}
+                    <ArrowUpRight className="ml-auto h-3.5 w-3.5 text-slate-400" />
+                </a>
+            </div>
         </nav>
         <div className="pt-3">
             <button type="button" onClick={onSettingsClick} className={navItemClass(false)}>
@@ -110,6 +123,10 @@ export const Sidebar = ({ onSettingsClick }: SidebarProps) => {
                 <span className="block w-full truncate text-center">{t(item.id)}</span>
             </Link>
         ))}
+        <a href={labHref} title={t('anomalyLab')} className="flex w-16 shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-slate-500">
+            <ScanSearch className="h-5 w-5" />
+            <span className="block w-full truncate text-center">{t('anomalyLab')}</span>
+        </a>
         <button type="button" onClick={onSettingsClick} title={t('settings')} aria-label={t('settings')} className="flex w-16 shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-slate-500">
             <Settings className="h-5 w-5" />
             <span className="block w-full truncate text-center">{t('settings')}</span>

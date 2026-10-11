@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 860" width="1280" height="860" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">Dev Productivity Signals data flow</title>
+  <desc id="d">Browser requests pass through Caddy to the Next.js frontend and the Spring Boot API. Agent questions go from Spring to the Python Signals Agent, which calls Gemini and its tools: Spring metric endpoints and a Qdrant index of GitHub pull request and issue discussions. Indexing reads discussions through Spring from GitHub, embeds them with Gemini and stores them in Qdrant. Offline evaluation reads Agent traces.</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .card { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.2; }
+    .ext { fill: #f1f5f9; stroke: #94a3b8; stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .store { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1.2; }
+    .band { fill: #faf5ff; stroke: #c4b5fd; stroke-width: 1.2; }
+    .step { fill: #ffffff; stroke: #ddd6fe; stroke-width: 1; }
+    .h { fill: #0f172a; font-size: 15px; font-weight: 650; }
+    .s { fill: #475569; font-size: 12px; }
+    .k { fill: #0f172a; font-size: 12px; font-weight: 600; }
+    .title { fill: #0f172a; font-size: 22px; font-weight: 700; }
+    .sub { fill: #64748b; font-size: 13px; }
+    .lbl { font-size: 11.5px; font-weight: 600; }
+    .halo { paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .blue { stroke: #2563eb; } .blueT { fill: #2563eb; }
+    .orange { stroke: #ea580c; } .orangeT { fill: #ea580c; }
+    .green { stroke: #16a34a; } .greenT { fill: #16a34a; }
+    .purple { stroke: #7c3aed; } .purpleT { fill: #7c3aed; }
+    .flow { fill: none; stroke-width: 2.2; }
+    .dash { stroke-dasharray: 7 5; }
+    .dot { stroke: none; }
+    .num { fill: #ffffff; font-size: 12px; font-weight: 700; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .card { fill: #161b22; stroke: #30363d; }
+      .ext { fill: #11161d; stroke: #484f58; }
+      .store { fill: #161b22; stroke: #484f58; }
+      .band { fill: #1a1430; stroke: #4c3a8a; }
+      .step { fill: #0d1117; stroke: #3b2f6b; }
+      .h, .k, .title { fill: #e6edf3; }
+      .s { fill: #9da7b3; }
+      .sub { fill: #8b949e; }
+      .halo { stroke: #0d1117; }
+      .blue { stroke: #58a6ff; } .blueT { fill: #58a6ff; }
+      .orange { stroke: #f0883e; } .orangeT { fill: #f0883e; }
+      .green { stroke: #3fb950; } .greenT { fill: #3fb950; }
+      .purple { stroke: #a371f7; } .purpleT { fill: #a371f7; }
+      .num { fill: #0d1117; }
+    }
+  </style>
+  <defs>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="blueT"/></marker>
+    <marker id="aOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="orangeT"/></marker>
+    <marker id="aGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="greenT"/></marker>
+    <marker id="aPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="purpleT"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1280" height="860" rx="16"/>
+
+  <!-- Title and legend -->
+  <text class="title" x="32" y="46">Dev Productivity Signals · data flow</text>
+  <text class="sub" x="32" y="70">Public demo on one host behind Caddy; services run with Docker Compose.</text>
+  <g transform="translate(700,38)">
+    <circle cx="9" cy="0" r="9" class="blueT"/><text class="num" x="9" y="4" text-anchor="middle">1</text>
+    <text class="k" x="24" y="4">Dashboard</text>
+    <circle cx="120" cy="0" r="9" class="orangeT"/><text class="num" x="120" y="4" text-anchor="middle">2</text>
+    <text class="k" x="135" y="4">Ask the Agent</text>
+    <circle cx="258" cy="0" r="9" class="greenT"/><text class="num" x="258" y="4" text-anchor="middle">3</text>
+    <text class="k" x="273" y="4">Index discussions</text>
+    <circle cx="410" cy="0" r="9" class="purpleT"/><text class="num" x="410" y="4" text-anchor="middle">4</text>
+    <text class="k" x="425" y="4">Evaluate</text>
+  </g>
+
+  <!-- ============ Flows (drawn first, under the cards) ============ -->
+  <!-- 1 Dashboard: browser -> caddy -> next.js / spring -> postgres, github -->
+  <path class="flow blue" d="M170,262 L208,262" marker-end="url(#aBlue)"/>
+  <path class="flow blue" d="M380,240 C405,240 405,150 428,150" marker-end="url(#aBlue)"/>
+  <path class="flow blue" d="M380,282 L428,282" marker-end="url(#aBlue)"/>
+  <path class="flow blue" d="M520,488 L520,548" marker-end="url(#aBlue)"/>
+  <path class="flow blue" d="M674,252 C694,252 694,160 728,160" marker-end="url(#aBlue)"/>
+
+  <!-- 2 Ask: browser -> caddy -> spring -> agent -> gemini / qdrant / spring tools; SSE back -->
+  <path class="flow orange" d="M170,330 L208,330" marker-end="url(#aOrange)" marker-start="url(#aOrange)"/>
+  <path class="flow orange" d="M380,330 L428,330" marker-end="url(#aOrange)" marker-start="url(#aOrange)"/>
+  <path class="flow orange" d="M672,300 L728,300" marker-end="url(#aOrange)"/>
+  <path class="flow orange" d="M728,410 L674,410" marker-end="url(#aOrange)"/>
+  <path class="flow orange" d="M992,282 L1048,282" marker-end="url(#aOrange)" marker-start="url(#aOrange)"/>
+  <path class="flow orange" d="M820,488 L820,548" marker-end="url(#aOrange)"/>
+
+  <!-- 3 Index: agent -> spring evidence feed -> github; agent -> gemini embeddings; agent -> qdrant upsert -->
+  <path class="flow green dash" d="M728,450 L674,450" marker-end="url(#aGreen)"/>
+  <path class="flow green dash" d="M674,268 C712,268 712,124 728,124" marker-end="url(#aGreen)"/>
+  <path class="flow green dash" d="M992,360 L1048,360" marker-end="url(#aGreen)"/>
+  <path class="flow green dash" d="M920,488 L920,548" marker-end="url(#aGreen)"/>
+
+  <!-- 4 Evaluate: agent trace -> evaluation band -->
+  <path class="flow purple dash" d="M992,440 C1120,440 1140,560 1140,668" marker-end="url(#aPurple)"/>
+
+  <!-- ============ Cards ============ -->
+  <!-- Browser -->
+  <rect class="card" x="30" y="222" width="140" height="150" rx="12"/>
+  <text class="h" x="46" y="250">Browser</text>
+  <text class="s" x="46" y="272">dashboard pages</text>
+  <text class="s" x="46" y="290">Agent panel</text>
+  <text class="s" x="46" y="316">streamed events:</text>
+  <text class="s" x="46" y="334">steps · thoughts</text>
+  <text class="s" x="46" y="352">· answer text</text>
+
+  <!-- Caddy -->
+  <rect class="card" x="210" y="202" width="170" height="190" rx="12"/>
+  <text class="h" x="226" y="230">Caddy</text>
+  <text class="s" x="226" y="252">TLS, reverse proxy</text>
+  <text class="s" x="226" y="276">/api/* → Spring</text>
+  <text class="s" x="226" y="294">everything else → Next.js</text>
+  <text class="s" x="226" y="318">API writes → 403</text>
+  <text class="s" x="226" y="336">(except Agent questions)</text>
+  <text class="s" x="226" y="360">stream path left</text>
+  <text class="s" x="226" y="378">uncompressed</text>
+
+  <!-- Next.js -->
+  <rect class="card" x="430" y="104" width="210" height="92" rx="12"/>
+  <text class="h" x="446" y="132">Next.js frontend</text>
+  <text class="s" x="446" y="154">dashboard, comparison,</text>
+  <text class="s" x="446" y="172">developer analytics, Agent</text>
+
+  <!-- Spring Boot -->
+  <rect class="card" x="430" y="232" width="242" height="256" rx="12"/>
+  <text class="h" x="446" y="260">Spring Boot API</text>
+  <text class="k" x="446" y="284">Metrics</text>
+  <text class="s" x="446" y="302">SPACE metrics and scores</text>
+  <text class="s" x="446" y="320">snapshot cache, 20 min</text>
+  <text class="k" x="446" y="346">Agent proxy</text>
+  <text class="s" x="446" y="364">validates the question</text>
+  <text class="s" x="446" y="382">10 / hour per client, 200 / day</text>
+  <text class="s" x="446" y="400">one question at a time</text>
+  <text class="k" x="446" y="426">Agent endpoints</text>
+  <text class="s" x="446" y="444">evidence feed, PR details,</text>
+  <text class="s" x="446" y="462">lead-time distribution</text>
+
+  <!-- GitHub -->
+  <rect class="ext" x="730" y="92" width="262" height="96" rx="12"/>
+  <text class="h" x="746" y="120">GitHub REST API</text>
+  <text class="s" x="746" y="142">commits, PRs, reviews, issues</text>
+  <text class="s" x="746" y="160">and their discussions</text>
+  <text class="s" x="746" y="178">bounded pagination</text>
+
+  <!-- Agent -->
+  <rect class="card" x="730" y="232" width="262" height="256" rx="12"/>
+  <text class="h" x="746" y="260">Signals Agent · FastAPI</text>
+  <text class="k" x="746" y="284">Tool loop, at most 5 calls</text>
+  <text class="s" x="746" y="302">project metrics · comparison</text>
+  <text class="s" x="746" y="320">lead-time distribution · members</text>
+  <text class="s" x="746" y="338">PR list · PR details · evidence search</text>
+  <text class="k" x="746" y="364">Guards in code</text>
+  <text class="s" x="746" y="382">project and dates fixed per request</text>
+  <text class="s" x="746" y="400">warnings on implausible means</text>
+  <text class="s" x="746" y="418">cited PRs checked against evidence</text>
+  <text class="k" x="746" y="444">Indexing</text>
+  <text class="s" x="746" y="462">chunk, embed, upsert by project</text>
+
+  <!-- Gemini -->
+  <rect class="ext" x="1050" y="232" width="200" height="160" rx="12"/>
+  <text class="h" x="1066" y="260">Google Gemini</text>
+  <text class="k" x="1066" y="284">gemini-3.8-flash</text>
+  <text class="s" x="1066" y="302">tool calls, final answer,</text>
+  <text class="s" x="1066" y="320">thought summaries</text>
+  <text class="k" x="1066" y="346">gemini-embedding-001</text>
+  <text class="s" x="1066" y="364">discussion and query</text>
+  <text class="s" x="1066" y="382">vectors</text>
+
+  <!-- PostgreSQL -->
+  <rect class="store" x="430" y="550" width="242" height="78" rx="12"/>
+  <text class="h" x="446" y="578">PostgreSQL</text>
+  <text class="s" x="446" y="600">metric weights, surveys,</text>
+  <text class="s" x="446" y="618">saved AI analyses</text>
+
+  <!-- Qdrant -->
+  <rect class="store" x="730" y="550" width="262" height="78" rx="12"/>
+  <text class="h" x="746" y="578">Qdrant</text>
+  <text class="s" x="746" y="600">PR and issue discussion chunks,</text>
+  <text class="s" x="746" y="618">filtered by project, branch, date</text>
+
+  <!-- ============ Flow labels (on top, with halo) ============ -->
+  <g class="lbl halo">
+    <text class="blueT" x="384" y="198">pages</text>
+    <text class="blueT" x="390" y="276">/api</text>
+    <text class="orangeT" x="388" y="350">SSE</text>
+    <text class="orangeT" x="676" y="294">internal key</text>
+    <text class="orangeT" x="686" y="404">tools</text>
+    <text class="greenT" x="682" y="470">feed</text>
+    <text class="blueT" x="642" y="214" text-anchor="end">metrics</text>
+    <text class="greenT" x="718" y="214">discussions</text>
+    <text class="orangeT" x="1000" y="276">prompt</text>
+    <text class="greenT" x="1000" y="378">embed</text>
+    <text class="orangeT" x="770" y="526">search</text>
+    <text class="greenT" x="928" y="526">upsert</text>
+    <text class="blueT" x="528" y="526">config</text>
+    <text class="purpleT" x="1080" y="470">trace (eval only)</text>
+  </g>
+
+  <!-- Number badges on flows -->
+  <g>
+    <circle cx="189" cy="262" r="9" class="blueT"/><text class="num" x="189" y="266" text-anchor="middle">1</text>
+    <circle cx="189" cy="330" r="9" class="orangeT"/><text class="num" x="189" y="334" text-anchor="middle">2</text>
+    <circle cx="700" cy="450" r="9" class="greenT"/><text class="num" x="700" y="454" text-anchor="middle">3</text>
+    <circle cx="1124" cy="520" r="9" class="purpleT"/><text class="num" x="1124" y="524" text-anchor="middle">4</text>
+  </g>
+
+  <!-- ============ Offline evaluation band ============ -->
+  <rect class="band" x="30" y="670" width="1220" height="160" rx="14"/>
+  <text class="h" x="50" y="698">Offline evaluation · eval/ · prometheus/prometheus</text>
+  <text class="s" x="50" y="718">Graders: Codex blind to the run, Claude spot-checks, disagreements settled against full traces.</text>
+
+  <rect class="step" x="50" y="734" width="220" height="80" rx="10"/>
+  <text class="k" x="64" y="756">Labels</text>
+  <text class="s" x="64" y="776">2 independent annotators</text>
+  <text class="s" x="64" y="796">Cohen's kappa 0.87</text>
+
+  <rect class="step" x="290" y="734" width="220" height="80" rx="10"/>
+  <text class="k" x="304" y="756">Retrieval</text>
+  <text class="s" x="304" y="776">55 queries, 123 sources</text>
+  <text class="s" x="304" y="796">recall@3 0.84 · MRR 0.89</text>
+
+  <rect class="step" x="530" y="734" width="220" height="80" rx="10"/>
+  <text class="k" x="544" y="756">Answers</text>
+  <text class="s" x="544" y="776">key-fact recall 0.49 → 0.76</text>
+  <text class="s" x="544" y="796">declines 18 / 20 unanswerable</text>
+
+  <rect class="step" x="770" y="734" width="220" height="80" rx="10"/>
+  <text class="k" x="784" y="756">Main task: why did X change?</text>
+  <text class="s" x="784" y="776">404 / 404 numbers in evidence</text>
+  <text class="s" x="784" y="796">5 / 5 false premises corrected</text>
+
+  <rect class="step" x="1010" y="734" width="220" height="80" rx="10"/>
+  <text class="k" x="1024" y="756">Prompt injection</text>
+  <text class="s" x="1024" y="776">11 attacks in GitHub text</text>
+  <text class="s" x="1024" y="796">followed 0 / 22 runs</text>
+
+  <g class="purple flow">
+    <path d="M272,774 L288,774" marker-end="url(#aPurple)"/>
+    <path d="M512,774 L528,774" marker-end="url(#aPurple)"/>
+    <path d="M752,774 L768,774" marker-end="url(#aPurple)"/>
+    <path d="M992,774 L1008,774" marker-end="url(#aPurple)"/>
+  </g>
+</svg>

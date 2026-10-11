@@ -4,9 +4,25 @@ Dev Productivity Signals is a local developer analytics demo. The dashboard uses
 
 This repository has a new history and includes no deployment credentials or company environment configuration. The local example file contains empty placeholders; keep your actual `.env` file private.
 
-## Interview walkthrough
+## How data flows
 
-See the [Chinese interview guide](docs/interview-guide.zh-CN.md) for a reproducible demo, architecture and trade-offs, interview questions, and an evidence checklist. See the [verification record](docs/interview-verification.md) for checks actually run and remaining gaps.
+![Dev Productivity Signals data flow: browser, Caddy, Next.js, Spring Boot, Signals Agent, Gemini, GitHub, PostgreSQL, Qdrant and offline evaluation](docs/architecture.svg)
+
+1. **Dashboard.** Caddy sends pages to Next.js and `/api/*` to Spring Boot, which reads GitHub with bounded
+   pagination (or synthetic demo data), scores SPACE metrics and caches snapshots for 20 minutes. PostgreSQL
+   keeps metric weights, surveys and saved AI analyses. The public demo rejects API writes.
+2. **Ask the Agent.** Spring validates the question and rate-limits it (10 per client per hour, 200 per day,
+   one at a time), then forwards it to the Python Signals Agent with an internal key. Gemini chooses up to 5
+   tool calls: Spring metric, comparison, lead-time and PR endpoints, and a Qdrant search over PR and issue
+   discussions. The project and dates are fixed by the request, implausible means carry warnings, and cited
+   PRs are checked against the evidence. Steps, thought summaries and the answer stream back as server-sent
+   events.
+3. **Index discussions.** Run manually per project, branch and date range: the Agent reads discussions
+   through Spring from GitHub, splits and embeds them with `gemini-embedding-001` and stores them in Qdrant.
+4. **Evaluate.** Offline, on `prometheus/prometheus`: retrieval against labels from two independent
+   annotators, answers against key facts, the main "why did this metric change?" task by checking each
+   answer against the tool evidence it received, and prompt injection planted in GitHub text. See
+   [eval/README.md](eval/README.md).
 
 ## Components
 

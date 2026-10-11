@@ -97,8 +97,36 @@ services:
     mem_limit: 384m
     restart: unless-stopped
 
+  # Scrapes backend, agent and host metrics. Bound to the server's loopback only; view it from a
+  # Mac Grafana through an SSH tunnel (monitoring/README.md). Never publish 9090 publicly.
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=512MB
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    mem_limit: 256m
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    mem_limit: 64m
+    restart: unless-stopped
+
 volumes:
   caddy_data:
   caddy_config:
   postgres_data:
   qdrant_data:
+  prometheus_data:

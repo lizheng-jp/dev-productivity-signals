@@ -1,0 +1,22 @@
+# Grafana on your own machine, reading the production Prometheus through an SSH tunnel.
+# See monitoring/README.md.
+name: signals-grafana
+
+services:
+  grafana:
+    image: grafana/grafana-oss:11.4.0
+    ports:
+      - "127.0.0.1:3010:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in monitoring/.env}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://host.docker.internal:19090}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+
+volumes:
+  grafana_data:

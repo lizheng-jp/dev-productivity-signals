@@ -77,6 +77,7 @@ jobs:
           sparse-checkout: |
             docker-compose.prod.yml
             deploy/Caddyfile
+            deploy/prometheus.yml
           sparse-checkout-cone-mode: false
 
       - name: Configure SSH
@@ -119,14 +120,21 @@ jobs:
             docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.prod.yml.new"
           scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \
             deploy/Caddyfile "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/deploy/Caddyfile.new"
+          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" -o BatchMode=yes \
+            deploy/prometheus.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/deploy/prometheus.yml.new"
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "set -eu
              cd '$DEPLOY_PATH'
              cp docker-compose.prod.yml docker-compose.prod.yml.bak
              mv docker-compose.prod.yml.new docker-compose.prod.yml
              export IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG'
+             # Write the Prometheus config in place before up: a missing bind-mount source would be created
+             # as a directory, and a renamed file would keep the old inode inside the container.
+             cat deploy/prometheus.yml.new > deploy/prometheus.yml
+             rm -f deploy/prometheus.yml.new
              docker compose -f docker-compose.prod.yml pull --quiet
              docker compose -f docker-compose.prod.yml up -d --no-build --remove-orphans
+             docker compose -f docker-compose.prod.yml kill -s SIGHUP prometheus
              # Caddy reads a bind-mounted single file, so write it in place (a renamed file keeps the old inode)
              # and reload only after the new config validates inside the running container.
              if ! cmp -s deploy/Caddyfile.new deploy/Caddyfile; then

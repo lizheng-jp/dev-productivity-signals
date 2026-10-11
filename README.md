@@ -4,6 +4,8 @@ Dev Productivity Signals is a local developer analytics demo. The dashboard uses
 
 This repository has a new history and includes no deployment credentials or company environment configuration. The local example file contains empty placeholders; keep your actual `.env` file private.
 
+[![Signals dashboard: SPACE overview cards and delivery-flow charts on synthetic demo data](docs/dashboard.jpg)](https://signals.lizheng.cc/en)
+
 ## How data flows
 
 ![Dev Productivity Signals data flow: browser, Caddy, Next.js, Spring Boot, Signals Agent, Gemini, GitHub, PostgreSQL, Qdrant and offline evaluation](docs/architecture.svg)

@@ -6,13 +6,14 @@ import { ProjectAnalyticsView } from '@/components/views/ProjectAnalyticsView';
 
 export default function ProjectAnalyticsPage() {
   const { projects, selectedProjectId, selectedBranch, date } = useMainLayout();
-  const { projectStats, isLoading, isAiCorrecting } = useProjectStats(selectedProjectId, projects, date, selectedBranch || undefined);
+  const { projectStats, isLoading, isAiCorrecting, error } = useProjectStats(selectedProjectId, projects, date, selectedBranch || undefined);
 
   return (
     <ProjectAnalyticsView
       projects={projects}
       projectStats={projectStats}
       isLoading={isLoading}
+      error={error}
       isAiCorrecting={isAiCorrecting}
       currentDate={date}
     />

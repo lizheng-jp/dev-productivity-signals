@@ -29,7 +29,7 @@
         "bugsFoundDescription": "Bug issues reported in the selected period.",
         "avgLeadTime": "Avg Lead Time",
         "spaceScore": "SPACE Score",
-        "developerLeaderboard": "Developer Leaderboard (Top Performers)",
+        "developerLeaderboard": "Developer Activity Overview",
         "projectsLeaderboard": "Projects Leaderboard"
     },
     "Table": {
@@ -153,6 +153,7 @@
         }
     },
     "Space": {
+        "dimensionCoverage": "Based on {count} of {total} dimensions",
         "performance": "Performance",
         "performanceDescription": "Evaluates the outcomes and quality produced by development work. Merged changes, developer-caused defects, and bug-fix speed indicate whether valuable results are delivered reliably.",
         "activity": "Activity",
@@ -344,6 +345,8 @@
         "description": "Compare the selected period with the immediately preceding period. Counts are compared per day when period lengths differ.",
         "previousDays": "Previous days",
         "apply": "Apply",
+        "rateLimitError": "The GitHub API rate limit was reached. Try again in about {minutes} min.",
+        "rateLimitErrorSoon": "The GitHub API rate limit was reached. Try again later.",
         "loadError": "Metrics could not be loaded. Check the connection settings and selected period.",
         "compareWeek": "Metric changes compare with the week (7 days) immediately before the selected range.",
         "compareMonth": "Metric changes compare with the month (30 days) immediately before the selected range."
@@ -457,7 +460,7 @@
         "empty": "No GitHub projects yet. Add one in Settings.",
         "loading": "Calculating from GitHub…",
         "queued": "Waiting…",
-        "loadError": "Could not load metrics. The GitHub API limit may have been reached; try again later.",
+        "loadError": "Could not load metrics. Try again later.",
         "satisfactionSurvey": "Satisfaction: survey ({count} responses)",
         "satisfactionRetention": "Satisfaction: contributor retention {rate}% ({retained}/{previous})",
         "satisfactionNone": "Satisfaction: not measured (no survey or retention data)",

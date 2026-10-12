@@ -29,7 +29,7 @@
         "bugsFoundDescription": "選択期間内に登録されたバグイシュー数です。",
         "avgLeadTime": "平均リードタイム",
         "spaceScore": "SPACEスコア",
-        "developerLeaderboard": "開発者リーダーボード（トップパフォーマー）",
+        "developerLeaderboard": "開発者アクティビティ概要",
         "projectsLeaderboard": "プロジェクトリーダーボード"
     },
     "Table": {
@@ -150,6 +150,7 @@
         }
     },
     "Space": {
+        "dimensionCoverage": "{count}/{total} 次元で算出",
         "performance": "パフォーマンス",
         "performanceDescription": "開発活動が生み出した成果と品質を評価します。マージされた変更、開発に起因する不具合、バグ修正の速さから、価値ある成果を安定して届けられているかを確認します。",
         "activity": "アクティビティ",
@@ -375,6 +376,8 @@
         "description": "選択期間と、その直前の期間を比較します。件数は期間の日数が異なる場合、日平均で比較します。",
         "previousDays": "前期の日数",
         "apply": "適用",
+        "rateLimitError": "GitHub API の利用上限に達しました。約 {minutes} 分後に再試行してください。",
+        "rateLimitErrorSoon": "GitHub API の利用上限に達しました。しばらくしてから再試行してください。",
         "loadError": "指標を取得できませんでした。接続設定と選択期間を確認してください。",
         "compareWeek": "各指標の増減は、選択期間の直前1週間（7日）と比較しています。",
         "compareMonth": "各指標の増減は、選択期間の直前1か月（30日）と比較しています。"
@@ -493,7 +496,7 @@
         "empty": "GitHub プロジェクトがありません。設定から追加してください。",
         "loading": "GitHub から計算中…",
         "queued": "待機中…",
-        "loadError": "指標を取得できませんでした。GitHub API の上限に達した可能性があります。しばらくしてから再試行してください。",
+        "loadError": "指標を取得できませんでした。しばらくしてから再試行してください。",
         "satisfactionSurvey": "満足度：満足度調査（{count} 件）",
         "satisfactionRetention": "満足度：コントリビューター定着率 {rate}%（{retained}/{previous} 人）",
         "satisfactionNone": "満足度：未測定（調査・定着率データなし）",

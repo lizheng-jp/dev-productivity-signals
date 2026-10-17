@@ -237,10 +237,45 @@ two put it in the question. A case fails when the answer or tool calls show the 
   arguments are validated, and cited PRs are checked against tool evidence. These were not attacked here.
 - The run cost about US$0.5 in Gemini calls (`injection_results.jsonl`).
 
+## Held-out check: openai/openai-agents-python
+
+The bge threshold was picked on the 55 prometheus queries, so it was tested once, frozen, on another
+project. The plan and pass criteria were written and committed before any run
+([`docs/experiments/01b-heldout-plan.zh-CN.md`](../docs/experiments/01b-heldout-plan.zh-CN.md)), and the labels
+were committed before retrieval ran (`c9142d5`).
+
+- Same window, indexing, model, threshold 0.73 and code as above: 155 sources (57 PRs, 19 issues), 290 chunks.
+- 60 queries (`heldout/labels.jsonl`): 16 paraphrase, 14 lexical, 12 near-miss and 18 unrelated unanswerable.
+- Two labelling passes as before: kappa 0.883 over 9,300 pairs, answerability 60/60. Ten disagreements were
+  adjudicated by Claude, who was also the first annotator; the user reviewed them before freezing
+  (`heldout/annotation/adjudication.md`).
+
+| Metric | prometheus (tuned) | openai-agents-python (held out) |
+|---|---|---|
+| Unanswerable flagged as insufficient | 14/20 (70%) | 22/30 (73%, 95% CI 56 to 86) |
+| Answerable wrongly flagged | 4/35 (11%) | **8/30 (27%, 95% CI 14 to 44)** |
+| recall@3 | 0.84 | 0.72 |
+| entityRecall@3 | 0.97 | 0.89 |
+| MRR, lexical / paraphrase | 0.93 / 0.85 | 0.89 / 0.73 |
+| Mean score, relevant / other | 0.78 / 0.66 | 0.76 / 0.67 |
+
+**Verdict, by the pre-registered rule: the threshold does not transfer.** It needed at least 15/30 unanswerable
+flagged and at most 5/30 answerable wrongly flagged; it met the first and failed the second. Retrieval quality
+passed its own criteria (recall@3 at least 0.70, entityRecall@3 at least 0.85), though both fell.
+
+- All 18 unrelated queries were flagged; the 8 that got through were all near-miss (4 of 12 flagged).
+- The 8 wrongly flagged answerable queries scored 0.665 to 0.726, just under 0.73; 6 were paraphrases. In 3 of
+  them retrieval had also missed every relevant source in the top three.
+- The suspected cause, AI-assisted comments raising scores for unrelated text, is not supported: the mean
+  score of other hits is 0.67 here against 0.66. Relevant hits score slightly lower and paraphrases are harder.
+- Exploratory only, not applied: on this data a cut of 0.70 or 0.71 would have met both criteria (16 or 18/30
+  flagged, 3/30 wrongly flagged). A shift of 0.02 flips the verdict, so the threshold needs setting per project,
+  or a signal less sensitive than the raw top score.
+
 ## Caveats
 
-- The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries, so the flagging numbers are
-  optimistic. They need confirming on held-out queries or another repository.
+- The thresholds (bge 0.73, Qwen3 0.59) were picked on these same 55 queries. On a held-out project the bge
+  threshold wrongly flagged 27% of answerable queries against 11% here (see the held-out check above).
 - Apart from the 18 main-task questions, the questions are lookups written after reading the sources, and
   graders are language models checked against each other.
 - 123 sources and 55 queries are small; differences of a few hundredths between models are within noise.

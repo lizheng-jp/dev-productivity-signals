@@ -1,0 +1,12 @@
+{
+ "annotators": [
+  "Claude (first pass)",
+  "OpenAI Codex (blind, shuffled queries, same written rules)"
+ ],
+ "pairs": 9300,
+ "pairKappa": 0.883,
+ "answerabilityKappa": 1.0,
+ "exactSetMatch": "50/60",
+ "disagreements": 10,
+ "resolution": "adjudicated by Claude under the written rule plus three clarifications (annotation/adjudication.md): Codex fully in 4 (q24, q34, q57, q58), Claude fully in 5 (q13, q22, q27, q29, q59), split in 1 (q14). Claude was both first annotator and adjudicator; the user reviews the adjudication before labels are frozen."
+}

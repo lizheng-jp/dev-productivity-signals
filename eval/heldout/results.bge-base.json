@@ -1,0 +1,3212 @@
+{
+  "summary": {
+    "queries": 60,
+    "answerable": 30,
+    "unanswerable": 30,
+    "recall@1": 0.3289,
+    "recall@3": 0.7228,
+    "recall@5": 0.7517,
+    "recall@8": 0.8222,
+    "mrr": 0.8056,
+    "recallCeiling": 0.9889,
+    "entityRecall@3": 0.8889,
+    "flaggedInsufficientWhenAnswerable": 8,
+    "confidentWhenUnanswerable": 8,
+    "meanScoreRelevant": 0.7613,
+    "meanScoreOther": 0.6706
+  },
+  "queries": [
+    {
+      "query": "Why does a conversation become permanently unusable after a person signs off on a paused action, when the agent also checks its final answer before returning it?",
+      "relevant": [
+        "issue:4827:description",
+        "issue:4827:note:6012918424",
+        "mr:4828:comment:5989690534",
+        "mr:4828:description"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.7258,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6958,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6887,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434332717",
+          "score": 0.6817,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5687565347",
+          "score": 0.6784,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434659636",
+          "score": 0.677,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5668268056",
+          "score": 0.6763,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6753,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@8": 0.0,
+      "rr": 0.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.5
+    },
+    {
+      "query": "Switching off tracing for one run still lets its spans show up when the caller already opened its own trace. How was this fixed?",
+      "relevant": [
+        "issue:5289:note:5974070427",
+        "issue:5289:note:5976778053",
+        "mr:5296:description",
+        "mr:5296:review:5407777008"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.8515,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5296:description",
+          "score": 0.8318,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.824,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.7577,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.7482,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.7391,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5299:description",
+          "score": 0.7387,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5299:review:5410107705",
+          "score": 0.733,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.25,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "When a tool runs after a person signs off on it and the run continues, where does it end up in the trace hierarchy, and what change put it under the right parent?",
+      "relevant": [
+        "issue:5290:description",
+        "issue:5290:note:5974057260",
+        "mr:5294:description",
+        "mr:5294:review:5407432517"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.7415,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5296:description",
+          "score": 0.735,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.7265,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.7206,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5299:description",
+          "score": 0.7107,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.7101,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:description",
+          "score": 0.7046,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5299:review:5410107705",
+          "score": 0.6945,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.25,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.75,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why are trace uploads still sent to OpenAI's servers when model requests are redirected to a local proxy, and how can traces go somewhere else without switching tracing off?",
+      "relevant": [
+        "issue:5291:description",
+        "issue:5291:note:5974033801"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.872,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5291:description",
+          "score": 0.8465,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.7563,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434659636",
+          "score": 0.7351,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5232:review:5361682307",
+          "score": 0.7325,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.732,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5687565347",
+          "score": 0.7288,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5299:review:5410107705",
+          "score": 0.7189,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why does a tool lose the descriptions of its arguments when its documentation comment starts directly with the arguments section and has no one-line summary?",
+      "relevant": [
+        "issue:5298:description",
+        "mr:5302:description",
+        "mr:5302:review:5416997428"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5302:description",
+          "score": 0.784,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5298:description",
+          "score": 0.7753,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5298:note:5989689584",
+          "score": 0.7194,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5302:review:5416997428",
+          "score": 0.7076,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.6657,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5249:review:5372130778",
+          "score": 0.6656,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015560198",
+          "score": 0.6631,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.6604,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What happens when you save a paused run whose shared application state object holds a thread lock, and how does the SDK behave after the fix?",
+      "relevant": [
+        "issue:5301:description",
+        "mr:5303:description",
+        "mr:5303:review:5417000906"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4828:review:5341819020",
+          "score": 0.714,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.7049,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5668268056",
+          "score": 0.7006,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.6886,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5996635535",
+          "score": 0.6843,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5303:description",
+          "score": 0.6783,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5318:description",
+          "score": 0.676,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:review:5446262774",
+          "score": 0.6691,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@8": 0.3333333333333333,
+      "rr": 0.16666666666666666,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.0
+    },
+    {
+      "query": "Why could a bad working directory or an empty command passed to the sandbox shell end the whole run instead of letting the model try again, and what changed so the model gets feedback?",
+      "relevant": [
+        "issue:5304:description",
+        "issue:5304:note:6005733233",
+        "mr:5321:description",
+        "mr:5321:review:5433499070"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.8429,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.8048,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.7818,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4948:description",
+          "score": 0.7091,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7053,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.7041,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5335:description",
+          "score": 0.7009,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6908,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.25,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why could saving a long list of messages to the server-side conversation store fail, and how does the SDK now split the write?",
+      "relevant": [
+        "issue:5333:description",
+        "mr:5334:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.7654,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6988,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.6791,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.6751,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6555,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5303:description",
+          "score": 0.6542,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5745457667",
+          "score": 0.6394,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:review:5259462630",
+          "score": 0.6336,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why did the maintainers decline an example that plugs a paid catalogue of tens of thousands of third-party tools into an agent?",
+      "relevant": [
+        "mr:4836:comment:5923071932"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5298:note:5987381656",
+          "score": 0.7229,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6991,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6732,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:comment:5954693566",
+          "score": 0.6692,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:description",
+          "score": 0.6682,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.6602,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5292:note:5983785219",
+          "score": 0.6563,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:description",
+          "score": 0.6561,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why was a change that rejects archives up front on Windows hosts that cannot create symbolic links not accepted?",
+      "relevant": [
+        "mr:4948:comment:5625466586"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4948:description",
+          "score": 0.7854,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4948:comment:5625466586",
+          "score": 0.6789,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5298:note:5987381656",
+          "score": 0.673,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6671,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6664,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6602,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5264:review:5372503797",
+          "score": 0.657,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5313:review:5431093482",
+          "score": 0.6515,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Before merging the change that keeps encrypted local chat history intact when the wrong decryption key is used, what did the maintainer ask the contributor to change?",
+      "relevant": [
+        "mr:5083:review:5259462630"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5083:description",
+          "score": 0.6909,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:review:5259462630",
+          "score": 0.6807,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6748,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6683,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.6657,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6553,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5283:review:5395393114",
+          "score": 0.6532,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5645226547",
+          "score": 0.6506,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why did the default speech-to-text model change, and how can an application keep using the previous one?",
+      "relevant": [
+        "mr:5226:comment:5942151281",
+        "mr:5226:review:5386534549",
+        "mr:5276:description",
+        "mr:5276:review:5385868070"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.7596,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7596,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5276:description",
+          "score": 0.7566,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5287:description",
+          "score": 0.6567,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.653,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.6353,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:review:5407432517",
+          "score": 0.6306,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6259,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.25,
+      "recall@3": 0.75,
+      "recall@5": 0.75,
+      "recall@8": 0.75,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why was a version bump for one of the hosted sandbox providers turned down even though it only touched the lockfile?",
+      "relevant": [
+        "mr:5311:comment:6020394043",
+        "mr:5311:review:5431018428"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.7118,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7073,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434906863",
+          "score": 0.6955,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6894,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:review:5388079739",
+          "score": 0.6773,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.6758,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5314:review:5431007964",
+          "score": 0.6744,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5335:description",
+          "score": 0.6719,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@8": 0.0,
+      "rr": 0.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.0
+    },
+    {
+      "query": "How did the team make the automated pre-release review finish within its time limit instead of doubling the limit?",
+      "relevant": [
+        "mr:5253:description",
+        "mr:5253:review:5361727703"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5253:review:5361727703",
+          "score": 0.7168,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5253:description",
+          "score": 0.6919,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6875,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5274:description",
+          "score": 0.6768,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:comment:5954693566",
+          "score": 0.6696,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5274:review:5382886720",
+          "score": 0.6681,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6605,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.6584,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "How did the voice demo's side panel stop interpreting markup returned by tools as live page content?",
+      "relevant": [
+        "mr:5283:description",
+        "mr:5283:review:5395393114"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5283:description",
+          "score": 0.7387,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5283:review:5395393114",
+          "score": 0.7293,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6759,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6759,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:review:5438295674",
+          "score": 0.6732,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5302:description",
+          "score": 0.6681,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6664,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5302:review:5416997428",
+          "score": 0.6662,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What was changed so that commands in the Mac local sandbox can no longer open applications outside of it?",
+      "relevant": [
+        "mr:5335:description",
+        "mr:5335:review:5461610253"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5335:description",
+          "score": 0.7426,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.7009,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6924,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6005733233",
+          "score": 0.6602,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5249:review:5372130778",
+          "score": 0.6384,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6353,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6334,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.6316,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 0.5,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What does the `tool_exception` kind for `RunConfig.tool_error_formatter` do, and which failure policy takes precedence?",
+      "relevant": [
+        "mr:5326:description",
+        "mr:5326:review:5438295674"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5324:description",
+          "score": 0.8685,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:description",
+          "score": 0.8504,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5326:review:5438295674",
+          "score": 0.7791,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.7725,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.7711,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5976935814",
+          "score": 0.7393,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.7257,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.7239,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Can `RedisSession` be used with a `RedisCluster` client?",
+      "relevant": [
+        "mr:5323:description",
+        "mr:5323:review:5434388292"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5323:review:5434388292",
+          "score": 0.7788,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5323:description",
+          "score": 0.7685,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6424,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6424,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:review:5388079739",
+          "score": 0.6367,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6308,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6265,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.6181,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What happens when a computer call has pending safety checks but `ComputerTool.on_safety_check` is not set?",
+      "relevant": [
+        "mr:5305:description",
+        "mr:5305:review:5434252904"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5305:description",
+          "score": 0.8254,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.7136,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.7101,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6978,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5645226547",
+          "score": 0.6905,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.6894,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5305:review:5434252904",
+          "score": 0.689,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5294:review:5407432517",
+          "score": 0.6867,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "How are percent-encoded local references such as `#/$defs/A%20B` handled during strict JSON Schema conversion?",
+      "relevant": [
+        "mr:5272:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5272:description",
+          "score": 0.8193,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5303:review:5417000906",
+          "score": 0.7103,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5303:description",
+          "score": 0.7058,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6819,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6734,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5431597083",
+          "score": 0.6719,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6705,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5302:review:5416997428",
+          "score": 0.6677,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What does the SDK do when a provider returns null input or output token counts?",
+      "relevant": [
+        "mr:5260:description",
+        "mr:5260:review:5371553822"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5260:description",
+          "score": 0.7702,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5260:review:5371553822",
+          "score": 0.7619,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.6877,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434659636",
+          "score": 0.6827,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6826,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6698,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5303:description",
+          "score": 0.6657,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5292:note:5983785219",
+          "score": 0.6652,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.5,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Does Realtime honor `OPENAI_AGENTS_DISABLE_TRACING=1` and `set_tracing_disabled(True)`?",
+      "relevant": [
+        "mr:5284:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.8184,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.7658,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5296:description",
+          "score": 0.7537,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.7516,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:description",
+          "score": 0.7352,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5989690534",
+          "score": 0.7322,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.7321,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.7174,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Why were the `held`, `reasoning_item_id_policy` and `current_response` fields moved to RunState schema 1.19?",
+      "relevant": [
+        "mr:4828:comment:5946088061",
+        "mr:4828:comment:5949078975",
+        "mr:4828:review:5431597083"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.8163,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:4828:comment:5949078975",
+          "score": 0.7814,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.7475,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:description",
+          "score": 0.7264,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7088,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5974076324",
+          "score": 0.6998,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.6993,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.6904,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 0.6666666666666666,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 0.6666666666666666,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "Which RunState schema version does the fix that preserves tool outputs after callback failures write, and why?",
+      "relevant": [
+        "mr:5318:description"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.8177,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:description",
+          "score": 0.7965,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.7613,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.7461,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5303:description",
+          "score": 0.7415,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5431597083",
+          "score": 0.7402,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.7376,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5272:description",
+          "score": 0.7375,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What was the DeepWiki `ask_question` tool renamed to?",
+      "relevant": [
+        "mr:5277:description"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5277:description",
+          "score": 0.6761,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5331:description",
+          "score": 0.6585,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5328:description",
+          "score": 0.6582,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6446,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015560198",
+          "score": 0.6277,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5256:review:5373279644",
+          "score": 0.6267,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5298:note:5987381656",
+          "score": 0.6251,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.6221,
+          "relevant": false
+        }
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What are the new defaults for `on_stream_max_pending_events` and the Realtime `transport_config[\"max_size\"]`, and how do you turn them off?",
+      "relevant": [
+        "mr:5226:comment:5942151281",
+        "mr:5226:review:5386534549"
+      ],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.6647,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6558,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5260:review:5371553822",
+          "score": 0.6549,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6489,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5296:description",
+          "score": 0.6435,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6391,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5305:review:5434252904",
+          "score": 0.6358,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6354,
+          "relevant": true
+        }
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@8": 1.0,
+      "rr": 0.5,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What broke the v0.23.0 release tests on Python 3.14.7?",
+      "relevant": [
+        "mr:5278:description",
+        "mr:5278:review:5388079739",
+        "mr:5279:review:5393371940"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5278:description",
+          "score": 0.7781,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.7454,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5314:review:5431007964",
+          "score": 0.736,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5317:review:5431275823",
+          "score": 0.7204,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5271:review:5373297844",
+          "score": 0.7175,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.7093,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5232:review:5361682307",
+          "score": 0.7032,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5331:review:5443704063",
+          "score": 0.6991,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.3333333333333333,
+      "recall@5": 0.3333333333333333,
+      "recall@8": 0.6666666666666666,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.5
+    },
+    {
+      "query": "What happened to the `openai>=2.25.0` floor in the Hosted tool search section of `docs/tools.md`?",
+      "relevant": [
+        "issue:5328:description",
+        "mr:5331:description",
+        "mr:5331:review:5443704063"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5328:description",
+          "score": 0.845,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5331:description",
+          "score": 0.7929,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5331:review:5443704063",
+          "score": 0.7633,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5232:review:5361682307",
+          "score": 0.7507,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5256:review:5373279644",
+          "score": 0.713,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.7065,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5298:note:5989689584",
+          "score": 0.6917,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.6917,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "What replaced the cloud release assessment, and how is `$final-release-review` used in the new release flow?",
+      "relevant": [
+        "mr:5226:comment:5942151281",
+        "mr:5226:review:5386534549",
+        "mr:5274:description",
+        "mr:5274:review:5382886720",
+        "mr:5279:review:5393371940"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5274:description",
+          "score": 0.8176,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5274:review:5382886720",
+          "score": 0.7524,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.745,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5263:description",
+          "score": 0.7317,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7314,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:4828:review:5431597083",
+          "score": 0.7242,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.7185,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5253:description",
+          "score": 0.7091,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.2,
+      "recall@3": 0.6,
+      "recall@5": 0.8,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 0.6666666666666666
+    },
+    {
+      "query": "Where does the MCP guide now tell users to find a remote server's endpoint, and will resolvers like nessgate be added to the examples?",
+      "relevant": [
+        "issue:5292:note:5983785219",
+        "mr:5297:description",
+        "mr:5297:review:5407927960"
+      ],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5292:note:5983785219",
+          "score": 0.8534,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5292:description",
+          "score": 0.8137,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5297:description",
+          "score": 0.8129,
+          "relevant": true
+        },
+        {
+          "sourceId": "mr:5297:review:5407927960",
+          "score": 0.7647,
+          "relevant": true
+        },
+        {
+          "sourceId": "issue:5281:description",
+          "score": 0.6683,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.6624,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.652,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6513,
+          "relevant": false
+        }
+      ],
+      "recall@1": 0.3333333333333333,
+      "recall@3": 0.6666666666666666,
+      "recall@5": 1.0,
+      "recall@8": 1.0,
+      "rr": 1.0,
+      "recallCeiling": 1.0,
+      "entityRecall@3": 1.0
+    },
+    {
+      "query": "On what date was openai-agents 0.23.1 published to PyPI?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5232:review:5361682307",
+          "score": 0.7712,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.7635,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5308:review:5430985447",
+          "score": 0.7515,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:description",
+          "score": 0.7514,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5331:review:5443704063",
+          "score": 0.7446,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5687565347",
+          "score": 0.7418,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.7416,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:description",
+          "score": 0.7409,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How long does a change typically wait in the main-branch merge queue before it lands?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5263:description",
+          "score": 0.7136,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6533,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5274:description",
+          "score": 0.6503,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5431597083",
+          "score": 0.65,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.6452,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5278:review:5388079739",
+          "score": 0.6338,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:comment:5954693566",
+          "score": 0.6285,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5264:review:5372503797",
+          "score": 0.627,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How many production conversations were broken by the orphaned function_call_output bug before the fix shipped?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:4827:note:5645226547",
+          "score": 0.7451,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.7388,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.7349,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6005733233",
+          "score": 0.6931,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5324:description",
+          "score": 0.6907,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6804,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.6711,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6687,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which Blaxel release finally added support for MCP 2?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5311:comment:6020394043",
+          "score": 0.8195,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5311:review:5431018428",
+          "score": 0.796,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5271:review:5373297844",
+          "score": 0.6526,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5292:note:5983785219",
+          "score": 0.6505,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5314:review:5431007964",
+          "score": 0.6263,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5292:description",
+          "score": 0.6212,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:description",
+          "score": 0.6181,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5308:review:5430985447",
+          "score": 0.6179,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What is the maximum number of items SQLAlchemySession accepts in a single add_items call?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.7242,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.7143,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:review:5385868070",
+          "score": 0.6895,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5989690534",
+          "score": 0.6743,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6561,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:description",
+          "score": 0.6531,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6521,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5313:review:5431093482",
+          "score": 0.6512,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which sandbox profile rule blocks outbound network access in the macOS local sandbox?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5335:description",
+          "score": 0.7314,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5335:review:5461610253",
+          "score": 0.6463,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.6454,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.6434,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6427,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.6293,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:review:5407432517",
+          "score": 0.6241,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6005733233",
+          "score": 0.619,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How does RedisSession expire old conversation keys, and what is the default TTL?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5083:description",
+          "score": 0.6752,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6641,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6612,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5083:review:5322333937",
+          "score": 0.6501,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6472,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:description",
+          "score": 0.6424,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6423,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5386480875",
+          "score": 0.6306,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which spoken languages does gpt-transcribe support?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.7589,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.7538,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:description",
+          "score": 0.7485,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:description",
+          "score": 0.6578,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.5727,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5298:description",
+          "score": 0.5643,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5308:review:5430985447",
+          "score": 0.5615,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.5589,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which CVE does the urllib3 2.8.0 update in the Twilio example fix?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5231:review:5356453057",
+          "score": 0.8024,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5232:review:5361682307",
+          "score": 0.7307,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5256:review:5373279644",
+          "score": 0.7199,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5307:review:5430983419",
+          "score": 0.7179,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5232:review:5356455076",
+          "score": 0.717,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5313:review:5431093482",
+          "score": 0.7018,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5271:review:5373297844",
+          "score": 0.6946,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:review:5385868070",
+          "score": 0.6913,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How many tools can an MCP server expose before the SDK requires a tool_filter?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5281:description",
+          "score": 0.7274,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5292:note:5983785219",
+          "score": 0.6911,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:review:5438295674",
+          "score": 0.6708,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5311:review:5431018428",
+          "score": 0.6652,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5311:comment:6020394043",
+          "score": 0.6565,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:description",
+          "score": 0.6558,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.6511,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5297:review:5407927960",
+          "score": 0.6511,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Did AffixIO publish its tool-input guardrail example in its own repository?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5082:note:6022900900",
+          "score": 0.8515,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5082:description",
+          "score": 0.7916,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434906863",
+          "score": 0.7098,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434332717",
+          "score": 0.7079,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5989690534",
+          "score": 0.7045,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.7013,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:review:5438295674",
+          "score": 0.6876,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5996635535",
+          "score": 0.6861,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Which unaffiliated users provided independent-use evidence for the LoopGrid tracing integration?",
+      "relevant": [],
+      "insufficientEvidence": false,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.8335,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6023827015",
+          "score": 0.7917,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5299:description",
+          "score": 0.6504,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5996635535",
+          "score": 0.6416,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5082:note:6022900900",
+          "score": 0.641,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434906863",
+          "score": 0.6402,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5260:review:5371553822",
+          "score": 0.6332,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5296:review:5407777008",
+          "score": 0.627,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I stream partial structured outputs from a Pydantic output_type while the model is still generating?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.679,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6593,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:description",
+          "score": 0.6568,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5989690534",
+          "score": 0.6473,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5246:review:5371633661",
+          "score": 0.644,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.6439,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434659636",
+          "score": 0.6397,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6395,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How can I limit how many tool calls an agent makes in parallel?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.6641,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6597,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6592,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:description",
+          "score": 0.6428,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5976935814",
+          "score": 0.6401,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5298:note:5987381656",
+          "score": 0.6335,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:description",
+          "score": 0.6292,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6288,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I set a different temperature for each agent that receives a handoff?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.6164,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.6137,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:review:5407432517",
+          "score": 0.6136,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5296:description",
+          "score": 0.5967,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5976778053",
+          "score": 0.596,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.5898,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.5831,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.5771,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What is the recommended way to reduce cold-start time when running agents on AWS Lambda?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6358,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6358,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.6356,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6326,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.6216,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.6172,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5313:review:5431093482",
+          "score": 0.6154,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:description",
+          "score": 0.6089,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How can several agents share a single token budget across a multi-agent workflow?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.6719,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6686,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:note:5858327203",
+          "score": 0.6686,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:description",
+          "score": 0.6538,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.6374,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6359,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6274,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6274,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I return a generated image as a tool output?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6723,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5283:description",
+          "score": 0.6674,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.6518,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:description",
+          "score": 0.6474,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:description",
+          "score": 0.6466,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015560198",
+          "score": 0.6428,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5298:note:5989689584",
+          "score": 0.6292,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.6266,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Does the SDK rate-limit outgoing model requests per API key?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5334:description",
+          "score": 0.6769,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6582,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5260:review:5371553822",
+          "score": 0.6453,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:note:5858327203",
+          "score": 0.6441,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5082:note:6022900900",
+          "score": 0.6422,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5279:review:5393371940",
+          "score": 0.6414,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5291:note:5974033801",
+          "score": 0.6341,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6337,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I localize agent instructions for each user's locale?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6312,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6299,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6299,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6274,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6225,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.6191,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.6174,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.6118,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Can agent instructions be loaded from a YAML file?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.701,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.6863,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6762,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.6743,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:description",
+          "score": 0.6693,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.6689,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:description",
+          "score": 0.6676,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.6538,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How can I cache model responses to save cost during development?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5304:note:6010519927",
+          "score": 0.6552,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5431597083",
+          "score": 0.6484,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5946088061",
+          "score": 0.6403,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:review:5385868070",
+          "score": 0.6388,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6376,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.6337,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.6234,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:5745457667",
+          "score": 0.623,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "What is the maximum depth of nested handoffs the SDK supports?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6425,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5082:note:6022900900",
+          "score": 0.6288,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5294:review:5407432517",
+          "score": 0.6177,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5974070427",
+          "score": 0.6117,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5996635535",
+          "score": 0.6089,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:review:5341819020",
+          "score": 0.6083,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:note:5974057260",
+          "score": 0.6025,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5974076324",
+          "score": 0.5992,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I call an agent from a Django view?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.7116,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6005733233",
+          "score": 0.6533,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6489,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.6431,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.639,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:description",
+          "score": 0.6353,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6336,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6193,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Can the SDK run agents on an Android device?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6921,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.6831,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:description",
+          "score": 0.6819,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6744,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.6632,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5183:description",
+          "score": 0.6559,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:note:5974076324",
+          "score": 0.6417,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5288:description",
+          "score": 0.6408,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I fine-tune a model on transcripts collected from agent runs?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5226:comment:5942151281",
+          "score": 0.6778,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6638,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.663,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5276:description",
+          "score": 0.6624,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5290:description",
+          "score": 0.6543,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6015459850",
+          "score": 0.6511,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.647,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.6421,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How can I export per-tool latency as Prometheus metrics?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "mr:5253:description",
+          "score": 0.6376,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5885559658",
+          "score": 0.6273,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5318:review:5434906863",
+          "score": 0.6225,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4948:comment:5625466586",
+          "score": 0.6197,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:note:6012918424",
+          "score": 0.617,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5326:review:5438295674",
+          "score": 0.6169,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5226:review:5386534549",
+          "score": 0.6161,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5312:review:5430992653",
+          "score": 0.6159,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "Is there a visual editor for designing agent workflows?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.702,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.6535,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6022908444",
+          "score": 0.6435,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:comment:5923071932",
+          "score": 0.6403,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5319:note:6023827015",
+          "score": 0.6322,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6249,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5333:description",
+          "score": 0.6157,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:description",
+          "score": 0.6096,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I automatically translate an agent's final answer into several languages?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6192,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5272:description",
+          "score": 0.6173,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.6159,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.611,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5281:note:5973996969",
+          "score": 0.6074,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.5972,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4836:description",
+          "score": 0.5958,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6009000632",
+          "score": 0.5945,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query": "How do I schedule an agent to run every night like a cron job?",
+      "relevant": [],
+      "insufficientEvidence": true,
+      "coverageIncomplete": true,
+      "hits": [
+        {
+          "sourceId": "issue:4827:description",
+          "score": 0.6033,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5287:note:5973992301",
+          "score": 0.5772,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:4828:comment:5989690534",
+          "score": 0.57,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5321:description",
+          "score": 0.5622,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:description",
+          "score": 0.5619,
+          "relevant": false
+        },
+        {
+          "sourceId": "mr:5284:description",
+          "score": 0.5607,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5289:note:5976778053",
+          "score": 0.5577,
+          "relevant": false
+        },
+        {
+          "sourceId": "issue:5304:note:6005733233",
+          "score": 0.5522,
+          "relevant": false
+        }
+      ]
+    }
+  ]
+}

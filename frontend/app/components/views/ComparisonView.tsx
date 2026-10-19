@@ -1,5 +1,7 @@
 "use client";
 
+import { useLoadErrorMessage } from '@/lib/hooks/useLoadErrorMessage';
+import { rateLimitRetryMinutes } from '@/lib/api/client';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -717,7 +719,12 @@ export const ComparisonView = ({
     );
 
     const isComparisonLoading = isLoadingA || isLoadingB;
-    const spaceError = errorA || errorB;
+    const loadErrorMessage = useLoadErrorMessage();
+    const rawSpaceError = errorA || errorB;
+    // Keep other errors as reported; only rate limits get the friendlier retry message.
+    const spaceError = rawSpaceError && rateLimitRetryMinutes(rawSpaceError) !== null
+        ? loadErrorMessage(rawSpaceError)
+        : rawSpaceError;
 
     const renderEntityCaption = (side: ComparisonSideState, entity: ComparableEntity | null, color: 'blue' | 'green', isAiLoading: boolean) => {
         if (!entity) return null;

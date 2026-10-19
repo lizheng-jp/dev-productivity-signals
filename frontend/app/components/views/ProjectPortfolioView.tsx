@@ -1,5 +1,6 @@
 "use client";
 
+import { DimensionCoverage } from '@/components/ui/DimensionCoverage';
 import React, { useEffect, useMemo, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { useTranslations } from 'next-intl';
@@ -9,6 +10,8 @@ import { SpaceRadarChart } from '@/components/ui/Charts';
 import { getSpaceMetrics } from '@/lib/api/space-metrics';
 import { buildProjectStat } from '@/lib/hooks/useProjectStats';
 import { formatLocalDate } from '@/lib/date-format';
+import { rateLimitRetryMinutes } from '@/lib/api/client';
+import { useLoadErrorMessage } from '@/lib/hooks/useLoadErrorMessage';
 import type { Project } from '@/lib/api/projects';
 import type { ProjectStat } from '@/types/project';
 
@@ -18,7 +21,7 @@ type LoadState =
   | { status: 'queued' }
   | { status: 'loading' }
   | { status: 'done'; stat: ProjectStat }
-  | { status: 'error' };
+  | { status: 'error'; error: unknown };
 
 // Each project is computed live from the GitHub API, so only a couple run at once.
 const CONCURRENCY = 2;
@@ -61,7 +64,7 @@ export const ProjectPortfolioView = ({ projects, date, onOpenProject }: ProjectP
           setStates(current => ({ ...current, [project.id]: { status: 'done', stat } }));
         } catch (error) {
           console.error('Failed to load project metrics:', project.id, error);
-          if (!cancelled) setStates(current => ({ ...current, [project.id]: { status: 'error' } }));
+          if (!cancelled) setStates(current => ({ ...current, [project.id]: { status: 'error', error } }));
         }
       }
     };
@@ -165,6 +168,7 @@ const ProjectCard = ({ project, state, onOpen, labels }: {
   labels: Record<'performance' | 'activity' | 'communication' | 'efficiency' | 'satisfaction', string>;
 }) => {
   const t = useTranslations('ProjectPortfolio');
+  const loadErrorMessage = useLoadErrorMessage();
   const [owner, repo] = (project.fullName || project.name).split('/');
   const stat = state.status === 'done' ? state.stat : null;
 
@@ -187,6 +191,7 @@ const ProjectCard = ({ project, state, onOpen, labels }: {
           <div className="text-right">
             <p className="kicker">{t('score')}</p>
             <p className="font-mono text-2xl font-bold leading-none tracking-tight text-slate-900 tabular">{Math.round(stat.totalScore)}</p>
+            <DimensionCoverage metrics={stat.spaceMetrics as Record<string, unknown> | undefined} className="mt-1" />
           </div>
         )}
       </div>
@@ -208,7 +213,9 @@ const ProjectCard = ({ project, state, onOpen, labels }: {
             {state.status === 'error' ? (
               <>
                 <TriangleAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
-                <span className="max-w-56 text-center">{t('loadError')}</span>
+                <span className="max-w-56 text-center">
+                  {rateLimitRetryMinutes(state.error) !== null ? loadErrorMessage(state.error) : t('loadError')}
+                </span>
               </>
             ) : (
               <>

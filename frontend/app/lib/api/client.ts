@@ -83,6 +83,16 @@ function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === 'AbortError';
 }
 
+const RATE_LIMIT_MESSAGE = 'GitHub API rate limit reached';
+
+/** Minutes until the GitHub API limit resets, or null when the error is not a rate limit (0 if unknown). */
+export function rateLimitRetryMinutes(error: unknown): number | null {
+  const message = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  if (!message.includes(RATE_LIMIT_MESSAGE)) return null;
+  const seconds = Number(message.match(/retry after (\d+) seconds/)?.[1]);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds / 60) : 0;
+}
+
 class ApiError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -97,6 +107,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
   } else {
     const errorText = await response.text();
     console.error(`[API Client] Error response for ${response.url}. Status: ${response.status}`);
+    if (response.status === 429 && /rate limit/i.test(errorText)) {
+      // The backend's 429 page is HTML; keep the GitHub rate-limit reason and retry time from it.
+      const retryAfter = errorText.match(/retry after (\d+) seconds/i)?.[1];
+      throw new ApiError(`${RATE_LIMIT_MESSAGE}${retryAfter ? `; retry after ${retryAfter} seconds` : ''}`, 429);
+    }
     if (response.status >= 500 || response.headers.get('content-type')?.includes('text/html')) {
       throw new ApiError(`Server error (HTTP ${response.status})`, response.status);
     }

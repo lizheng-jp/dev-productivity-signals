@@ -64,4 +64,6 @@ The demo is available at [signals.lizheng.cc](https://signals.lizheng.cc/ja). It
 
 For a self-hosted deployment, set `DEMO_DOMAIN` and a unique `POSTGRES_PASSWORD` in a private `.env`, then run `docker compose -f docker-compose.prod.yml up -d --build`. The production stack exposes only Caddy on ports 80 and 443; database, backend, and frontend remain within the Docker network. Do not commit `.env`. To serve another site from the same Caddy, put a `*.caddy` file in `deploy/sites/` on the server; it is imported by `deploy/Caddyfile` and never overwritten by CI deploys. Production also runs Prometheus (loopback only) and node-exporter; view them from Grafana on your own machine as described in [monitoring/README.md](monitoring/README.md).
 
+Caddy writes an access log per site to `/data/access/` in the `caddy_data` volume (rolled at 20 MiB, deleted after 30 days). `python3 ops/visits.py` reads it over SSH (`VISITS_SSH_HOST`, default `lightsail`) and prints real page views per day and per visitor network, leaving out bots, static assets and your own IP; `--raw` lists every view.
+
 No automatic remote deployment workflow is included.

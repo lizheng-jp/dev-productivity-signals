@@ -1,0 +1,60 @@
+{"id": "q01", "relevant": ["mr:4948:comment:5625466586"], "reason": "The maintainer found no supported Windows runtime path using the helper, so the capability probe was not justified."}
+{"id": "q02", "relevant": ["mr:5318:description"], "reason": "The fix writes schema 1.20 so older workers reject checkpoints requiring the new guardrail boundary."}
+{"id": "q03", "relevant": [], "reason": "No source explains automatic multilingual translation of final answers."}
+{"id": "q04", "relevant": [], "reason": "No source answers whether agents can run on Android."}
+{"id": "q05", "relevant": ["mr:5253:description", "mr:5253:review:5361727703"], "reason": "The assessment retained its 30-minute cap while using medium reasoning, batched complete-diff inspection, and time reserved for the verdict."}
+{"id": "q06", "relevant": [], "reason": "No source identifies unaffiliated LoopGrid users providing independent-use evidence."}
+{"id": "q07", "relevant": ["issue:5328:description", "mr:5331:description", "mr:5331:review:5443704063"], "reason": "The stale floor was removed because pyproject.toml already enforces the dependency constraint, while the Responses requirement remains."}
+{"id": "q08", "relevant": ["mr:4836:comment:5923071932"], "reason": "The example added little teaching value beyond existing Agent.tools support and was better maintained with the vendor integration."}
+{"id": "q09", "relevant": [], "reason": "No source explains fine-tuning on agent-run transcripts."}
+{"id": "q10", "relevant": [], "reason": "No source explains calling an agent from a Django view."}
+{"id": "q11", "relevant": ["issue:5291:description", "issue:5291:note:5974033801"], "reason": "Tracing uses an independent endpoint; replacing processors supports a custom exporter destination without disabling tracing."}
+{"id": "q12", "relevant": [], "reason": "No source recommends an AWS Lambda cold-start strategy."}
+{"id": "q13", "relevant": ["issue:5292:description", "issue:5292:note:5983785219", "mr:5297:description", "mr:5297:review:5407927960"], "reason": "The guidance points to provider documentation and the official MCP Registry, while resolver integrations remain outside SDK examples."}
+{"id": "q14", "relevant": ["issue:5304:description", "issue:5304:note:6005733233", "issue:5304:note:6010519927", "issue:5304:note:6015459850", "issue:5304:note:6015560198", "mr:5321:description", "mr:5321:review:5433499070"], "reason": "Uncaught validation and path errors aborted runs; the fix returns safe preflight feedback while preserving backend failures."}
+{"id": "q15", "relevant": ["mr:5283:description", "mr:5283:review:5395393114"], "reason": "The demo constructs DOM nodes with textContent so tool output and event descriptions render as literal text."}
+{"id": "q16", "relevant": ["mr:5335:description", "mr:5335:review:5461610253"], "reason": "The shared macOS sandbox profile now denies lsopen to block Launch Services in ordinary and PTY execution."}
+{"id": "q17", "relevant": ["mr:5272:description"], "reason": "URI fragments are decoded once before JSON Pointer traversal while preserving plus signs and pointer escape ordering."}
+{"id": "q18", "relevant": [], "reason": "No source explains locale-specific agent instructions."}
+{"id": "q19", "relevant": ["mr:5311:comment:6020394043", "mr:5311:review:5431018428"], "reason": "Blaxel 0.4.12 forced an MCP downgrade that broke MCP 2 tests and typing, so the update was deferred."}
+{"id": "q20", "relevant": [], "reason": "No source confirms publication of an AffixIO example in its own repository."}
+{"id": "q21", "relevant": [], "reason": "No source specifies a tool-count threshold requiring tool_filter."}
+{"id": "q22", "relevant": ["issue:5290:description", "issue:5290:note:5974057260", "issue:5290:note:5976935814", "mr:5294:description", "mr:5294:review:5407432517"], "reason": "Approved tool spans now sit directly under the resumed agent span, opened before interrupted-turn resolution in both runners."}
+{"id": "q23", "relevant": [], "reason": "No source explains scheduling nightly agent runs."}
+{"id": "q24", "relevant": ["mr:5278:description", "mr:5278:review:5388079739", "mr:5279:review:5393371940"], "reason": "Globally installed OS mocks collided with Python 3.14.7 event-loop initialization; the async fixture now scopes them within the loop lifetime."}
+{"id": "q25", "relevant": [], "reason": "No source explains separate temperatures for handoff agents."}
+{"id": "q26", "relevant": [], "reason": "No source specifies a SQLAlchemySession add_items item limit."}
+{"id": "q27", "relevant": ["issue:4827:description", "issue:4827:note:6012918424", "mr:4828:comment:5885559658", "mr:4828:comment:5989690534", "mr:4828:description", "mr:4828:review:5431597083"], "reason": "Deferred approval history omitted the original function_call while saving its output, permanently poisoning later session requests."}
+{"id": "q28", "relevant": ["mr:4828:comment:5946088061", "mr:4828:comment:5949078975", "mr:4828:review:5431597083"], "reason": "Schema 1.18 had already shipped without these fields, so the new held-write format requires 1.19 to preserve reader compatibility."}
+{"id": "q29", "relevant": ["issue:5298:description", "issue:5298:note:5989689584", "mr:5302:description", "mr:5302:review:5416997428"], "reason": "Griffe cleans the docstring a second time and removes argument indentation; a leading newline preserves the section during parsing."}
+{"id": "q30", "relevant": ["mr:5305:description", "mr:5305:review:5434252904"], "reason": "The SDK logs one payload-free warning before the action while leaving execution and acknowledgment behavior unchanged."}
+{"id": "q31", "relevant": ["mr:5277:description"], "reason": "The DeepWiki tool was renamed from ask_question to ask_wiki_question."}
+{"id": "q32", "relevant": [], "reason": "No source describes a visual workflow editor."}
+{"id": "q33", "relevant": ["mr:5260:description", "mr:5260:review:5371553822"], "reason": "Nullable token counts are normalized to zero at provider adapter boundaries while valid counts and accounting are preserved."}
+{"id": "q34", "relevant": ["mr:5326:description", "mr:5326:review:5438295674"], "reason": "The run-wide formatter handles decorated tools using the implicit default handler, with explicit per-tool policies taking precedence and generic fallback on formatter failure."}
+{"id": "q35", "relevant": ["mr:5083:review:5259462630"], "reason": "The maintainer requested atomic authentication and conditional removal plus controlled concurrent append and clear tests."}
+{"id": "q36", "relevant": [], "reason": "No source names a CVE fixed by the Twilio urllib3 update."}
+{"id": "q37", "relevant": [], "reason": "No source explains limiting parallel tool calls."}
+{"id": "q38", "relevant": ["issue:5301:description", "mr:5303:description", "mr:5303:review:5417000906"], "reason": "A lock previously caused dataclass serialization to fail; the fix warns and stores empty context with omitted metadata unless strict or custom serialization applies."}
+{"id": "q39", "relevant": [], "reason": "No source states RedisSession expiration behavior or a default TTL."}
+{"id": "q40", "relevant": [], "reason": "No source explains a shared token budget across agents."}
+{"id": "q41", "relevant": ["mr:5226:comment:5942151281", "mr:5226:review:5386534549"], "reason": "The defaults are 1024 pending callback events and 8 MiB Realtime messages, and setting either limit to None disables it."}
+{"id": "q42", "relevant": [], "reason": "No source reports a count of affected production conversations."}
+{"id": "q43", "relevant": [], "reason": "No source gives the PyPI publication date for version 0.23.1."}
+{"id": "q44", "relevant": [], "reason": "No source explains exporting per-tool latency to Prometheus."}
+{"id": "q45", "relevant": [], "reason": "No source lists the spoken languages supported by gpt-transcribe."}
+{"id": "q46", "relevant": ["mr:5284:description"], "reason": "Realtime now checks the active tracing provider before enabling server tracing and honors both global disable controls."}
+{"id": "q47", "relevant": [], "reason": "No source explains returning generated images as tool outputs."}
+{"id": "q48", "relevant": [], "reason": "No source identifies a macOS sandbox rule denying outbound networking."}
+{"id": "q49", "relevant": [], "reason": "No source states whether model requests are rate-limited per API key."}
+{"id": "q50", "relevant": [], "reason": "No source specifies a maximum nested handoff depth."}
+{"id": "q51", "relevant": [], "reason": "No source explains caching model responses during development."}
+{"id": "q52", "relevant": [], "reason": "No source identifies a Blaxel release that added MCP 2 support."}
+{"id": "q53", "relevant": [], "reason": "No source explains loading agent instructions from YAML."}
+{"id": "q54", "relevant": [], "reason": "No source states typical main-branch merge-queue waiting time."}
+{"id": "q55", "relevant": ["issue:5333:description", "mr:5334:description"], "reason": "Writes exceeded the API limit of 20 items; the fix sends sequential ordered batches of at most 20 with defined partial-failure behavior."}
+{"id": "q56", "relevant": [], "reason": "No source explains streaming partial Pydantic structured outputs."}
+{"id": "q57", "relevant": ["mr:5226:comment:5942151281", "mr:5226:review:5386534549", "mr:5276:description", "mr:5276:review:5385868070"], "reason": "The default changed to gpt-transcribe as the previous model retires, and an explicit stt_model override retains the previous model."}
+{"id": "q58", "relevant": ["mr:5226:comment:5942151281", "mr:5226:review:5386534549", "mr:5274:description", "mr:5274:review:5382886720", "mr:5279:review:5393371940"], "reason": "Local maintainer review of the exact release candidate replaces cloud assessment, with the skill report submitted in a native human approving review."}
+{"id": "q59", "relevant": ["issue:5289:description", "issue:5289:note:5974070427", "issue:5289:note:5976778053", "mr:5296:description", "mr:5296:review:5407777008"], "reason": "Disabled runs mask inherited trace and span contexts through the configured provider, including streaming background work, while restoring caller context."}
+{"id": "q60", "relevant": ["mr:5323:description", "mr:5323:review:5434388292"], "reason": "RedisSession rejects RedisCluster clients at construction and directs callers to standalone Redis or a custom Session backend."}

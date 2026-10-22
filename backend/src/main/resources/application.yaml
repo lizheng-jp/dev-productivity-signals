@@ -50,6 +50,8 @@ github:
     url: ${GITHUB_API_URL:https://api.github.com}
     version: ${GITHUB_API_VERSION:2026-03-10}
     token: ${GITHUB_API_TOKEN:}
+    # Private repositories the token can read are refused unless this is true (single-user deployments only).
+    allow-private-repositories: ${GITHUB_API_ALLOW_PRIVATE_REPOSITORIES:false}
     max-pages: ${GITHUB_API_MAX_PAGES:10}
     max-commit-details: ${GITHUB_API_MAX_COMMIT_DETAILS:30}
     max-anonymous-commit-details: ${GITHUB_API_MAX_ANONYMOUS_COMMIT_DETAILS:20}
@@ -68,6 +70,10 @@ gemini:
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent
 
 ai:
+  evaluation-feedback:
+    # Stores each AI evaluation so viewers can rate it. Off on the read-only public demo, where rating is blocked
+    # and every GET would otherwise add a row.
+    capture-enabled: ${AI_EVALUATION_FEEDBACK_CAPTURE_ENABLED:true}
   mr-analysis:
     manual-run-enabled: ${AI_MR_ANALYSIS_MANUAL_RUN_ENABLED:true}
     batch:

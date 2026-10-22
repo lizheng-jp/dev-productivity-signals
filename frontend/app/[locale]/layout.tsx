@@ -7,6 +7,8 @@ import "react-day-picker/dist/style.css"; // Import react-day-picker styles
 import { cn } from "@/components/ui/Common"; // Import cn utility
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '../../i18n/routing';
 
 const notoSansJP = localFont({
   display: 'swap',
@@ -48,6 +50,10 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  // Any first path segment reaches this layout (scanners ask for /.env, /phpinfo.php); only real locales render.
+  if (!routing.locales.includes(locale as (typeof routing.locales)[number])) {
+    notFound();
+  }
   const messages = await getMessages({ locale });
 
   return (

@@ -6,6 +6,7 @@ import dev.productivity.signals.entity.AiEvaluationSnapshot;
 import dev.productivity.signals.repository.AiEvaluationFeedbackRepository;
 import dev.productivity.signals.repository.AiEvaluationSnapshotRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +52,22 @@ class AiEvaluationFeedbackServiceTest {
         assertThat(response.section()).isEqualTo("strengths");
         verify(snapshots).saveAndFlush(any(AiEvaluationSnapshot.class));
         verify(feedback).saveAndFlush(any(AiEvaluationFeedback.class));
+    }
+
+    @Test
+    void storesNothingWhenCaptureIsDisabled() {
+        AiEvaluationSnapshotRepository snapshots = mock(AiEvaluationSnapshotRepository.class);
+        AiEvaluationFeedbackService service = new AiEvaluationFeedbackService(
+                snapshots, mock(AiEvaluationFeedbackRepository.class));
+        ReflectionTestUtils.setField(service, "captureEnabled", false);
+
+        AiEvaluationResponseDTO evaluation = service.capture(
+                new AiEvaluationResponseDTO(List.of("Strong tests"), List.of(), List.of()),
+                "1", "2026-09-01", "2026-09-07", null, "main", true);
+
+        assertThat(evaluation.getStrengths()).containsExactly("Strong tests");
+        assertThat(evaluation.getEvaluationId()).isNull();
+        verify(snapshots, never()).saveAndFlush(any(AiEvaluationSnapshot.class));
     }
 
     @Test

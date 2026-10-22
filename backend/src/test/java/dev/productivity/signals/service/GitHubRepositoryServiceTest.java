@@ -42,6 +42,67 @@ class GitHubRepositoryServiceTest {
         ReflectionTestUtils.setField(service, "maxAnonymousCommitDetails", 0);
         ReflectionTestUtils.setField(service, "maxReviewDetails", 100);
         ReflectionTestUtils.setField(service, "maxAnonymousReviewDetails", 10);
+        // Most tests check request sequences without the visibility lookup; the private-repository tests turn it on.
+        ReflectionTestUtils.setField(service, "allowPrivateRepositories", true);
+    }
+
+    @Test
+    void refusesPrivateRepositoryByDefault() {
+        ReflectionTestUtils.setField(service, "allowPrivateRepositories", false);
+        server.expect(once(), requestTo("https://api.github.test/repos/octocat/secret"))
+                .andRespond(withSuccess("""
+                        {"name":"secret","private":true,"visibility":"private"}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> service.getBranches("github~octocat~secret"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode().value())
+                        .isEqualTo(404));
+        server.verify();
+    }
+
+    @Test
+    void refusesPrivateRepositoryWhenResolvingUrl() {
+        ReflectionTestUtils.setField(service, "allowPrivateRepositories", false);
+        server.expect(once(), requestTo("https://api.github.test/repos/octocat/secret"))
+                .andRespond(withSuccess("""
+                        {"name":"secret","private":true,"visibility":"private"}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> service.resolveProject("https://github.com/octocat/secret"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode().value())
+                        .isEqualTo(404));
+        server.verify();
+    }
+
+    @Test
+    void servesPublicRepositoryAfterVisibilityCheck() {
+        ReflectionTestUtils.setField(service, "allowPrivateRepositories", false);
+        server.expect(once(), requestTo("https://api.github.test/repos/octocat/Hello-World"))
+                .andRespond(withSuccess("""
+                        {"name":"Hello-World","private":false,"visibility":"public"}
+                        """, MediaType.APPLICATION_JSON));
+        server.expect(once(), requestTo("https://api.github.test/repos/octocat/Hello-World/branches?per_page=100&page=1"))
+                .andRespond(withSuccess("[{\"name\":\"main\"}]", MediaType.APPLICATION_JSON));
+
+        assertThat(service.getBranches("github~octocat~Hello-World")).isNotEmpty();
+        server.verify();
+    }
+
+    @Test
+    void rejectsProjectIdsThatWouldLeaveTheRepositoryPath() {
+        for (String projectId : new String[] {
+                "github~octocat~Hello-World%2F..%2F..%2Fuser", "github~..~..", "github~octocat~repo%3Fq%3D1",
+                "github~octocat~repo%23", "github~octo%2Fcat~repo", "github~~repo"}) {
+            assertThatThrownBy(() -> service.fromProjectId(projectId))
+                    .as(projectId)
+                    .isInstanceOf(ResponseStatusException.class);
+        }
+        assertThat(service.fromProjectId("github~octo.cat_1~Hello-World.js").repo()).isEqualTo("Hello-World.js");
+        assertThatThrownBy(() -> service.resolveProject("https://github.com/octocat/.."))
+                .isInstanceOf(ResponseStatusException.class);
+        server.verify();
     }
 
     @Test

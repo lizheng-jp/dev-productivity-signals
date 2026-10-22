@@ -50,6 +50,7 @@ public class GitHubRepositoryService {
             "^https?://github\\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\\.git)?/?$");
     private static final Pattern SSH_REPOSITORY = Pattern.compile(
             "^git@github\\.com:([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\\.git)?$");
+    private static final Pattern REPOSITORY_NAME = Pattern.compile("[A-Za-z0-9_.-]{1,100}");
     private static final String ANONYMOUS_CREDENTIAL = "<anonymous>";
     private static final long DEFAULT_RATE_LIMIT_BACKOFF_MILLIS = 60_000L;
     private static final int MAX_CONCURRENT_REQUESTS = 8;
@@ -70,6 +71,13 @@ public class GitHubRepositoryService {
 
     @Value("${github.api.token:}")
     private String configuredToken;
+
+    /**
+     * The API is public and runs with the server's token, so by default a private repository the token can read is
+     * refused as if it did not exist. Enable only for a private, single-user deployment.
+     */
+    @Value("${github.api.allow-private-repositories:false}")
+    private boolean allowPrivateRepositories;
 
     @Value("${github.api.max-pages:10}")
     private int maxPages;
@@ -97,6 +105,7 @@ public class GitHubRepositoryService {
     public ProjectDTO resolveProject(String repositoryUrl) {
         RepositoryCoordinates repository = parseRepositoryUrl(repositoryUrl);
         JSONObject source = getObject(repository.path());
+        requireVisible(source);
 
         ProjectDTO project = new ProjectDTO();
         project.setId(toProjectId(repository));
@@ -125,7 +134,7 @@ public class GitHubRepositoryService {
     }
 
     public List<String> getProjectMembers(String projectId) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         Set<String> members = new LinkedHashSet<>();
         for (int page = 1; page <= maxPages; page++) {
             JSONArray contributors = getArray(repository.path() + "/contributors?per_page=100&page=" + page);
@@ -151,7 +160,7 @@ public class GitHubRepositoryService {
     }
 
     public List<BranchDTO> getBranches(String projectId) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONObject repo = getObject(repository.path());
         String defaultBranch = repo.optString("default_branch", "main");
         List<BranchDTO> result = new ArrayList<>();
@@ -177,7 +186,7 @@ public class GitHubRepositoryService {
     }
 
     public List<JSONObject> getCommits(String projectId, String since, String until, String refName) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         List<JSONObject> sourceCommits = new ArrayList<>();
         List<JSONObject> result = new ArrayList<>();
         int detailCount = 0;
@@ -250,7 +259,7 @@ public class GitHubRepositoryService {
 
     public List<JSONObject> getPullRequests(String projectId, String since, String until, String authorUserName,
             String refName, String filterType, String state) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         List<JSONObject> result = new ArrayList<>();
         String githubState = "merged".equals(state) ? "closed" : "all";
         ZonedDateTime start = parseDate(since, false);
@@ -280,7 +289,7 @@ public class GitHubRepositoryService {
     }
 
     public PullRequestPage getRecentPullRequestsPage(String projectId, String since, String until, String refName) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONArray page = getArray(repository.path() + "/pulls?state=all&sort=updated&direction=desc&per_page=100&page=1");
         ZonedDateTime start = parseDate(since, false);
         ZonedDateTime end = parseDate(until, true);
@@ -300,7 +309,7 @@ public class GitHubRepositoryService {
 
     /** Every PR created in the window, newest first, read page by page up to the configured page limit. */
     public PullRequestPage getPullRequestsCreatedIn(String projectId, String since, String until, String refName) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         ZonedDateTime start = parseDate(since, false);
         ZonedDateTime end = parseDate(until, true);
         List<JSONObject> matches = new ArrayList<>();
@@ -325,7 +334,7 @@ public class GitHubRepositoryService {
 
     /** Every issue (not PR) created in the window, read page by page up to the configured page limit. */
     public IssuePage getIssuesCreatedIn(String projectId, String since, String until) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         ZonedDateTime start = parseDate(since, false);
         ZonedDateTime end = parseDate(until, true);
         List<JSONObject> matches = new ArrayList<>();
@@ -347,7 +356,7 @@ public class GitHubRepositoryService {
     }
 
     public JSONObject getPullRequestDetail(String projectId, int pullNumber) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONObject source = getObject(repository.path() + "/pulls/" + pullNumber);
         JSONObject result = normalizePullRequest(source);
         result.put("additions", source.optInt("additions"));
@@ -360,7 +369,7 @@ public class GitHubRepositoryService {
     }
 
     public IssuePage getRecentIssuesPage(String projectId, String since, String until) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONArray page = getArray(repository.path() + "/issues?state=all&sort=updated&direction=desc&per_page=100&page=1");
         ZonedDateTime start = parseDate(since, false);
         ZonedDateTime end = parseDate(until, true);
@@ -390,7 +399,7 @@ public class GitHubRepositoryService {
     }
 
     public JSONArray getRecentPullRequestNotes(String projectId, int pullNumber) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONArray notes = new JSONArray();
         appendNotes(notes, repository.path() + "/issues/" + pullNumber + "/comments", false, 1);
         appendNotes(notes, repository.path() + "/pulls/" + pullNumber + "/reviews", true, 1);
@@ -398,14 +407,14 @@ public class GitHubRepositoryService {
     }
 
     public JSONArray getRecentIssueComments(String projectId, int issueNumber) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONArray notes = new JSONArray();
         appendNotes(notes, repository.path() + "/issues/" + issueNumber + "/comments", false, 1);
         return notes;
     }
 
     public JSONArray getPullRequestNotes(String projectId, int pullNumber) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         JSONArray notes = new JSONArray();
         appendNotes(notes, repository.path() + "/issues/" + pullNumber + "/comments", false);
         appendNotes(notes, repository.path() + "/pulls/" + pullNumber + "/reviews", true);
@@ -425,7 +434,7 @@ public class GitHubRepositoryService {
             return result;
         }
 
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         for (int offset = 0; offset < pullNumbers.size(); offset += 10) {
             List<Integer> batch = pullNumbers.subList(offset, Math.min(offset + 10, pullNumbers.size()));
             StringBuilder query = new StringBuilder("query { repository(owner:")
@@ -536,7 +545,7 @@ public class GitHubRepositoryService {
     }
 
     public RepositoryDiff getPullRequestDiff(String projectId, int pullNumber) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         StringBuilder diff = new StringBuilder();
         int lineCount = 0;
         int maxLines = 5000;
@@ -573,7 +582,7 @@ public class GitHubRepositoryService {
     }
 
     public List<JSONObject> getIssues(String projectId, String state, String since) {
-        RepositoryCoordinates repository = fromProjectId(projectId);
+        RepositoryCoordinates repository = publicRepository(projectId);
         List<JSONObject> result = new ArrayList<>();
         String githubState = state == null || state.isBlank() ? "all" : state;
 
@@ -917,11 +926,11 @@ public class GitHubRepositoryService {
     RepositoryCoordinates parseRepositoryUrl(String repositoryUrl) {
         String value = repositoryUrl == null ? "" : repositoryUrl.trim();
         Matcher httpsMatcher = HTTPS_REPOSITORY.matcher(value);
-        if (httpsMatcher.matches()) {
+        if (httpsMatcher.matches() && isRepositoryName(httpsMatcher.group(1)) && isRepositoryName(httpsMatcher.group(2))) {
             return new RepositoryCoordinates(httpsMatcher.group(1), httpsMatcher.group(2));
         }
         Matcher sshMatcher = SSH_REPOSITORY.matcher(value);
-        if (sshMatcher.matches()) {
+        if (sshMatcher.matches() && isRepositoryName(sshMatcher.group(1)) && isRepositoryName(sshMatcher.group(2))) {
             return new RepositoryCoordinates(sshMatcher.group(1), sshMatcher.group(2));
         }
         throw new ResponseStatusException(
@@ -935,10 +944,37 @@ public class GitHubRepositoryService {
         }
         String encoded = projectId.substring(PROJECT_PREFIX.length());
         String[] parts = encoded.split("~", 2);
-        if (parts.length != 2 || parts[0].isBlank() || parts[1].isBlank()) {
+        if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid GitHub project id");
         }
-        return new RepositoryCoordinates(decode(parts[0]), decode(parts[1]));
+        String owner = decode(parts[0]);
+        String repo = decode(parts[1]);
+        // The names go into GitHub API paths; anything else (slashes, "..", "?", "#") could reach other endpoints.
+        if (!isRepositoryName(owner) || !isRepositoryName(repo)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid GitHub project id");
+        }
+        return new RepositoryCoordinates(owner, repo);
+    }
+
+    /** Coordinates for a repository this deployment may serve; a refused private repository reads as not found. */
+    private RepositoryCoordinates publicRepository(String projectId) {
+        RepositoryCoordinates repository = fromProjectId(projectId);
+        if (!allowPrivateRepositories) {
+            requireVisible(getObject(repository.path()));
+        }
+        return repository;
+    }
+
+    private void requireVisible(JSONObject repository) {
+        boolean isPrivate = repository.optBoolean("private", false)
+                || !"public".equals(repository.optString("visibility", "public"));
+        if (isPrivate && !allowPrivateRepositories) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "GitHub repository not found");
+        }
+    }
+
+    private static boolean isRepositoryName(String value) {
+        return value != null && REPOSITORY_NAME.matcher(value).matches() && !".".equals(value) && !"..".equals(value);
     }
 
     private String toProjectId(RepositoryCoordinates repository) {

@@ -8,6 +8,7 @@ import dev.productivity.signals.repository.AiEvaluationSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,9 @@ public class AiEvaluationFeedbackService {
     private final AiEvaluationSnapshotRepository snapshots;
     private final AiEvaluationFeedbackRepository feedback;
 
+    @Value("${ai.evaluation-feedback.capture-enabled:true}")
+    private boolean captureEnabled = true;
+
     public record FeedbackRequest(UUID evaluationId, String section, int itemIndex, Boolean helpful) {
     }
 
@@ -41,8 +45,8 @@ public class AiEvaluationFeedbackService {
             String userName,
             String refName,
             boolean aiEnabled) {
-        if (output == null) {
-            return null;
+        if (output == null || !captureEnabled) {
+            return output;
         }
 
         AiEvaluationSnapshot snapshot = new AiEvaluationSnapshot();

@@ -46,6 +46,8 @@ docker compose up -d --build
 
 Open `http://localhost:3001`. The API listens on `http://localhost:8087`. Local ports are bound to the loopback interface.
 
+The API has no login, so it refuses private GitHub repositories even when `GITHUB_API_TOKEN` can read them. On a deployment only you can reach, set `GITHUB_API_ALLOW_PRIVATE_REPOSITORIES=true` to analyse your own private repositories.
+
 To use Signals Agent, set `AGENT_ENABLED=true` and provide `GITHUB_API_TOKEN`, `GEMINI_API_KEY`, and a random `AGENT_INTERNAL_KEY` of at least 32 characters in `.env`:
 
 ```sh
